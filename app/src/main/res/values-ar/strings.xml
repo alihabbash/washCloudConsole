@@ -24,4 +24,5 @@
     <string name="quick_open">فتح سريع</string>
     <string name="open">فتح</string>
     <string name="enter_security">أدخل الرقم السري للطلبية</string>
+    <string name="login">تسجيل الدخول</string>
 </resources>

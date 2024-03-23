@@ -355,7 +355,6 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .padding(24.dp)
-//                        .clip()
                         .border(
                             color = borderColor,
                             width = 1.dp,
@@ -367,7 +366,119 @@ class MainActivity : ComponentActivity() {
                         )
                         .fillMaxWidth()
                         .height(0.72 * screenHeight)
-                )
+                ){
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .border(
+                                color = borderColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .fillMaxWidth()
+                    ){
+                        Column {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(id = R.string.mobile_number),
+                                style = TextStyle(
+                                    fontSize = 20.sp,
+                                    color = Color.Black
+                                ),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(start = 24.dp)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .padding(24.dp)
+                                    .border(
+                                        color = borderColor,
+                                        width = 1.dp,
+                                        shape = RoundedCornerShape(36.dp)
+                                    )
+                                    .background(
+                                        color = Color.White,
+                                        shape = RoundedCornerShape(36.dp)
+                                    )
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                            ){
+                                Text(text = "        ",
+                                    style = TextStyle(
+                                        color = hints
+                                    )
+                                )
+                            }
+                            Text(
+                                text = stringResource(id = R.string.password),
+                                style = TextStyle(
+                                    fontSize = 20.sp,
+                                    color = Color.Black
+                                ),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(start = 24.dp)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .padding(24.dp)
+                                    .border(
+                                        color = borderColor,
+                                        width = 1.dp,
+                                        shape = RoundedCornerShape(36.dp)
+                                    )
+                                    .background(
+                                        color = Color.White,
+                                        shape = RoundedCornerShape(36.dp)
+                                    )
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                            ){
+                                Text(text = "XXXX-XXXX-XXXX",
+                                    style = TextStyle(
+                                        color = hints
+                                    )
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .padding(start = 24.dp, end = 24.dp)
+                                    .clip(
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                blueGradient,
+                                                secondaryColor,
+                                            ),
+                                        )
+                                    )
+                                    .padding(
+                                        start = 16.dp,
+                                        top = 12.dp,
+                                        end = 16.dp,
+                                        bottom = 12.dp
+                                    )
+                                    .fillMaxWidth()
+                                    .padding(start = 24.dp, end = 24.dp),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(text = stringResource(id = R.string.login),
+                                    style = TextStyle(
+                                        color = Color.White,
+                                        fontSize = 20.sp
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
                 Box(
                     modifier =
                     Modifier.weight(1f)
@@ -664,7 +775,7 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .padding(start = 24.dp, end = 24.dp)
                                         .clip(
-                                            RoundedCornerShape(24.dp)
+                                            RoundedCornerShape(8.dp)
                                         )
                                         .background(
                                             brush = Brush.horizontalGradient(

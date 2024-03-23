@@ -23,4 +23,5 @@
     <string name="quick_open">Quick Open</string>
     <string name="open">Open</string>
     <string name="enter_security">Enter Order Security Number</string>
+    <string name="login">Login</string>
 </resources>
