@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">تطبيق وحدة التحكم</string>
+    <string name="ad1">إعلان١</string>
+    <string name="ad2">إعلان٢</string>
+    <string name="help">المساعدة</string>
+    <string name="language">اللغة</string>
+</resources>

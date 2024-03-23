@@ -1,15 +1,30 @@
-package com.washcloud.consoleappliaction.ui.theme
+package com.washcloud.consoleapplication.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.washcloud.consoleapplication.R
+
+val ArialMT = FontFamily(
+    Font(R.font.arial_mt_normal, FontWeight.Normal, FontStyle.Normal),
+    Font(R.font.arial_mt_italic, FontWeight.Normal, FontStyle.Italic),
+
+    Font(R.font.arial_mt_bold, FontWeight.Bold, FontStyle.Normal),
+
+    Font(R.font.arial_mt_light, FontWeight.Light, FontStyle.Normal),
+
+    Font(R.font.arial_mt_medium, FontWeight.Medium, FontStyle.Normal),
+
+)
 
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = ArialMT,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
