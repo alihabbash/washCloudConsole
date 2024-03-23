@@ -5,4 +5,24 @@
     <string name="ad2">إعلان٢</string>
     <string name="help">المساعدة</string>
     <string name="language">اللغة</string>
+    <string name="staff_login">تسجيل دخول الموظف</string>
+    <string name="mobile_number">رقم الجوال</string>
+    <string name="password">كلمة السر</string>
+    <string name="one">١</string>
+    <string name="two">٢</string>
+    <string name="three">٣</string>
+    <string name="four">٤</string>
+    <string name="five">٥</string>
+    <string name="six">٦</string>
+    <string name="seven">٧</string>
+    <string name="eight">٨</string>
+    <string name="nine">٩</string>
+    <string name="zero">٠</string>
+    <string name="clear">مسح</string>
+    <string name="confirm">تأكيد</string>
+    <string name="back">رجوع</string>
+    <string name="quick_open">فتح سريع</string>
+    <string name="open">فتح</string>
+    <string name="enter_security">أدخل الرقم السري للطلبية</string>
+    <string name="login">تسجيل الدخول</string>
 </resources>
