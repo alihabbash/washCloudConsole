@@ -47,9 +47,11 @@ import androidx.compose.ui.unit.times
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
+import com.washcloud.consoleapplication.utils.clearText
 import com.washcloud.consoleapplication.utils.hints
 import com.washcloud.consoleapplication.utils.lightGreen
 import com.washcloud.consoleapplication.utils.lightGrey
+import com.washcloud.consoleapplication.utils.numbersBackground
 import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.screenBackground
 import com.washcloud.consoleapplication.utils.secondaryColor
@@ -367,117 +369,380 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .height(0.72 * screenHeight)
                 ){
-                    Box(
-                        modifier = Modifier
-                            .padding(24.dp)
-                            .border(
-                                color = borderColor,
-                                width = 1.dp,
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .fillMaxWidth()
-                    ){
-                        Column {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = stringResource(id = R.string.mobile_number),
-                                style = TextStyle(
-                                    fontSize = 20.sp,
-                                    color = Color.Black
-                                ),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(start = 24.dp)
-                            )
+                    Column {
+                        Box(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .border(
+                                    color = borderColor,
+                                    width = 1.dp,
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                                .background(
+                                    color = Color.White,
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                                .fillMaxWidth()
+                        ) {
+                            Column {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(id = R.string.mobile_number),
+                                    style = TextStyle(
+                                        fontSize = 20.sp,
+                                        color = Color.Black
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .padding(24.dp)
+                                        .border(
+                                            color = borderColor,
+                                            width = 1.dp,
+                                            shape = RoundedCornerShape(36.dp)
+                                        )
+                                        .background(
+                                            color = Color.White,
+                                            shape = RoundedCornerShape(36.dp)
+                                        )
+                                        .fillMaxWidth()
+                                        .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "        ",
+                                        style = TextStyle(
+                                            color = hints
+                                        )
+                                    )
+                                }
+                                Text(
+                                    text = stringResource(id = R.string.password),
+                                    style = TextStyle(
+                                        fontSize = 20.sp,
+                                        color = Color.Black
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .padding(24.dp)
+                                        .border(
+                                            color = borderColor,
+                                            width = 1.dp,
+                                            shape = RoundedCornerShape(36.dp)
+                                        )
+                                        .background(
+                                            color = Color.White,
+                                            shape = RoundedCornerShape(36.dp)
+                                        )
+                                        .fillMaxWidth()
+                                        .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "XXXX-XXXX-XXXX",
+                                        style = TextStyle(
+                                            color = hints
+                                        )
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .padding(start = 24.dp, end = 24.dp)
+                                        .clip(
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .background(
+                                            brush = Brush.horizontalGradient(
+                                                colors = listOf(
+                                                    blueGradient,
+                                                    secondaryColor,
+                                                ),
+                                            )
+                                        )
+                                        .padding(
+                                            start = 16.dp,
+                                            top = 12.dp,
+                                            end = 16.dp,
+                                            bottom = 12.dp
+                                        )
+                                        .fillMaxWidth()
+                                        .padding(start = 24.dp, end = 24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.login),
+                                        style = TextStyle(
+                                            color = Color.White,
+                                            fontSize = 20.sp
+                                        )
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ){
                             Box(
                                 modifier = Modifier
-                                    .padding(24.dp)
-                                    .border(
-                                        color = borderColor,
-                                        width = 1.dp,
-                                        shape = RoundedCornerShape(36.dp)
-                                    )
                                     .background(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(36.dp)
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
                                     )
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
                             ){
-                                Text(text = "        ",
+                                Text(
+                                    text = stringResource(id = R.string.one),
                                     style = TextStyle(
-                                        color = hints
+                                        color = Color.Black,
+                                        fontSize = 24.sp
                                     )
                                 )
                             }
-                            Text(
-                                text = stringResource(id = R.string.password),
-                                style = TextStyle(
-                                    fontSize = 20.sp,
-                                    color = Color.Black
-                                ),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(start = 24.dp)
-                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Box(
                                 modifier = Modifier
-                                    .padding(24.dp)
-                                    .border(
-                                        color = borderColor,
-                                        width = 1.dp,
-                                        shape = RoundedCornerShape(36.dp)
-                                    )
                                     .background(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(36.dp)
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
                                     )
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
                             ){
-                                Text(text = "XXXX-XXXX-XXXX",
+                                Text(
+                                    text = stringResource(id = R.string.two),
                                     style = TextStyle(
-                                        color = hints
+                                        color = Color.Black,
+                                        fontSize = 24.sp
                                     )
                                 )
                             }
+                            Spacer(modifier = Modifier.width(8.dp))
                             Box(
                                 modifier = Modifier
-                                    .padding(start = 24.dp, end = 24.dp)
-                                    .clip(
-                                        RoundedCornerShape(8.dp)
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
                                     )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.three),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.four),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.five),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.six),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.seven),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.eight),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.nine),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.clear),
+                                    style = TextStyle(
+                                        color = clearText,
+                                        fontSize = 20.sp
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = numbersBackground,
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = stringResource(id = R.string.zero),
+                                    style = TextStyle(
+                                        color = Color.Black,
+                                        fontSize = 24.sp
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
                                     .background(
                                         brush = Brush.horizontalGradient(
                                             colors = listOf(
                                                 blueGradient,
                                                 secondaryColor,
                                             ),
-                                        )
+                                        ),
+                                        shape = RoundedCornerShape(24.dp)
                                     )
-                                    .padding(
-                                        start = 16.dp,
-                                        top = 12.dp,
-                                        end = 16.dp,
-                                        bottom = 12.dp
-                                    )
-                                    .fillMaxWidth()
-                                    .padding(start = 24.dp, end = 24.dp),
+
+                                    .width(0.15 * screenWidth)
+                                    .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
                             ){
-                                Text(text = stringResource(id = R.string.login),
+                                Text(
+                                    text = stringResource(id = R.string.confirm),
                                     style = TextStyle(
                                         color = Color.White,
                                         fontSize = 20.sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.height(16.dp))
                         }
+
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
                 }
                 Box(
                     modifier =
