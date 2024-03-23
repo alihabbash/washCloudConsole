@@ -25,4 +25,7 @@
     <string name="open">فتح</string>
     <string name="enter_security">أدخل الرقم السري للطلبية</string>
     <string name="login">تسجيل الدخول</string>
+    <string name="login_driver">تسجيل دخول السائق</string>
+    <string name="drop_off">إنزال</string>
+    <string name="pickup">التقاط</string>
 </resources>
