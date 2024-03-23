@@ -1,4 +1,4 @@
-package com.washcloud.consoleappliaction
+package com.washcloud.consoleapplication
 
 import org.junit.Test
 

@@ -1,4 +1,4 @@
-package com.washcloud.consoleappliaction.ui.theme
+package com.washcloud.consoleapplication.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
