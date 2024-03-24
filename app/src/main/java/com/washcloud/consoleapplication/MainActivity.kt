@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
                 var showLoginForm by remember { mutableStateOf(false) }
                 var showAd2Form by remember { mutableStateOf(true) }
                 var showHelpForm by remember { mutableStateOf(false) }
+                var showDriverLoginForm by remember { mutableStateOf(false) }
 
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -102,16 +103,23 @@ class MainActivity : ComponentActivity() {
                                 },
                             )
                         if (showLoginForm)
-                            LoginForm {
+                            LoginForm({
                                 showLoginForm = false
                                 showAd2Form = true
-                            }
+                            }, {
+                                showLoginForm = false
+                                showDriverLoginForm = true
+                            })
                         if (showHelpForm)
                             HelpForm {
                                 showAd2Form = true
                                 showHelpForm = false
                             }
-
+                        if (showDriverLoginForm)
+                            DriverLoginForm {
+                                showAd2Form = true
+                                showDriverLoginForm = false
+                            }
                     }
                 }
             }
@@ -301,7 +309,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun LoginForm(showAd2: () -> Unit) {
+    fun LoginForm(showAd2: () -> Unit, showDriverLogin: () -> Unit) {
 
         Column(
             modifier = Modifier
@@ -368,7 +376,7 @@ class MainActivity : ComponentActivity() {
                         )
                         .fillMaxWidth()
                         .height(0.72 * screenHeight)
-                ){
+                ) {
                     Column {
                         Box(
                             modifier = Modifier
@@ -469,7 +477,10 @@ class MainActivity : ComponentActivity() {
                                             bottom = 12.dp
                                         )
                                         .fillMaxWidth()
-                                        .padding(start = 24.dp, end = 24.dp),
+                                        .padding(start = 24.dp, end = 24.dp)
+                                        .clickable {
+                                            showDriverLogin()
+                                        },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
@@ -485,10 +496,11 @@ class MainActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                         Row(
-                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                            modifier = Modifier
+                                .padding(start = 40.dp, end = 40.dp)
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
-                        ){
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -498,7 +510,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.one),
                                     style = TextStyle(
@@ -517,7 +529,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.two),
                                     style = TextStyle(
@@ -536,7 +548,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.three),
                                     style = TextStyle(
@@ -548,10 +560,11 @@ class MainActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(
-                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                            modifier = Modifier
+                                .padding(start = 40.dp, end = 40.dp)
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
-                        ){
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -561,7 +574,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.four),
                                     style = TextStyle(
@@ -580,7 +593,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.five),
                                     style = TextStyle(
@@ -599,7 +612,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.six),
                                     style = TextStyle(
@@ -611,10 +624,11 @@ class MainActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(
-                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                            modifier = Modifier
+                                .padding(start = 40.dp, end = 40.dp)
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
-                        ){
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -624,7 +638,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.seven),
                                     style = TextStyle(
@@ -643,7 +657,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.eight),
                                     style = TextStyle(
@@ -662,7 +676,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.nine),
                                     style = TextStyle(
@@ -674,10 +688,11 @@ class MainActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(
-                            modifier = Modifier.padding(start = 40.dp, end = 40.dp)
+                            modifier = Modifier
+                                .padding(start = 40.dp, end = 40.dp)
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
-                        ){
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -687,7 +702,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.clear),
                                     style = TextStyle(
@@ -706,7 +721,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.zero),
                                     style = TextStyle(
@@ -731,7 +746,7 @@ class MainActivity : ComponentActivity() {
                                     .width(0.15 * screenWidth)
                                     .height(0.06 * screenHeight),
                                 contentAlignment = Alignment.Center
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(id = R.string.confirm),
                                     style = TextStyle(
@@ -915,9 +930,9 @@ class MainActivity : ComponentActivity() {
                                 .width(screenWidth - 50.dp)
                         )
                         Spacer(modifier = Modifier.height(32.dp))
-                        Row (
+                        Row(
                             verticalAlignment = Alignment.CenterVertically
-                        ){
+                        ) {
                             Spacer(modifier = Modifier.width(24.dp))
                             Box(
                                 modifier = Modifier
@@ -944,9 +959,9 @@ class MainActivity : ComponentActivity() {
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
-                        Row (
+                        Row(
                             verticalAlignment = Alignment.CenterVertically
-                        ){
+                        ) {
                             Spacer(modifier = Modifier.width(24.dp))
                             Box(
                                 modifier = Modifier
@@ -973,13 +988,15 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
-                        Spacer(modifier =
-                        Modifier
-                            .height(1.dp)
-                            .background(color = borderColor)
-                            .padding(start = 24.dp, end = 24.dp)
-                            .fillMaxWidth()
-                            .padding(start = 24.dp, end = 24.dp))
+                        Spacer(
+                            modifier =
+                            Modifier
+                                .height(1.dp)
+                                .background(color = borderColor)
+                                .padding(start = 24.dp, end = 24.dp)
+                                .fillMaxWidth()
+                                .padding(start = 24.dp, end = 24.dp)
+                        )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = stringResource(id = R.string.quick_open),
@@ -1003,7 +1020,7 @@ class MainActivity : ComponentActivity() {
                                     shape = RoundedCornerShape(24.dp)
                                 )
                                 .fillMaxWidth()
-                        ){
+                        ) {
                             Column {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
@@ -1029,8 +1046,9 @@ class MainActivity : ComponentActivity() {
                                         )
                                         .fillMaxWidth()
                                         .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
-                                ){
-                                    Text(text = "XXXX-XXXX-XXXX",
+                                ) {
+                                    Text(
+                                        text = "XXXX-XXXX-XXXX",
                                         style = TextStyle(
                                             color = hints
                                         )
@@ -1059,8 +1077,9 @@ class MainActivity : ComponentActivity() {
                                         .fillMaxWidth()
                                         .padding(start = 24.dp, end = 24.dp),
                                     contentAlignment = Alignment.Center
-                                ){
-                                    Text(text = stringResource(id = R.string.open),
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.open),
                                         style = TextStyle(
                                             color = Color.White,
                                             fontSize = 20.sp
@@ -1081,6 +1100,198 @@ class MainActivity : ComponentActivity() {
             }
 
 
+        }
+    }
+
+
+    @Composable
+    fun DriverLoginForm(showAd2: () -> Unit) {
+        Column(
+            modifier = Modifier
+                .width(screenWidth)
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(id = R.string.login_driver),
+                style = TextStyle(
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryDark
+                ),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row {
+                Spacer(modifier = Modifier.width(24.dp))
+                Text(
+                    text = "02:30",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        color = borderColor
+                    ),
+                    textAlign = TextAlign.Start,
+                )
+                Box(
+                    modifier =
+                    Modifier.weight(1f)
+                )
+                Text(
+                    text = "02/03/2024",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        color = borderColor
+                    ),
+                    textAlign = TextAlign.Start,
+                )
+                Spacer(modifier = Modifier.width(24.dp))
+
+            }
+
+            Column(
+                modifier =
+                Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Row(
+                    Modifier
+                        .padding(start = 24.dp, end = 24.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .border(
+                                color = secondaryColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .width(0.2 * screenWidth)
+                                .height(0.2 * screenWidth)
+                                .background(lightGreen, shape = CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painterResource(R.drawable.drop_off),
+                                "drop_off",
+                                colorFilter = ColorFilter.tint(color = secondaryColor),
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = stringResource(id = R.string.drop_off),
+                            style = TextStyle(
+                                color = secondaryColor,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(32.dp))
+                    Column(
+                        modifier = Modifier
+                            .border(
+                                color = secondaryColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .width(0.2 * screenWidth)
+                                .height(0.2 * screenWidth)
+                                .background(lightGreen, shape = CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painterResource(R.drawable.pickup),
+                                "pickup",
+                                colorFilter = ColorFilter.tint(color = secondaryColor),
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = stringResource(id = R.string.pickup),
+                            style = TextStyle(
+                                color = secondaryColor,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .width(screenWidth)
+                    .height(0.1 * screenHeight)
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 0.06 * screenWidth, end = 0.06 * screenWidth),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(
+                                RoundedCornerShape(12.dp)
+                            )
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        blueGradient,
+                                        secondaryColor,
+                                    ),
+                                )
+                            )
+                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
+                            .clickable {
+                                showAd2()
+                            }
+                    ) {
+                        Row {
+                            Image(
+                                painterResource(R.drawable.arrow_back),
+                                "arrow_back",
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(id = R.string.back),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = 20.sp
+                                )
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
     }
 }

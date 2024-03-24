@@ -24,4 +24,7 @@
     <string name="open">Open</string>
     <string name="enter_security">Enter Order Security Number</string>
     <string name="login">Login</string>
+    <string name="login_driver">Login Driver</string>
+    <string name="drop_off">Drop Off</string>
+    <string name="pickup">Pickup</string>
 </resources>
