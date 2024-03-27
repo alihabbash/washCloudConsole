@@ -1,6 +1,9 @@
 package com.washcloud.consoleapplication
 
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -12,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -44,11 +47,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.preference.PreferenceManager
+import com.washcloud.consoleapplication.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
+import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.clearText
 import com.washcloud.consoleapplication.utils.hints
+import com.washcloud.consoleapplication.utils.language
 import com.washcloud.consoleapplication.utils.lightGreen
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.numbersBackground
@@ -56,11 +63,31 @@ import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.screenBackground
 import com.washcloud.consoleapplication.utils.secondaryColor
 import com.washcloud.consoleapplication.utils.unSelectedTextColor
+import java.util.Locale
 
 
 class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
+
+    companion object {
+        public var dLocale: Locale? = null
+    }
+
+    init {
+        updateConfig(this)
+    }
+
+    private fun updateConfig(wrapper: ContextThemeWrapper) {
+        if (dLocale == Locale("")) // Do nothing if dLocale is null
+            return
+
+        Locale.setDefault(dLocale)
+        val configuration = Configuration()
+        configuration.setLocale(dLocale)
+        wrapper.applyOverrideConfiguration(configuration)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +100,10 @@ class MainActivity : ComponentActivity() {
                 var showAd2Form by remember { mutableStateOf(true) }
                 var showHelpForm by remember { mutableStateOf(false) }
                 var showDriverLoginForm by remember { mutableStateOf(false) }
+                var mobileSelectedLoginForm by remember { mutableStateOf(true) }
+                var passwordSelectedLoginForm by remember { mutableStateOf(false) }
+                var mobileLoginForm by remember { mutableStateOf("") }
+                var passwordLoginForm by remember { mutableStateOf("") }
 
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -109,7 +140,31 @@ class MainActivity : ComponentActivity() {
                             }, {
                                 showLoginForm = false
                                 showDriverLoginForm = true
-                            })
+                            }, {//clear selected field
+                               if(passwordSelectedLoginForm){
+                                   passwordLoginForm = ""
+                               } else {
+                                   mobileLoginForm = ""
+                               }
+                            }, { value -> //update selected field
+                                if(passwordSelectedLoginForm){
+                                    passwordLoginForm += value
+                                } else {
+                                    mobileLoginForm += value
+                                }
+                            }, { field -> //select field 0 for mobile 1 for password
+                                if (field == 0) {
+                                    mobileSelectedLoginForm = true
+                                    passwordSelectedLoginForm = false
+                                } else {
+                                    mobileSelectedLoginForm = false
+                                    passwordSelectedLoginForm = true
+                                }
+                            },
+                                mobileSelectedLoginForm,
+                                passwordSelectedLoginForm,
+                                mobileLoginForm,
+                                passwordLoginForm)
                         if (showHelpForm)
                             HelpForm {
                                 showAd2Form = true
@@ -173,13 +228,15 @@ class MainActivity : ComponentActivity() {
                 Image(
                     painterResource(R.drawable.empty_image),
                     "ad_2",
+                    modifier = Modifier
+                        .width(screenWidth * 0.3f)
+                        .height(screenWidth * 0.3f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(id = R.string.ad2),
                     style = TextStyle(
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = (screenWidth.value * 0.07f).sp,
+                        fontWeight = FontWeight.Medium,
                         color = lightGrey
                     ),
                     textAlign = TextAlign.Center,
@@ -230,15 +287,15 @@ class MainActivity : ComponentActivity() {
                         "help",
                         colorFilter = if (isHelpFormShown) ColorFilter.tint(color = secondaryColor) else null,
                         modifier = Modifier
-                            .width(0.05 * screenWidth)
-                            .height(0.05 * screenWidth)
+                            .width(0.04 * screenHeight)
+                            .height(0.04 * screenHeight)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = stringResource(id = R.string.help),
                         style = TextStyle(
                             color = if (isHelpFormShown) secondaryColor else unSelectedTextColor,
-                            fontSize = 15.sp
+                            fontSize = (screenWidth.value * 0.023f).sp
                         )
                     )
                 }
@@ -251,7 +308,7 @@ class MainActivity : ComponentActivity() {
                     Box(
                         modifier = Modifier
                             .clip(
-                                RoundedCornerShape(24.dp)
+                                RoundedCornerShape(0.05 * screenWidth)
                             )
                             .background(
                                 brush = Brush.horizontalGradient(
@@ -261,22 +318,27 @@ class MainActivity : ComponentActivity() {
                                     ),
                                 )
                             )
-                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
+                            .padding(
+                                start = 0.04 * screenWidth,
+                                top = 0.01 * screenHeight,
+                                end = 0.04 * screenWidth,
+                                bottom = 0.01 * screenHeight
+                            )
                     ) {
                         Row {
                             Image(
                                 painterResource(R.drawable.phone),
                                 "phone",
                                 modifier = Modifier
-                                    .width(24.dp)
-                                    .height(24.dp)
+                                    .width(48.dp)
+                                    .height(48.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(0.01 * screenWidth))
                             Text(
                                 text = "920031915",
                                 style = TextStyle(
                                     color = Color.White,
-                                    fontSize = 20.sp
+                                    fontSize = (screenWidth.value * 0.03f).sp
                                 )
                             )
                         }
@@ -284,7 +346,10 @@ class MainActivity : ComponentActivity() {
                 }
                 Column(
                     modifier = Modifier
-                        .weight(1f),
+                        .weight(1f)
+                        .clickable {
+                            changeLanguage()
+                        },
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -292,15 +357,15 @@ class MainActivity : ComponentActivity() {
                         painterResource(R.drawable.language),
                         "language",
                         modifier = Modifier
-                            .width(0.05 * screenWidth)
-                            .height(0.05 * screenWidth)
+                            .width(0.04 * screenHeight)
+                            .height(0.04 * screenHeight)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(id = R.string.language),
                         style = TextStyle(
                             color = unSelectedTextColor,
-                            fontSize = 15.sp
+                            fontSize = (screenWidth.value * 0.023f).sp
                         )
                     )
                 }
@@ -308,8 +373,37 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun changeLanguage() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        var lang = sharedPreferences.getString(language, "")
+        lang = if (lang == "ar") "en" else "ar"
+
+        sharedPreferences.edit().putString(language, lang).apply()
+        dLocale = Locale(lang)
+        MainAdActivity.dLocale = Locale(lang)
+        val config = resources.configuration
+        Locale.setDefault(dLocale)
+        config.setLocale(dLocale)
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            createConfigurationContext(config)
+
+        resources.updateConfiguration(config, resources.displayMetrics)
+        recreate()
+    }
+
     @Composable
-    fun LoginForm(showAd2: () -> Unit, showDriverLogin: () -> Unit) {
+    fun LoginForm(
+        showAd2: () -> Unit, showDriverLogin: () -> Unit,
+        clearSelectedField: () -> Unit,
+        updateSelectedField: (String) -> Unit,
+        selectField: (Int) -> Unit,
+        mobileSelectedLoginForm: Boolean,
+        passwordSelectedLoginForm: Boolean,
+        mobileLoginForm: String,
+        passwordLoginForm: String,
+    ) {
 
         Column(
             modifier = Modifier
@@ -328,7 +422,7 @@ class MainActivity : ComponentActivity() {
                 Text(
                     text = stringResource(id = R.string.staff_login),
                     style = TextStyle(
-                        fontSize = 40.sp,
+                        fontSize = (screenWidth.value * 0.04f).sp,
                         fontWeight = FontWeight.Bold,
                         color = primaryDark
                     ),
@@ -341,7 +435,7 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = "02:30",
                         style = TextStyle(
-                            fontSize = 15.sp,
+                            fontSize = (screenWidth.value * 0.02f).sp,
                             color = borderColor
                         ),
                         textAlign = TextAlign.Start,
@@ -353,7 +447,7 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = "02/03/2024",
                         style = TextStyle(
-                            fontSize = 15.sp,
+                            fontSize = (screenWidth.value * 0.02f).sp,
                             color = borderColor
                         ),
                         textAlign = TextAlign.Start,
@@ -393,11 +487,11 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                         ) {
                             Column {
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
                                 Text(
                                     text = stringResource(id = R.string.mobile_number),
                                     style = TextStyle(
-                                        fontSize = 20.sp,
+                                        fontSize = (screenWidth.value * 0.025f).sp,
                                         color = Color.Black
                                     ),
                                     textAlign = TextAlign.Center,
@@ -407,7 +501,8 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .padding(24.dp)
                                         .border(
-                                            color = borderColor,
+                                            color = if(mobileSelectedLoginForm)
+                                                primaryDark else borderColor,
                                             width = 1.dp,
                                             shape = RoundedCornerShape(36.dp)
                                         )
@@ -416,19 +511,27 @@ class MainActivity : ComponentActivity() {
                                             shape = RoundedCornerShape(36.dp)
                                         )
                                         .fillMaxWidth()
-                                        .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                                        .padding(
+                                            top = (screenHeight.value * 0.01f).dp,
+                                            bottom = (screenHeight.value * 0.01f).dp,
+                                            start = 24.dp
+                                        )
+                                        .clickable {
+                                            selectField(0)
+                                        }
                                 ) {
                                     Text(
-                                        text = "        ",
+                                        text = mobileLoginForm,
                                         style = TextStyle(
-                                            color = hints
+                                            color = hints,
+                                            fontSize = (screenWidth.value * 0.025f).sp
                                         )
                                     )
                                 }
                                 Text(
                                     text = stringResource(id = R.string.password),
                                     style = TextStyle(
-                                        fontSize = 20.sp,
+                                        fontSize = (screenWidth.value * 0.025f).sp,
                                         color = Color.Black
                                     ),
                                     textAlign = TextAlign.Center,
@@ -438,7 +541,8 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .padding(24.dp)
                                         .border(
-                                            color = borderColor,
+                                            color = if(passwordSelectedLoginForm)
+                                                primaryDark else borderColor,
                                             width = 1.dp,
                                             shape = RoundedCornerShape(36.dp)
                                         )
@@ -447,20 +551,29 @@ class MainActivity : ComponentActivity() {
                                             shape = RoundedCornerShape(36.dp)
                                         )
                                         .fillMaxWidth()
-                                        .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
+                                        .padding(
+                                            top = (screenHeight.value * 0.01f).dp,
+                                            bottom = (screenHeight.value * 0.01f).dp, start = 24.dp
+                                        )
+                                        .clickable {
+                                            selectField(1)
+                                        }
                                 ) {
                                     Text(
-                                        text = "XXXX-XXXX-XXXX",
+                                        text = passwordLoginForm.ifEmpty { "XXXX-XXXX-XXXX" },
                                         style = TextStyle(
-                                            color = hints
+                                            color = hints,
+                                            fontSize = (screenWidth.value * 0.025f).sp
+
                                         )
                                     )
                                 }
+                                Spacer(modifier = Modifier.height((screenHeight.value * 0.01f).dp))
                                 Box(
                                     modifier = Modifier
                                         .padding(start = 24.dp, end = 24.dp)
                                         .clip(
-                                            RoundedCornerShape(8.dp)
+                                            RoundedCornerShape((screenHeight.value * 0.011f).dp)
                                         )
                                         .background(
                                             brush = Brush.horizontalGradient(
@@ -472,9 +585,9 @@ class MainActivity : ComponentActivity() {
                                         )
                                         .padding(
                                             start = 16.dp,
-                                            top = 12.dp,
+                                            top = (screenHeight.value * 0.01f).dp,
                                             end = 16.dp,
-                                            bottom = 12.dp
+                                            bottom = (screenHeight.value * 0.01f).dp
                                         )
                                         .fillMaxWidth()
                                         .padding(start = 24.dp, end = 24.dp)
@@ -487,14 +600,14 @@ class MainActivity : ComponentActivity() {
                                         text = stringResource(id = R.string.login),
                                         style = TextStyle(
                                             color = Color.White,
-                                            fontSize = 20.sp
+                                            fontSize = (screenWidth.value * 0.028f).sp
                                         )
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
                             }
                         }
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height((screenHeight.value * 0.03f).dp))
                         Row(
                             modifier = Modifier
                                 .padding(start = 40.dp, end = 40.dp)
@@ -507,58 +620,67 @@ class MainActivity : ComponentActivity() {
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                               updateSelectedField("1")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.one),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("2")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.two),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("3")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.three),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         Row(
                             modifier = Modifier
                                 .padding(start = 40.dp, end = 40.dp)
@@ -571,58 +693,67 @@ class MainActivity : ComponentActivity() {
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("4")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.four),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("5")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.five),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("6")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.six),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         Row(
                             modifier = Modifier
                                 .padding(start = 40.dp, end = 40.dp)
@@ -635,58 +766,67 @@ class MainActivity : ComponentActivity() {
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("7")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.seven),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("8")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.eight),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("9")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.nine),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         Row(
                             modifier = Modifier
                                 .padding(start = 40.dp, end = 40.dp)
@@ -699,38 +839,44 @@ class MainActivity : ComponentActivity() {
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        clearSelectedField()
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.clear),
                                     style = TextStyle(
                                         color = clearText,
-                                        fontSize = 20.sp
+                                        fontSize = (screenWidth.value * 0.03f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         color = numbersBackground,
                                         shape = RoundedCornerShape(24.dp)
                                     )
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight)
+                                    .clickable {
+                                        updateSelectedField("0")
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.zero),
                                     style = TextStyle(
                                         color = Color.Black,
-                                        fontSize = 24.sp
+                                        fontSize = (screenWidth.value * 0.05f).sp
                                     )
                                 )
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -743,15 +889,15 @@ class MainActivity : ComponentActivity() {
                                         shape = RoundedCornerShape(24.dp)
                                     )
 
-                                    .width(0.15 * screenWidth)
-                                    .height(0.06 * screenHeight),
+                                    .width(0.2 * screenWidth)
+                                    .height(0.08 * screenHeight),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.confirm),
                                     style = TextStyle(
                                         color = Color.White,
-                                        fontSize = 20.sp
+                                        fontSize = (screenWidth.value * 0.03f).sp
                                     )
                                 )
                             }
@@ -783,7 +929,7 @@ class MainActivity : ComponentActivity() {
                         Box(
                             modifier = Modifier
                                 .clip(
-                                    RoundedCornerShape(12.dp)
+                                    RoundedCornerShape((screenWidth.value * 0.02f).dp)
                                 )
                                 .background(
                                     brush = Brush.horizontalGradient(
@@ -793,7 +939,12 @@ class MainActivity : ComponentActivity() {
                                         ),
                                     )
                                 )
-                                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
+                                .padding(
+                                    start = 16.dp,
+                                    top = (screenHeight.value * 0.01f).dp,
+                                    end = 16.dp,
+                                    bottom = (screenHeight.value * 0.01f).dp
+                                )
                                 .clickable {
                                     showAd2()
                                 }
@@ -803,17 +954,18 @@ class MainActivity : ComponentActivity() {
                                     painterResource(R.drawable.arrow_back),
                                     "arrow_back",
                                     modifier = Modifier
-                                        .width(24.dp)
-                                        .height(24.dp)
+                                        .width(40.dp)
+                                        .height(40.dp)
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                                 Text(
                                     text = stringResource(id = R.string.back),
                                     style = TextStyle(
                                         color = Color.White,
-                                        fontSize = 20.sp
+                                        fontSize = (screenWidth.value * 0.03f).sp
                                     )
                                 )
+                                Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                             }
                         }
                         Box(
@@ -831,12 +983,12 @@ class MainActivity : ComponentActivity() {
                                     .width(0.05 * screenWidth)
                                     .height(0.05 * screenWidth)
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "03:59",
                                 style = TextStyle(
                                     color = secondaryColor,
-                                    fontSize = 15.sp
+                                    fontSize = (screenWidth.value * 0.025f).sp
                                 )
                             )
                         }
@@ -864,12 +1016,11 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(36.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
 
                 Row {
-                    Spacer(modifier = Modifier.width(24.dp))
+                    Spacer(modifier = Modifier.width(0.02 * screenWidth))
                     Column {
                         Spacer(modifier = Modifier.padding(top = 12.dp))
                         Image(
@@ -877,8 +1028,8 @@ class MainActivity : ComponentActivity() {
                             "arrow_back",
                             colorFilter = ColorFilter.tint(color = primaryDark),
                             modifier = Modifier
-                                .width(24.dp)
-                                .height(24.dp)
+                                .width(50.dp)
+                                .height(50.dp)
                                 .clickable {
                                     showAd2()
                                 }
@@ -891,7 +1042,7 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = stringResource(id = R.string.help),
                         style = TextStyle(
-                            fontSize = 40.sp,
+                            fontSize = (screenWidth.value * 0.04f).sp,
                             fontWeight = FontWeight.Bold,
                             color = primaryDark
                         ),
@@ -921,7 +1072,7 @@ class MainActivity : ComponentActivity() {
                         .height(0.72 * screenHeight)
                 ) {
                     Column {
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(0.02 * screenHeight))
                         Image(
                             painterResource(R.drawable.steps),
                             "steps",
@@ -933,12 +1084,12 @@ class MainActivity : ComponentActivity() {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Spacer(modifier = Modifier.width(24.dp))
+                            Spacer(modifier = Modifier.width(0.05 * screenWidth))
                             Box(
                                 modifier = Modifier
-                                    .padding(2.dp)
-                                    .width(50.dp)
-                                    .height(50.dp)
+                                    .padding(0.008 * screenWidth)
+                                    .width(0.08 * screenWidth)
+                                    .height(0.08 * screenWidth)
                                     .background(lightGreen, shape = CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -946,6 +1097,9 @@ class MainActivity : ComponentActivity() {
                                     painterResource(R.drawable.outline_phone),
                                     "phone",
                                     colorFilter = ColorFilter.tint(color = secondaryColor),
+                                    modifier = Modifier
+                                        .width(0.05 * screenWidth)
+                                        .height(0.05 * screenWidth)
                                 )
                             }
                             Spacer(modifier = Modifier.width(24.dp))
@@ -953,7 +1107,7 @@ class MainActivity : ComponentActivity() {
                                 text = "920031915",
                                 style = TextStyle(
                                     color = Color.Black,
-                                    fontSize = 16.sp
+                                    fontSize = (screenWidth.value * 0.025f).sp
                                 )
                             )
                         }
@@ -962,12 +1116,12 @@ class MainActivity : ComponentActivity() {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Spacer(modifier = Modifier.width(24.dp))
+                            Spacer(modifier = Modifier.width(0.05 * screenWidth))
                             Box(
                                 modifier = Modifier
-                                    .padding(2.dp)
-                                    .width(50.dp)
-                                    .height(50.dp)
+                                    .padding(0.008 * screenWidth)
+                                    .width(0.08 * screenWidth)
+                                    .height(0.08 * screenWidth)
                                     .background(lightGreen, shape = CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -975,6 +1129,9 @@ class MainActivity : ComponentActivity() {
                                     painterResource(R.drawable.outline_email),
                                     "email",
                                     colorFilter = ColorFilter.tint(color = secondaryColor),
+                                    modifier = Modifier
+                                        .width(0.05 * screenWidth)
+                                        .height(0.05 * screenWidth)
                                 )
 
                             }
@@ -983,7 +1140,7 @@ class MainActivity : ComponentActivity() {
                                 text = "info@horizonscloud.net",
                                 style = TextStyle(
                                     color = Color.Black,
-                                    fontSize = 18.sp
+                                    fontSize = (screenWidth.value * 0.025f).sp
                                 )
                             )
                         }
@@ -994,14 +1151,15 @@ class MainActivity : ComponentActivity() {
                                 .height(1.dp)
                                 .background(color = borderColor)
                                 .padding(start = 24.dp, end = 24.dp)
-                                .fillMaxWidth()
+                                .width(screenWidth - (0.2 * screenWidth))
+                                .align(CenterHorizontally)
                                 .padding(start = 24.dp, end = 24.dp)
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = stringResource(id = R.string.quick_open),
                             style = TextStyle(
-                                fontSize = 24.sp,
+                                fontSize = (screenWidth.value * 0.03f).sp,
                                 color = Color.Black
                             ),
                             textAlign = TextAlign.Center,
@@ -1022,43 +1180,33 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                         ) {
                             Column {
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
                                 Text(
                                     text = stringResource(id = R.string.enter_security),
                                     style = TextStyle(
-                                        fontSize = 20.sp,
+                                        fontSize = (screenWidth.value * 0.025f).sp,
                                         color = Color.Black
                                     ),
                                     textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(start = 24.dp)
+                                    modifier = Modifier.padding(start = (screenHeight.value * 0.01f).dp)
                                 )
-                                Box(
+                                OutlinedInputField(
+                                    value = "",
+                                    hintText = "XXXX-XXXX-XXXX",
+                                    onValueChange = {
+
+                                    },
+                                    hintTextSize = (screenWidth.value * 0.02f).sp,
+                                    cornerRadius = (screenWidth.value * 0.06f),
                                     modifier = Modifier
-                                        .padding(24.dp)
-                                        .border(
-                                            color = borderColor,
-                                            width = 1.dp,
-                                            shape = RoundedCornerShape(36.dp)
-                                        )
-                                        .background(
-                                            color = Color.White,
-                                            shape = RoundedCornerShape(36.dp)
-                                        )
+                                        .padding((screenHeight.value * 0.02f).dp)
                                         .fillMaxWidth()
-                                        .padding(top = 16.dp, bottom = 16.dp, start = 16.dp)
-                                ) {
-                                    Text(
-                                        text = "XXXX-XXXX-XXXX",
-                                        style = TextStyle(
-                                            color = hints
-                                        )
-                                    )
-                                }
+                                )
                                 Box(
                                     modifier = Modifier
                                         .padding(start = 24.dp, end = 24.dp)
                                         .clip(
-                                            RoundedCornerShape(8.dp)
+                                            RoundedCornerShape((screenWidth.value * 0.02f).dp)
                                         )
                                         .background(
                                             brush = Brush.horizontalGradient(
@@ -1070,9 +1218,9 @@ class MainActivity : ComponentActivity() {
                                         )
                                         .padding(
                                             start = 16.dp,
-                                            top = 8.dp,
+                                            top = (screenWidth.value * 0.02f).dp,
                                             end = 16.dp,
-                                            bottom = 8.dp
+                                            bottom = (screenWidth.value * 0.02f).dp
                                         )
                                         .fillMaxWidth()
                                         .padding(start = 24.dp, end = 24.dp),
@@ -1082,11 +1230,11 @@ class MainActivity : ComponentActivity() {
                                         text = stringResource(id = R.string.open),
                                         style = TextStyle(
                                             color = Color.White,
-                                            fontSize = 20.sp
+                                            fontSize = (screenWidth.value * 0.03f).sp
                                         )
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
 
                             }
                         }
@@ -1128,7 +1276,7 @@ class MainActivity : ComponentActivity() {
                 Text(
                     text = "02:30",
                     style = TextStyle(
-                        fontSize = 15.sp,
+                        fontSize = (screenWidth.value * 0.02f).sp,
                         color = borderColor
                     ),
                     textAlign = TextAlign.Start,
@@ -1140,7 +1288,7 @@ class MainActivity : ComponentActivity() {
                 Text(
                     text = "02/03/2024",
                     style = TextStyle(
-                        fontSize = 15.sp,
+                        fontSize = (screenWidth.value * 0.02f).sp,
                         color = borderColor
                     ),
                     textAlign = TextAlign.Start,
@@ -1173,8 +1321,8 @@ class MainActivity : ComponentActivity() {
                         Box(
                             modifier = Modifier
                                 .padding(2.dp)
-                                .width(0.2 * screenWidth)
-                                .height(0.2 * screenWidth)
+                                .width(0.22 * screenWidth)
+                                .height(0.22 * screenWidth)
                                 .background(lightGreen, shape = CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
@@ -1182,6 +1330,9 @@ class MainActivity : ComponentActivity() {
                                 painterResource(R.drawable.drop_off),
                                 "drop_off",
                                 colorFilter = ColorFilter.tint(color = secondaryColor),
+                                modifier = Modifier
+                                    .width((screenWidth.value * 0.11f).dp)
+                                    .height((screenWidth.value * 0.11f).dp)
                             )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
@@ -1190,12 +1341,12 @@ class MainActivity : ComponentActivity() {
                             style = TextStyle(
                                 color = secondaryColor,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp
+                                fontSize = (screenWidth.value * 0.035f).sp
                             ),
                             textAlign = TextAlign.Center
                         )
                     }
-                    Spacer(modifier = Modifier.width(32.dp))
+                    Spacer(modifier = Modifier.width((screenWidth.value * 0.04f).dp))
                     Column(
                         modifier = Modifier
                             .border(
@@ -1209,8 +1360,8 @@ class MainActivity : ComponentActivity() {
                         Box(
                             modifier = Modifier
                                 .padding(2.dp)
-                                .width(0.2 * screenWidth)
-                                .height(0.2 * screenWidth)
+                                .width(0.22 * screenWidth)
+                                .height(0.22 * screenWidth)
                                 .background(lightGreen, shape = CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
@@ -1218,6 +1369,9 @@ class MainActivity : ComponentActivity() {
                                 painterResource(R.drawable.pickup),
                                 "pickup",
                                 colorFilter = ColorFilter.tint(color = secondaryColor),
+                                modifier = Modifier
+                                    .width((screenWidth.value * 0.11f).dp)
+                                    .height((screenWidth.value * 0.11f).dp)
                             )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
@@ -1226,7 +1380,7 @@ class MainActivity : ComponentActivity() {
                             style = TextStyle(
                                 color = secondaryColor,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp
+                                fontSize = (screenWidth.value * 0.035f).sp
                             ),
                             textAlign = TextAlign.Center
                         )
@@ -1264,7 +1418,12 @@ class MainActivity : ComponentActivity() {
                                     ),
                                 )
                             )
-                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
+                            .padding(
+                                top = (screenHeight.value * 0.01f).dp,
+                                end = 16.dp,
+                                bottom = (screenHeight.value * 0.01f).dp,
+                                start = 16.dp
+                            )
                             .clickable {
                                 showAd2()
                             }
@@ -1274,17 +1433,18 @@ class MainActivity : ComponentActivity() {
                                 painterResource(R.drawable.arrow_back),
                                 "arrow_back",
                                 modifier = Modifier
-                                    .width(24.dp)
-                                    .height(24.dp)
+                                    .width(40.dp)
+                                    .height(40.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                             Text(
                                 text = stringResource(id = R.string.back),
                                 style = TextStyle(
                                     color = Color.White,
-                                    fontSize = 20.sp
+                                    fontSize = (screenWidth.value * 0.03f).sp
                                 )
                             )
+                            Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                         }
                     }
                     Box(
