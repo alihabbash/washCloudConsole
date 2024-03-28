@@ -4,8 +4,10 @@ import android.app.Application
 import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.mainad.MainAdActivity
 import com.washcloud.consoleapplication.utils.language
+import dagger.hilt.android.HiltAndroidApp
 import java.util.Locale
 
+@HiltAndroidApp
 class App : Application() {
 
     override fun onCreate() {
