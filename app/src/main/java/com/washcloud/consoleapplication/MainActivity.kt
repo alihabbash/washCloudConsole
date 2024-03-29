@@ -55,7 +55,7 @@ import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.clearText
 import com.washcloud.consoleapplication.utils.hints
-import com.washcloud.consoleapplication.utils.language
+import com.washcloud.consoleapplication.local.preferences.language
 import com.washcloud.consoleapplication.utils.lightGreen
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.numbersBackground

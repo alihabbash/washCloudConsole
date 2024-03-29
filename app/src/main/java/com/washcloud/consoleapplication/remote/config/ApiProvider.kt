@@ -1,11 +1,14 @@
 package com.washcloud.consoleapplication.remote.config
 
+import com.washcloud.consoleapplication.remote.config.exceptions.IExceptionHandler
+import com.washcloud.consoleapplication.remote.config.exceptions.RequestTimedOutException
+import com.washcloud.consoleapplication.remote.config.exceptions.ServerException
 import org.json.JSONObject
 import retrofit2.Response
 import java.io.InterruptedIOException
 
 class ApiProvider(
-    private val exceptionHandler: ExceptionHandler
+    private val exceptionHandler: IExceptionHandler
 ) : IApiProvider {
 
     override suspend fun <T> proceedRequest(call: suspend () -> Response<T>): T {

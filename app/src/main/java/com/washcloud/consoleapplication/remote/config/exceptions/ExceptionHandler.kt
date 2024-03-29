@@ -1,5 +1,6 @@
-package com.washcloud.consoleapplication.remote.config
+package com.washcloud.consoleapplication.remote.config.exceptions
 
+import com.washcloud.consoleapplication.remote.config.ResponseCode
 import javax.inject.Inject
 
 class ExceptionHandler @Inject constructor() : IExceptionHandler {

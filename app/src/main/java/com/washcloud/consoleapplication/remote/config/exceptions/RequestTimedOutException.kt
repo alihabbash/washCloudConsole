@@ -1,4 +1,4 @@
-package com.washcloud.consoleapplication.remote.config
+package com.washcloud.consoleapplication.remote.config.exceptions
 
 class RequestTimedOutException : Exception {
     constructor(message: String?) : super(message)
