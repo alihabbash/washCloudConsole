@@ -1,4 +1,4 @@
-package com.washcloud.consoleapplication.mainad
+package com.washcloud.consoleapplication.ui.mainad
 
 import android.content.Intent
 import android.content.res.Configuration
@@ -46,7 +46,7 @@ class MainAdActivity : ComponentActivity() {
     }
 
     private fun updateConfig(wrapper: ContextThemeWrapper) {
-        if(dLocale== Locale("") ) // Do nothing if dLocale is null
+        if(dLocale == Locale("") ) // Do nothing if dLocale is null
             return
 
         Locale.setDefault(dLocale)
