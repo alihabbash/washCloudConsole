@@ -69,8 +69,10 @@ import com.washcloud.consoleapplication.utils.unSelectedTextColor
 import java.util.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.ui.login.LoginForm
+import dagger.hilt.android.AndroidEntryPoint
 
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
@@ -105,10 +107,6 @@ class MainActivity : ComponentActivity() {
                 var showAd2Form by remember { mutableStateOf(true) }
                 var showHelpForm by remember { mutableStateOf(false) }
                 var showDriverLoginForm by remember { mutableStateOf(false) }
-                var mobileSelectedLoginForm by remember { mutableStateOf(true) }
-                var passwordSelectedLoginForm by remember { mutableStateOf(false) }
-                var mobileLoginForm by remember { mutableStateOf("") }
-                var passwordLoginForm by remember { mutableStateOf("") }
 
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -145,31 +143,7 @@ class MainActivity : ComponentActivity() {
                             }, {
                                 showLoginForm = false
                                 showDriverLoginForm = true
-                            }, {//clear selected field
-                               if(passwordSelectedLoginForm){
-                                   passwordLoginForm = ""
-                               } else {
-                                   mobileLoginForm = ""
-                               }
-                            }, { value -> //update selected field
-                                if(passwordSelectedLoginForm){
-                                    passwordLoginForm += value
-                                } else {
-                                    mobileLoginForm += value
-                                }
-                            }, { field -> //select field 0 for mobile 1 for password
-                                if (field == 0) {
-                                    mobileSelectedLoginForm = true
-                                    passwordSelectedLoginForm = false
-                                } else {
-                                    mobileSelectedLoginForm = false
-                                    passwordSelectedLoginForm = true
-                                }
                             },
-                                mobileSelectedLoginForm,
-                                passwordSelectedLoginForm,
-                                mobileLoginForm,
-                                passwordLoginForm,
                                 screenWidth,
                                 screenHeight)
                         if (showHelpForm)

@@ -28,4 +28,5 @@
     <string name="login_driver">تسجيل دخول السائق</string>
     <string name="drop_off">إنزال</string>
     <string name="pickup">التقاط</string>
+    <string name="verify_wait">جاري التحقق, الرجاء الإنتظار</string>
 </resources>

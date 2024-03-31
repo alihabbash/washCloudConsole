@@ -40,6 +40,10 @@ class StaffLoginViewModel @Inject constructor(
         }
     }
 
+    fun resetLoadingToInitial(){
+        _uiState.value = LoginState.Initial
+    }
+
     private fun validateFields(): Boolean {
         return when {
             !isValidAccount() -> {

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.remote.config.JsonMapper
+import javax.inject.Inject
 
 class PrefsManager constructor(
     private val jsonMapper: JsonMapper,
