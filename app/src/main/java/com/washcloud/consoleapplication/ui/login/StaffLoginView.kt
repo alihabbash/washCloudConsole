@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.room.util.TableInfo
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
@@ -64,9 +64,6 @@ fun LoginForm(
     val accountLoginForm by viewModel.accountText.collectAsState()
     val passwordLoginForm by viewModel.passwordText.collectAsState()
 
-    val dateTimeViewModel: DateTimeViewModel = hiltViewModel()
-    val hoursText by dateTimeViewModel.hoursText.collectAsState()
-    val fullDateText by dateTimeViewModel.fullDateText.collectAsState()
 
     val clearSelectedField = {
         if(passwordSelectedLoginForm){
@@ -128,31 +125,7 @@ fun LoginForm(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Row {
-                    Spacer(modifier = Modifier.width(24.dp))
-                    Text(
-                        text = hoursText,
-                        style = TextStyle(
-                            fontSize = (screenWidth.value * 0.02f).sp,
-                            color = borderColor
-                        ),
-                        textAlign = TextAlign.Start,
-                    )
-                    Box(
-                        modifier =
-                        Modifier.weight(1f)
-                    )
-                    Text(
-                        text = fullDateText,
-                        style = TextStyle(
-                            fontSize = (screenWidth.value * 0.02f).sp,
-                            color = borderColor
-                        ),
-                        textAlign = TextAlign.Start,
-                    )
-                    Spacer(modifier = Modifier.width(24.dp))
-
-                }
+                dateAndTimeView(screenWidth)
                 Spacer(modifier = Modifier.height(24.dp))
                 Box(
                     modifier = Modifier
@@ -674,26 +647,7 @@ fun LoginForm(
                             modifier =
                             Modifier.weight(1f)
                         )
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                painterResource(R.drawable.timer),
-                                "timer",
-                                modifier = Modifier
-                                    .width(0.05 * screenWidth)
-                                    .height(0.05 * screenWidth)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "03:59",
-                                style = TextStyle(
-                                    color = secondaryColor,
-                                    fontSize = (screenWidth.value * 0.025f).sp
-                                )
-                            )
-                        }
+                        timerView(screenWidth, showAd2)
                     }
                 }
             }
@@ -744,3 +698,67 @@ fun LoginForm(
             }
     }
 }
+
+@Composable
+fun timerView(screenWidth: Dp, showAd2: () -> Unit){
+    val timerViewModel: TimerViewModel = hiltViewModel()
+    val timerText by timerViewModel.timerText.collectAsState()
+    if(timerText == "0"){
+        showAd2()
+    } else {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painterResource(R.drawable.timer),
+                "timer",
+                modifier = Modifier
+                    .width(0.05 * screenWidth)
+                    .height(0.05 * screenWidth)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = timerText,
+                style = TextStyle(
+                    color = secondaryColor,
+                    fontSize = (screenWidth.value * 0.025f).sp
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun dateAndTimeView(screenWidth: Dp){
+    val dateTimeViewModel: DateTimeViewModel = hiltViewModel()
+    val hoursText by dateTimeViewModel.hoursText.collectAsState()
+    val fullDateText by dateTimeViewModel.fullDateText.collectAsState()
+    Row {
+        Spacer(modifier = Modifier.width(24.dp))
+        Text(
+            text = hoursText,
+            style = TextStyle(
+                fontSize = (screenWidth.value * 0.02f).sp,
+                color = borderColor
+            ),
+            textAlign = TextAlign.Start,
+        )
+        Box(
+            modifier =
+            Modifier.weight(1f)
+        )
+        Text(
+            text = fullDateText,
+            style = TextStyle(
+                fontSize = (screenWidth.value * 0.02f).sp,
+                color = borderColor
+            ),
+            textAlign = TextAlign.Start,
+        )
+        Spacer(modifier = Modifier.width(24.dp))
+
+    }
+}
+
+
