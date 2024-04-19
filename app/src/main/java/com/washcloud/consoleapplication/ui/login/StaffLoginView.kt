@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.room.util.TableInfo
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.clearText
@@ -63,6 +64,9 @@ fun LoginForm(
     val accountLoginForm by viewModel.accountText.collectAsState()
     val passwordLoginForm by viewModel.passwordText.collectAsState()
 
+    val dateTimeViewModel: DateTimeViewModel = hiltViewModel()
+    val hoursText by dateTimeViewModel.hoursText.collectAsState()
+    val fullDateText by dateTimeViewModel.fullDateText.collectAsState()
 
     val clearSelectedField = {
         if(passwordSelectedLoginForm){
@@ -127,7 +131,7 @@ fun LoginForm(
                 Row {
                     Spacer(modifier = Modifier.width(24.dp))
                     Text(
-                        text = "02:30",
+                        text = hoursText,
                         style = TextStyle(
                             fontSize = (screenWidth.value * 0.02f).sp,
                             color = borderColor
@@ -139,7 +143,7 @@ fun LoginForm(
                         Modifier.weight(1f)
                     )
                     Text(
-                        text = "02/03/2024",
+                        text = fullDateText,
                         style = TextStyle(
                             fontSize = (screenWidth.value * 0.02f).sp,
                             color = borderColor
