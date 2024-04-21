@@ -27,4 +27,5 @@
     <string name="login_driver">Login Driver</string>
     <string name="drop_off">Drop Off</string>
     <string name="pickup">Pickup</string>
+    <string name="verify_wait">Verifying, Please wait…</string>
 </resources>

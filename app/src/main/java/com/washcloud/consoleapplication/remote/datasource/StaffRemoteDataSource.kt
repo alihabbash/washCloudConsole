@@ -14,12 +14,10 @@ class StaffRemoteDataSource @Inject constructor(
     override suspend fun login(account: String, password: String): StaffLoginResponse {
         return apiProvider.proceedRequest {
             retrofitService.staffLogin(
-                StaffLoginRequest(
                     account = account,
                     password = password,
                     apiKey = API_KEY,
                     type = ""
-                )
             )
         }
     }
