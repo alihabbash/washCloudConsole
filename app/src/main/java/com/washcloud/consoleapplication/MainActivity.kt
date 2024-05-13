@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
@@ -54,6 +55,10 @@ import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.local.preferences.language
+import com.washcloud.consoleapplication.ui.common.BottomNavigation
+import com.washcloud.consoleapplication.ui.common.MainViewModel
+import com.washcloud.consoleapplication.ui.common.SelectedView
+import com.washcloud.consoleapplication.ui.help.HelpForm
 import com.washcloud.consoleapplication.utils.lightGreen
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.primaryDark
@@ -63,6 +68,7 @@ import com.washcloud.consoleapplication.utils.unSelectedTextColor
 import java.util.Locale
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
 import com.washcloud.consoleapplication.ui.login.LoginForm
+import com.washcloud.consoleapplication.ui.pickup.PickupView
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -96,11 +102,8 @@ class MainActivity : ComponentActivity() {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
                 screenWidth = LocalConfiguration.current.screenWidthDp.dp
+                val mainViewModel: MainViewModel = hiltViewModel()
 
-                var showLoginForm by remember { mutableStateOf(false) }
-                var showAd2Form by remember { mutableStateOf(true) }
-                var showHelpForm by remember { mutableStateOf(false) }
-                var showDriverLoginForm by remember { mutableStateOf(false) }
 
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -114,41 +117,43 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.FillWidth
                         )
-                        if (showAd2Form)
+                        if (mainViewModel.getStackTop() is SelectedView.Ad2Form)
                             MainScreen(
                                 {
-                                    showAd2Form = true
-                                    showHelpForm = false
-                                    showLoginForm = false
+                                    mainViewModel.resetStack()
                                 },
                                 {//show login form
-                                    showLoginForm = true
-                                    showAd2Form = false
+                                    mainViewModel.addToStack(SelectedView.LoginForm)
                                 },
                                 {//show help form
-                                    showAd2Form = false
-                                    showHelpForm = true
+                                    mainViewModel.addToStack(SelectedView.HelpForm)
                                 },
                             )
-                        if (showLoginForm)
+                        if (mainViewModel.getStackTop() is SelectedView.LoginForm)
                             LoginForm({
-                                showLoginForm = false
-                                showAd2Form = true
+                                mainViewModel.resetStack()
                             }, {
-                                showLoginForm = false
-                                showDriverLoginForm = true
+                                mainViewModel.addToStack(SelectedView.DriverLoginForm)
                             },
                                 screenWidth,
-                                screenHeight)
-                        if (showHelpForm)
-                            HelpForm {
-                                showAd2Form = true
-                                showHelpForm = false
+                                screenHeight
+                            )
+                        if (mainViewModel.getStackTop() is SelectedView.HelpForm)
+                            HelpForm(screenWidth, screenHeight, {
+                                changeLanguage()
+                            }) {
+                                mainViewModel.resetStack()
                             }
-                        if (showDriverLoginForm)
-                            DriverLoginForm (screenWidth,screenHeight){
-                                showAd2Form = true
-                                showDriverLoginForm = false
+                        if (mainViewModel.getStackTop() is SelectedView.DriverLoginForm)
+                            DriverLoginForm(screenWidth, screenHeight,
+                                {
+                                    mainViewModel.addToStack(SelectedView.PickUpView)
+                            }) {
+                                mainViewModel.resetStack()
+                            }
+                        if (mainViewModel.getStackTop() is SelectedView.LoginForm)
+                            PickupView(screenWidth, screenHeight){
+                                mainViewModel.addToStack(SelectedView.DriverLoginForm)
                             }
                     }
                 }
@@ -219,134 +224,13 @@ class MainActivity : ComponentActivity() {
             }
             Spacer(modifier = Modifier.height(0.04 * screenHeight))
 
-            BottomNavigation(showAd2, showHelpForm, false)
+            BottomNavigation(screenWidth, screenHeight, {
+                changeLanguage()
+            }, showAd2, showHelpForm, false)
 
         }
     }
 
-    @Composable
-    fun BottomNavigation(
-        showAd2: () -> Unit, showHelpForm: () -> Unit,
-        isHelpFormShown: Boolean
-    ) {
-        Box(
-            modifier = Modifier
-                .width(screenWidth)
-                .height(0.1 * screenHeight)
-                .background(
-                    color = Color.White,
-                    shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 0.06 * screenWidth, end = 0.06 * screenWidth),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            if (!isHelpFormShown) {
-                                showHelpForm()
-                            }
-                        },
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        painterResource(R.drawable.help),
-                        "help",
-                        colorFilter = if (isHelpFormShown) ColorFilter.tint(color = secondaryColor) else null,
-                        modifier = Modifier
-                            .width(0.04 * screenHeight)
-                            .height(0.04 * screenHeight)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(id = R.string.help),
-                        style = TextStyle(
-                            color = if (isHelpFormShown) secondaryColor else unSelectedTextColor,
-                            fontSize = (screenWidth.value * 0.023f).sp
-                        )
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(2f),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(
-                                RoundedCornerShape(0.05 * screenWidth)
-                            )
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        blueGradient,
-                                        secondaryColor,
-                                    ),
-                                )
-                            )
-                            .padding(
-                                start = 0.04 * screenWidth,
-                                top = 0.01 * screenHeight,
-                                end = 0.04 * screenWidth,
-                                bottom = 0.01 * screenHeight
-                            )
-                    ) {
-                        Row {
-                            Image(
-                                painterResource(R.drawable.phone),
-                                "phone",
-                                modifier = Modifier
-                                    .width(48.dp)
-                                    .height(48.dp)
-                            )
-                            Spacer(modifier = Modifier.width(0.01 * screenWidth))
-                            Text(
-                                text = "920031915",
-                                style = TextStyle(
-                                    color = Color.White,
-                                    fontSize = (screenWidth.value * 0.03f).sp
-                                )
-                            )
-                        }
-                    }
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            changeLanguage()
-                        },
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        painterResource(R.drawable.language),
-                        "language",
-                        modifier = Modifier
-                            .width(0.04 * screenHeight)
-                            .height(0.04 * screenHeight)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(id = R.string.language),
-                        style = TextStyle(
-                            color = unSelectedTextColor,
-                            fontSize = (screenWidth.value * 0.023f).sp
-                        )
-                    )
-                }
-            }
-        }
-    }
 
     private fun changeLanguage() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -368,258 +252,6 @@ class MainActivity : ComponentActivity() {
         recreate()
     }
 
-
-
-    @Composable
-    fun HelpForm(showAd2: () -> Unit) {
-
-        Column(
-            modifier = Modifier
-                .width(screenWidth)
-        ) {
-
-
-            Column(
-                modifier = Modifier
-                    .height(screenHeight)
-                    .width(screenWidth),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
-            ) {
-                Spacer(modifier = Modifier.height(36.dp))
-
-
-                Row {
-                    Spacer(modifier = Modifier.width(0.02 * screenWidth))
-                    Column {
-                        Spacer(modifier = Modifier.padding(top = 12.dp))
-                        Image(
-                            painterResource(R.drawable.arrow_back),
-                            "arrow_back",
-                            colorFilter = ColorFilter.tint(color = primaryDark),
-                            modifier = Modifier
-                                .width(50.dp)
-                                .height(50.dp)
-                                .clickable {
-                                    showAd2()
-                                }
-                        )
-                    }
-                    Box(
-                        modifier =
-                        Modifier.weight(1f)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.help),
-                        style = TextStyle(
-                            fontSize = (screenWidth.value * 0.04f).sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryDark
-                        ),
-                        textAlign = TextAlign.Center,
-                    )
-                    Box(
-                        modifier =
-                        Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(24.dp))
-
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                Box(
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .border(
-                            color = borderColor,
-                            width = 1.dp,
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .background(
-                            color = Color.White,
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .fillMaxWidth()
-                        .height(0.72 * screenHeight)
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(0.02 * screenHeight))
-                        Image(
-                            painterResource(R.drawable.steps),
-                            "steps",
-                            contentScale = ContentScale.FillWidth,
-                            modifier = Modifier
-                                .width(screenWidth - 50.dp)
-                        )
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Spacer(modifier = Modifier.width(0.05 * screenWidth))
-                            Box(
-                                modifier = Modifier
-                                    .padding(0.008 * screenWidth)
-                                    .width(0.08 * screenWidth)
-                                    .height(0.08 * screenWidth)
-                                    .background(lightGreen, shape = CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painterResource(R.drawable.outline_phone),
-                                    "phone",
-                                    colorFilter = ColorFilter.tint(color = secondaryColor),
-                                    modifier = Modifier
-                                        .width(0.05 * screenWidth)
-                                        .height(0.05 * screenWidth)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(24.dp))
-                            Text(
-                                text = "920031915",
-                                style = TextStyle(
-                                    color = Color.Black,
-                                    fontSize = (screenWidth.value * 0.025f).sp
-                                )
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Spacer(modifier = Modifier.width(0.05 * screenWidth))
-                            Box(
-                                modifier = Modifier
-                                    .padding(0.008 * screenWidth)
-                                    .width(0.08 * screenWidth)
-                                    .height(0.08 * screenWidth)
-                                    .background(lightGreen, shape = CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painterResource(R.drawable.outline_email),
-                                    "email",
-                                    colorFilter = ColorFilter.tint(color = secondaryColor),
-                                    modifier = Modifier
-                                        .width(0.05 * screenWidth)
-                                        .height(0.05 * screenWidth)
-                                )
-
-                            }
-                            Spacer(modifier = Modifier.width(24.dp))
-                            Text(
-                                text = "info@horizonscloud.net",
-                                style = TextStyle(
-                                    color = Color.Black,
-                                    fontSize = (screenWidth.value * 0.025f).sp
-                                )
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Spacer(
-                            modifier =
-                            Modifier
-                                .height(1.dp)
-                                .background(color = borderColor)
-                                .padding(start = 24.dp, end = 24.dp)
-                                .width(screenWidth - (0.2 * screenWidth))
-                                .align(CenterHorizontally)
-                                .padding(start = 24.dp, end = 24.dp)
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = stringResource(id = R.string.quick_open),
-                            style = TextStyle(
-                                fontSize = (screenWidth.value * 0.03f).sp,
-                                color = Color.Black
-                            ),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.width(screenWidth)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .padding(24.dp)
-                                .border(
-                                    color = borderColor,
-                                    width = 1.dp,
-                                    shape = RoundedCornerShape(24.dp)
-                                )
-                                .background(
-                                    color = Color.White,
-                                    shape = RoundedCornerShape(24.dp)
-                                )
-                                .fillMaxWidth()
-                        ) {
-                            Column {
-                                Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
-                                Text(
-                                    text = stringResource(id = R.string.enter_security),
-                                    style = TextStyle(
-                                        fontSize = (screenWidth.value * 0.025f).sp,
-                                        color = Color.Black
-                                    ),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(start = (screenHeight.value * 0.01f).dp)
-                                )
-                                OutlinedInputField(
-                                    value = "",
-                                    hintText = "XXXX-XXXX-XXXX",
-                                    onValueChange = {
-
-                                    },
-                                    hintTextSize = (screenWidth.value * 0.02f).sp,
-                                    cornerRadius = (screenWidth.value * 0.06f),
-                                    modifier = Modifier
-                                        .padding((screenHeight.value * 0.02f).dp)
-                                        .fillMaxWidth()
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .padding(start = 24.dp, end = 24.dp)
-                                        .clip(
-                                            RoundedCornerShape((screenWidth.value * 0.02f).dp)
-                                        )
-                                        .background(
-                                            brush = Brush.horizontalGradient(
-                                                colors = listOf(
-                                                    blueGradient,
-                                                    secondaryColor,
-                                                ),
-                                            )
-                                        )
-                                        .padding(
-                                            start = 16.dp,
-                                            top = (screenWidth.value * 0.02f).dp,
-                                            end = 16.dp,
-                                            bottom = (screenWidth.value * 0.02f).dp
-                                        )
-                                        .fillMaxWidth()
-                                        .padding(start = 24.dp, end = 24.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.open),
-                                        style = TextStyle(
-                                            color = Color.White,
-                                            fontSize = (screenWidth.value * 0.03f).sp
-                                        )
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
-
-                            }
-                        }
-                    }
-                }
-                Box(
-                    modifier =
-                    Modifier.weight(1f)
-                )
-                BottomNavigation(showAd2, {}, true)
-            }
-
-
-        }
-    }
 
 }
 

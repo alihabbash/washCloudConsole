@@ -29,4 +29,9 @@
     <string name="drop_off">إنزال</string>
     <string name="pickup">التقاط</string>
     <string name="verify_wait">جاري التحقق, الرجاء الإنتظار</string>
+    <string name="print">طباعة</string>
+    <string name="order_number">طلب رقم:</string>
+    <string name="box_number">صندةق رقم:</string>
+    <string name="scan_order_number">قراءة رقم الطلب</string>
+    <string name="pick_up_and_close_door">التقط وأغلق الباب</string>
 </resources>

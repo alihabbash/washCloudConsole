@@ -28,4 +28,9 @@
     <string name="drop_off">Drop Off</string>
     <string name="pickup">Pickup</string>
     <string name="verify_wait">Verifying, Please wait…</string>
+    <string name="print">Print</string>
+    <string name="order_number">Order #:</string>
+    <string name="box_number">Box #:</string>
+    <string name="scan_order_number">Scan Order Number</string>
+    <string name="pick_up_and_close_door">Pickup and Close the Door</string>
 </resources>

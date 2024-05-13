@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
-import com.washcloud.consoleapplication.ui.common.TimerViewModel
+import com.washcloud.consoleapplication.ui.common.timerView
 import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
@@ -699,35 +699,6 @@ fun LoginForm(
     }
 }
 
-@Composable
-fun timerView(screenWidth: Dp, showAd2: () -> Unit){
-    val timerViewModel: TimerViewModel = hiltViewModel()
-    val timerText by timerViewModel.timerText.collectAsState()
-    if(timerText == "0"){
-        showAd2()
-    } else {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painterResource(R.drawable.timer),
-                "timer",
-                modifier = Modifier
-                    .width(0.05 * screenWidth)
-                    .height(0.05 * screenWidth)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = timerText,
-                style = TextStyle(
-                    color = secondaryColor,
-                    fontSize = (screenWidth.value * 0.025f).sp
-                )
-            )
-        }
-    }
-}
 
 @Composable
 fun dateAndTimeView(screenWidth: Dp){
