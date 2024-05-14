@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.clearText
@@ -44,6 +47,7 @@ fun PickupView(
     screenWidth: Dp,
     screenHeight: Dp,
     showStaffStart: () -> Unit,
+    showAd2: () -> Unit,
 ) {
     val viewModel: PickupViewModel = hiltViewModel()
 
@@ -79,114 +83,21 @@ fun PickupView(
                        shape = RoundedCornerShape(24.dp)
                    )
                    .fillMaxWidth()
-                   .height(0.59 * screenHeight)
+                   .height(0.63 * screenHeight)
            ){
-               Column {
-
-
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-                   Spacer(
-                       modifier =
-                       Modifier
-                           .height(1.dp)
-                           .background(color = borderColor)
-                           .padding(start = 24.dp, end = 24.dp, top = 24.dp)
-                           .width(screenWidth - (0.2 * screenWidth))
-                           .align(Alignment.CenterHorizontally)
-                           .padding(start = 24.dp, end = 24.dp)
-                   )
-                   pickUpItem(screenWidth, screenHeight)
-
+               val itemss = listOf(1, 1, 1, )
+               LazyColumn {
+                   items(20){item ->
+                       PickUpListDivider(screenWidth, screenHeight)
+                       pickUpItem(screenWidth, screenHeight)
+                   }
                }
            }
+           Box(
+               modifier =
+               Modifier.weight(1f)
+           )
+           BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showStaffStart)
        }
     }
 }
@@ -198,7 +109,8 @@ fun pickUpItem(
 ) {
     Row(
         modifier = Modifier
-            .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp)
+            .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ){
         Image(
             painterResource(R.drawable.pickup_circle),
@@ -215,7 +127,7 @@ fun pickUpItem(
                     text = stringResource(id = R.string.order_number),
                     style = TextStyle(
                         color = clearText,
-                        fontSize = (screenWidth.value * 0.01f).sp
+                        fontSize = (screenWidth.value * 0.03f).sp
                     )
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -223,7 +135,7 @@ fun pickUpItem(
                     text = stringResource(id = R.string.box_number),
                     style = TextStyle(
                         color = clearText,
-                        fontSize = (screenWidth.value * 0.01f).sp
+                        fontSize = (screenWidth.value * 0.03f).sp
                     )
                 )
             }
@@ -232,7 +144,7 @@ fun pickUpItem(
                     text = "930859037",
                     style = TextStyle(
                         color = numbersColor,
-                        fontSize = (screenWidth.value * 0.01f).sp
+                        fontSize = (screenWidth.value * 0.03f).sp
                     )
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -240,7 +152,7 @@ fun pickUpItem(
                     text = "16",
                     style = TextStyle(
                         color = numbersColor,
-                        fontSize = (screenWidth.value * 0.01f).sp
+                        fontSize = (screenWidth.value * 0.03f).sp
                     )
                 )
             }
@@ -261,10 +173,10 @@ fun pickUpItem(
                     )
                 )
                 .padding(
-                    top = (screenHeight.value * 0.01f).dp,
-                    end = 16.dp,
-                    bottom = (screenHeight.value * 0.01f).dp,
-                    start = 16.dp
+                    top = (screenHeight.value * 0.005f).dp,
+                    end = (screenWidth.value * 0.04f).dp,
+                    bottom = (screenHeight.value * 0.005f).dp,
+                    start = (screenWidth.value * 0.04f).dp
                 )
                 .clickable {
                     //todo print
@@ -279,4 +191,21 @@ fun pickUpItem(
             )
         }
     }
+}
+
+@Composable
+fun PickUpListDivider(
+    screenWidth: Dp,
+    screenHeight: Dp,
+){
+    VerticalDivider(
+        modifier =
+        Modifier
+            .height(1.dp)
+            .background(color = borderColor)
+            .padding(start = 24.dp, end = 24.dp, )
+            .width(screenWidth - (0.15 * screenWidth))
+            .padding(start = 24.dp, end = 24.dp,),
+
+    )
 }

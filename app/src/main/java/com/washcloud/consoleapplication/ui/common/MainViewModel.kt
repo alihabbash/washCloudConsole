@@ -6,37 +6,49 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 class MainViewModel @Inject constructor() : ViewModel() {
-    private val _stack = MutableStateFlow<MutableList<SelectedView>?>(mutableListOf(SelectedView.Ad2Form))
+    private val _stack = MutableStateFlow<MutableList<SelectedView>>(mutableListOf(SelectedView.Ad2Form))
     val stack = _stack.asStateFlow()
 
     fun addToStack(g: SelectedView){
-        var list = stack.value
-        if (list != null) {
-            for (i in list.size - 1 downTo 0){
-                if(list[i].javaClass == g.javaClass){
-                    list.removeAt(i)
-                }
+        val list = updateList(stack.value) { item ->
+            // Modify the item here
+            item.copy()
+        }
+        for (i in list.size - 1 downTo 0){
+            if(list[i].javaClass == g.javaClass){
+                list.removeAt(i)
             }
         }
-        list?.add(g)
+        list.add(g)
         _stack.value = list
     }
 
     fun popStack(){
-        val list = stack.value
-        list?.removeAt(list.size-1)
+        val list = updateList(stack.value) { item ->
+            // Modify the item here
+            item.copy()
+        }
+        list.removeAt(list.size-1)
         _stack.value = list
     }
 
     fun resetStack(){
-        val list = stack.value
-        list?.clear()
-        list?.add(SelectedView.Ad2Form)
+        val list = updateList(stack.value) { item ->
+            // Modify the item here
+            item.copy()
+        }
+        list.clear()
+        list.add(SelectedView.Ad2Form)
         _stack.value = list
     }
 
     fun getStackTop(): SelectedView{
-        var list = stack.value
-        return list!![list.size-1]
+        val list = stack.value
+        return list[list.size-1]
+    }
+
+    private fun updateList(currentState: MutableList<SelectedView>,
+                   updateFunction: (SelectedView) -> SelectedView): MutableList<SelectedView> {
+        return currentState.map { updateFunction(it) }.toMutableList()
     }
 }

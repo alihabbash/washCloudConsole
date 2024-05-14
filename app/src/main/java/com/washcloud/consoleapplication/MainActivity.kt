@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -103,6 +104,7 @@ class MainActivity : ComponentActivity() {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
                 screenWidth = LocalConfiguration.current.screenWidthDp.dp
                 val mainViewModel: MainViewModel = hiltViewModel()
+                val stack by mainViewModel.stack.collectAsState()
 
 
                 // A surface container using the 'background' color from the theme
@@ -117,7 +119,7 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.FillWidth
                         )
-                        if (mainViewModel.getStackTop() is SelectedView.Ad2Form)
+                        if (stack[stack.size-1] is SelectedView.Ad2Form)
                             MainScreen(
                                 {
                                     mainViewModel.resetStack()
@@ -129,7 +131,7 @@ class MainActivity : ComponentActivity() {
                                     mainViewModel.addToStack(SelectedView.HelpForm)
                                 },
                             )
-                        if (mainViewModel.getStackTop() is SelectedView.LoginForm)
+                        if (stack[stack.size-1] is SelectedView.LoginForm)
                             LoginForm({
                                 mainViewModel.resetStack()
                             }, {
@@ -138,21 +140,23 @@ class MainActivity : ComponentActivity() {
                                 screenWidth,
                                 screenHeight
                             )
-                        if (mainViewModel.getStackTop() is SelectedView.HelpForm)
+                        if (stack[stack.size-1] is SelectedView.HelpForm)
                             HelpForm(screenWidth, screenHeight, {
                                 changeLanguage()
                             }) {
                                 mainViewModel.resetStack()
                             }
-                        if (mainViewModel.getStackTop() is SelectedView.DriverLoginForm)
+                        if (stack[stack.size-1] is SelectedView.DriverLoginForm)
                             DriverLoginForm(screenWidth, screenHeight,
                                 {
                                     mainViewModel.addToStack(SelectedView.PickUpView)
                             }) {
                                 mainViewModel.resetStack()
                             }
-                        if (mainViewModel.getStackTop() is SelectedView.LoginForm)
-                            PickupView(screenWidth, screenHeight){
+                        if (stack[stack.size-1] is SelectedView.PickUpView)
+                            PickupView(screenWidth, screenHeight,{
+                                mainViewModel.resetStack()
+                            }){
                                 mainViewModel.addToStack(SelectedView.DriverLoginForm)
                             }
                     }
