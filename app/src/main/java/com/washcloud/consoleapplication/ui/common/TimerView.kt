@@ -28,7 +28,10 @@ fun timerView(screenWidth: Dp, back: () -> Unit){
     val timerViewModel: TimerViewModel = hiltViewModel()
     val timerText by timerViewModel.timerText.collectAsState()
     if(timerText == "0"){
+        timerViewModel.resetTimer()
         back()
+    } else if(timerText.isEmpty()){
+        timerViewModel.startTimeWatcher()
     } else {
         Column(
             verticalArrangement = Arrangement.Center,

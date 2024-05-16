@@ -51,13 +51,13 @@ fun HelpForm(
 ) {
 
     Column(
-        modifier = androidx.compose.ui.Modifier
+        modifier = Modifier
             .width(screenWidth)
     ) {
 
 
         Column(
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .height(screenHeight)
                 .width(screenWidth),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,7 +67,7 @@ fun HelpForm(
 
 
             Row {
-                Spacer(modifier = androidx.compose.ui.Modifier.width(0.02 * screenWidth))
+                Spacer(modifier = Modifier.width(0.02 * screenWidth))
                 Column {
                     Spacer(modifier = Modifier.padding(top = 12.dp))
                     Image(
@@ -119,21 +119,21 @@ fun HelpForm(
                     .height(0.72 * screenHeight)
             ) {
                 Column {
-                    Spacer(modifier = androidx.compose.ui.Modifier.height(0.02 * screenHeight))
+                    Spacer(modifier = Modifier.height(0.02 * screenHeight))
                     Image(
                         painterResource(R.drawable.steps),
                         "steps",
                         contentScale = ContentScale.FillWidth,
-                        modifier = androidx.compose.ui.Modifier
+                        modifier = Modifier
                             .width(screenWidth - 50.dp)
                     )
                     Spacer(modifier = Modifier.height(32.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Spacer(modifier = androidx.compose.ui.Modifier.width(0.05 * screenWidth))
+                        Spacer(modifier = Modifier.width(0.05 * screenWidth))
                         Box(
-                            modifier = androidx.compose.ui.Modifier
+                            modifier = Modifier
                                 .padding(0.008 * screenWidth)
                                 .width(0.08 * screenWidth)
                                 .height(0.08 * screenWidth)
@@ -144,7 +144,7 @@ fun HelpForm(
                                 painterResource(R.drawable.outline_phone),
                                 "phone",
                                 colorFilter = ColorFilter.tint(color = secondaryColor),
-                                modifier = androidx.compose.ui.Modifier
+                                modifier = Modifier
                                     .width(0.05 * screenWidth)
                                     .height(0.05 * screenWidth)
                             )
@@ -163,9 +163,9 @@ fun HelpForm(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Spacer(modifier = androidx.compose.ui.Modifier.width(0.05 * screenWidth))
+                        Spacer(modifier = Modifier.width(0.05 * screenWidth))
                         Box(
-                            modifier = androidx.compose.ui.Modifier
+                            modifier = Modifier
                                 .padding(0.008 * screenWidth)
                                 .width(0.08 * screenWidth)
                                 .height(0.08 * screenWidth)
@@ -176,7 +176,7 @@ fun HelpForm(
                                 painterResource(R.drawable.outline_email),
                                 "email",
                                 colorFilter = ColorFilter.tint(color = secondaryColor),
-                                modifier = androidx.compose.ui.Modifier
+                                modifier = Modifier
                                     .width(0.05 * screenWidth)
                                     .height(0.05 * screenWidth)
                             )
@@ -210,7 +210,7 @@ fun HelpForm(
                             color = Color.Black
                         ),
                         textAlign = TextAlign.Center,
-                        modifier = androidx.compose.ui.Modifier.width(screenWidth)
+                        modifier = Modifier.width(screenWidth)
                     )
                     Box(
                         modifier = Modifier
@@ -227,7 +227,7 @@ fun HelpForm(
                             .fillMaxWidth()
                     ) {
                         Column {
-                            Spacer(modifier = androidx.compose.ui.Modifier.height((screenHeight.value * 0.02f).dp))
+                            Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
                             Text(
                                 text = stringResource(id = R.string.enter_security),
                                 style = TextStyle(
@@ -245,7 +245,7 @@ fun HelpForm(
                                 },
                                 hintTextSize = (screenWidth.value * 0.02f).sp,
                                 cornerRadius = (screenWidth.value * 0.06f),
-                                modifier = androidx.compose.ui.Modifier
+                                modifier = Modifier
                                     .padding((screenHeight.value * 0.02f).dp)
                                     .fillMaxWidth()
                             )
@@ -281,7 +281,7 @@ fun HelpForm(
                                     )
                                 )
                             }
-                            Spacer(modifier = androidx.compose.ui.Modifier.height((screenHeight.value * 0.02f).dp))
+                            Spacer(modifier = Modifier.height((screenHeight.value * 0.02f).dp))
 
                         }
                     }

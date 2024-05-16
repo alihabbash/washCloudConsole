@@ -15,7 +15,7 @@ class TimerViewModel @Inject constructor() : ViewModel() {
         startTimeWatcher()
     }
 
-    private fun startTimeWatcher() {
+    fun startTimeWatcher() {
         cancelTimer() // Cancel any existing timer
         timer = object : CountDownTimer(1000*60*4, 1000) {
             override fun onTick(millisUntilFinished: Long) {
@@ -40,4 +40,7 @@ class TimerViewModel @Inject constructor() : ViewModel() {
         timer = null
     }
 
+    fun resetTimer(){
+        _timerText.value = ""
+    }
 }

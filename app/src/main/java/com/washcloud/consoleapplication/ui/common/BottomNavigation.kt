@@ -43,7 +43,7 @@ fun BottomNavigation(
     isHelpFormShown: Boolean
 ) {
     Box(
-        modifier = androidx.compose.ui.Modifier
+        modifier = Modifier
             .width(screenWidth)
             .height(0.1 * screenHeight)
             .background(
@@ -74,7 +74,7 @@ fun BottomNavigation(
                     painterResource(R.drawable.help),
                     "help",
                     colorFilter = if (isHelpFormShown) ColorFilter.tint(color = secondaryColor) else null,
-                    modifier = androidx.compose.ui.Modifier
+                    modifier = Modifier
                         .width(0.04 * screenHeight)
                         .height(0.04 * screenHeight)
                 )
@@ -121,7 +121,7 @@ fun BottomNavigation(
                                 .width(48.dp)
                                 .height(48.dp)
                         )
-                        Spacer(modifier = androidx.compose.ui.Modifier.width(0.01 * screenWidth))
+                        Spacer(modifier = Modifier.width(0.01 * screenWidth))
                         Text(
                             text = "920031915",
                             style = TextStyle(
@@ -144,7 +144,7 @@ fun BottomNavigation(
                 Image(
                     painterResource(R.drawable.language),
                     "language",
-                    modifier = androidx.compose.ui.Modifier
+                    modifier = Modifier
                         .width(0.04 * screenHeight)
                         .height(0.04 * screenHeight)
                 )

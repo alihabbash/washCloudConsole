@@ -38,7 +38,7 @@ fun BottomNavigationWithBackAndTimer(
     onBack: () -> Unit,
 ){
     Box(
-        modifier = androidx.compose.ui.Modifier
+        modifier = Modifier
             .width(screenWidth)
             .height(0.1 * screenHeight)
             .background(
@@ -85,7 +85,7 @@ fun BottomNavigationWithBackAndTimer(
                             .width(40.dp)
                             .height(40.dp)
                     )
-                    Spacer(modifier = androidx.compose.ui.Modifier.width((screenWidth.value * 0.02f).dp))
+                    Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                     Text(
                         text = stringResource(id = R.string.back),
                         style = TextStyle(
@@ -93,7 +93,7 @@ fun BottomNavigationWithBackAndTimer(
                             fontSize = (screenWidth.value * 0.03f).sp
                         )
                     )
-                    Spacer(modifier = androidx.compose.ui.Modifier.width((screenWidth.value * 0.02f).dp))
+                    Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                 }
             }
             Box(

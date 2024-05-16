@@ -155,9 +155,9 @@ class MainActivity : ComponentActivity() {
                             }
                         if (stack[stack.size-1] is SelectedView.PickUpView)
                             PickupView(screenWidth, screenHeight,{
-                                mainViewModel.resetStack()
+                                mainViewModel.popStack()
                             }){
-                                mainViewModel.addToStack(SelectedView.DriverLoginForm)
+                                mainViewModel.resetStack()
                             }
                     }
                 }
