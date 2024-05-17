@@ -1,11 +1,12 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp") version "1.6.21-1.0.6"
+    id("com.google.devtools.ksp")
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
+    id("androidx.room")
 }
-
+//version "1.6.21-1.0.6"
 android {
     namespace = "com.washcloud.consoleapplication"
     compileSdk = 34
@@ -20,6 +21,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+        room {
+            schemaDirectory("$projectDir/schemas")
         }
     }
 
