@@ -38,7 +38,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
-import com.washcloud.consoleapplication.ui.common.TimerViewModel
+import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.dateAndTimeView
+import com.washcloud.consoleapplication.ui.common.timerView
 import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
@@ -66,15 +68,15 @@ fun LoginForm(
 
 
     val clearSelectedField = {
-        if(passwordSelectedLoginForm){
+        if (passwordSelectedLoginForm) {
             viewModel.passwordText.value = ""
         } else {
             viewModel.accountText.value = ""
         }
     }
 
-    val updateSelectedField = { value:String -> //update selected field
-        if(passwordSelectedLoginForm){
+    val updateSelectedField = { value: String -> //update selected field
+        if (passwordSelectedLoginForm) {
             viewModel.passwordText.value += value
         } else {
             viewModel.accountText.value += value
@@ -584,72 +586,7 @@ fun LoginForm(
                     modifier =
                     Modifier.weight(1f)
                 )
-                Box(
-                    modifier = Modifier
-                        .width(screenWidth)
-                        .height(0.1 * screenHeight)
-                        .background(
-                            color = Color.White,
-                            shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 0.06 * screenWidth, end = 0.06 * screenWidth),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(
-                                    RoundedCornerShape((screenWidth.value * 0.02f).dp)
-                                )
-                                .background(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(
-                                            blueGradient,
-                                            secondaryColor,
-                                        ),
-                                    )
-                                )
-                                .padding(
-                                    start = 16.dp,
-                                    top = (screenHeight.value * 0.01f).dp,
-                                    end = 16.dp,
-                                    bottom = (screenHeight.value * 0.01f).dp
-                                )
-                                .clickable {
-                                    showAd2()
-                                }
-                        ) {
-                            Row {
-                                Image(
-                                    painterResource(R.drawable.arrow_back),
-                                    "arrow_back",
-                                    modifier = Modifier
-                                        .width(40.dp)
-                                        .height(40.dp)
-                                )
-                                Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
-                                Text(
-                                    text = stringResource(id = R.string.back),
-                                    style = TextStyle(
-                                        color = Color.White,
-                                        fontSize = (screenWidth.value * 0.03f).sp
-                                    )
-                                )
-                                Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
-                            }
-                        }
-                        Box(
-                            modifier =
-                            Modifier.weight(1f)
-                        )
-                        timerView(screenWidth, showAd2)
-                    }
-                }
+                BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
             }
 
 
@@ -699,66 +636,7 @@ fun LoginForm(
     }
 }
 
-@Composable
-fun timerView(screenWidth: Dp, showAd2: () -> Unit){
-    val timerViewModel: TimerViewModel = hiltViewModel()
-    val timerText by timerViewModel.timerText.collectAsState()
-    if(timerText == "0"){
-        showAd2()
-    } else {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painterResource(R.drawable.timer),
-                "timer",
-                modifier = Modifier
-                    .width(0.05 * screenWidth)
-                    .height(0.05 * screenWidth)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = timerText,
-                style = TextStyle(
-                    color = secondaryColor,
-                    fontSize = (screenWidth.value * 0.025f).sp
-                )
-            )
-        }
-    }
-}
 
-@Composable
-fun dateAndTimeView(screenWidth: Dp){
-    val dateTimeViewModel: DateTimeViewModel = hiltViewModel()
-    val hoursText by dateTimeViewModel.hoursText.collectAsState()
-    val fullDateText by dateTimeViewModel.fullDateText.collectAsState()
-    Row {
-        Spacer(modifier = Modifier.width(24.dp))
-        Text(
-            text = hoursText,
-            style = TextStyle(
-                fontSize = (screenWidth.value * 0.02f).sp,
-                color = borderColor
-            ),
-            textAlign = TextAlign.Start,
-        )
-        Box(
-            modifier =
-            Modifier.weight(1f)
-        )
-        Text(
-            text = fullDateText,
-            style = TextStyle(
-                fontSize = (screenWidth.value * 0.02f).sp,
-                color = borderColor
-            ),
-            textAlign = TextAlign.Start,
-        )
-        Spacer(modifier = Modifier.width(24.dp))
 
-    }
-}
 
 

@@ -28,6 +28,7 @@ fun OutlinedInputField(
     isError: Boolean = false,
     errorValue: String? = null,
     hintTextSize: TextUnit? = null,
+    fontSize: TextUnit? = null,
     colors: TextFieldColors? = null,
     cornerRadius: Float? = null,
 ) {
@@ -78,6 +79,9 @@ fun OutlinedInputField(
         onValueChange = onValueChange,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        textStyle = MaterialTheme.typography.headlineMedium
+
+        textStyle = MaterialTheme.typography.headlineMedium.copy(
+            fontSize = fontSize?: 18.sp
+        )
     )
 }

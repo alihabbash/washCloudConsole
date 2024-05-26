@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.ui.common.timerView
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.hints
 import com.washcloud.consoleapplication.utils.lightGreen
@@ -46,6 +47,7 @@ import com.washcloud.consoleapplication.utils.secondaryColor
 fun DriverLoginForm(
     screenWidth: Dp,
     screenHeight: Dp,
+    showPickUp: () -> Unit,
     showAd2: () -> Unit,
 ) {
     val viewModel: DateTimeViewModel = hiltViewModel()
@@ -151,7 +153,10 @@ fun DriverLoginForm(
                             width = 1.dp,
                             shape = RoundedCornerShape(24.dp)
                         )
-                        .padding(24.dp),
+                        .padding(24.dp)
+                        .clickable {
+                                   showPickUp()
+                        },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
@@ -247,6 +252,7 @@ fun DriverLoginForm(
                 Box(
                     modifier = Modifier.weight(1f)
                 )
+                timerView(screenWidth, showAd2)
             }
         }
     }
