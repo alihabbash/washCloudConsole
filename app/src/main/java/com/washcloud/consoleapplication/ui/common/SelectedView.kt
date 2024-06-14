@@ -6,7 +6,8 @@ sealed class SelectedView{
     object HelpForm: SelectedView()
     object DriverLoginForm: SelectedView()
     object PickUpView: SelectedView()
-
+    object DropOffView: SelectedView()
+    object SelectLockerView: SelectedView()
     fun copy(): SelectedView{
         return this
     }

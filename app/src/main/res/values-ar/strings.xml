@@ -34,4 +34,11 @@
     <string name="box_number">صندةق رقم:</string>
     <string name="scan_order_number">قراءة رقم الطلب</string>
     <string name="pick_up_and_close_door">التقط وأغلق الباب</string>
+    <string name="mobile">: الجوال</string>
+    <string name="time">: الوقت</string>
+    <string name="continue_to_drop_off">المتابعة للإنزال</string>
+    <string name="recall_clothes">إسترجاع الملابس</string>
+    <string name="select_locker">1- اختر النوع</string>
+    <string name="drop_off_clothes">2- إنزال الملابس</string>
+
 </resources>

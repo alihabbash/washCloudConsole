@@ -1,0 +1,342 @@
+package com.washcloud.consoleapplication.ui.dropoff
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.utils.*
+
+@Composable
+fun DropOffView(
+    screenWidth: Dp,
+    screenHeight: Dp,
+    showStaffStart: () -> Unit,
+    showContinueToDropOff: () -> Unit,
+    showAd2: () -> Unit,
+) {
+    val viewModel: DropOffViewModel = hiltViewModel()
+    var selectedIndex by remember { mutableIntStateOf(-1) }
+
+    Box {
+        Column(
+            modifier = Modifier
+                .height(screenHeight)
+                .width(screenWidth),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            Header(screenWidth)
+            DropOffList(screenWidth, screenHeight, selectedIndex) { index ->
+                selectedIndex = index
+            }
+            BottomButtons(screenWidth, screenHeight, showContinueToDropOff)
+            Spacer(modifier = Modifier.weight(1f))
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showStaffStart)
+        }
+    }
+}
+
+@Composable
+fun Header(screenWidth: Dp) {
+    Spacer(modifier = Modifier.height(24.dp))
+    Text(
+        text = stringResource(id = R.string.drop_off),
+        style = TextStyle(
+            fontSize = (screenWidth.value * 0.04f).sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryDark
+        ),
+        textAlign = TextAlign.Center,
+    )
+    Spacer(modifier = Modifier.height(24.dp))
+}
+
+@Composable
+fun DropOffList(screenWidth: Dp, screenHeight: Dp, selectedIndex: Int, onItemSelected: (Int) -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(24.dp)
+            .border(
+                color = borderColor,
+                width = 1.dp,
+                shape = RoundedCornerShape(24.dp)
+            )
+            .background(
+                color = Color.White,
+                shape = RoundedCornerShape(24.dp)
+            )
+            .fillMaxWidth()
+            .height(0.7 * screenHeight.value.dp)
+    ) {
+        LazyColumn(modifier = Modifier.padding(top = 0.006 * screenHeight.value.dp)) {
+            items(20) { item ->
+                Column {
+                    DropOffItem(screenWidth, screenHeight, item == selectedIndex) {
+                        onItemSelected(item)
+                    }
+                    if (item != 19) {
+                        DropOffListDivider(screenWidth)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DropOffItem(screenWidth: Dp, screenHeight: Dp, isSelected: Boolean, onClick: () -> Unit) {
+    val backgroundColor = if (isSelected) lightGrey else Color.White
+    val textColor = if (isSelected) secondaryColor else primaryDark
+
+    Row(
+        modifier = Modifier
+            .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .clickable { onClick() },
+
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painterResource(R.drawable.drop_off_circle),
+            "drop_off_circle",
+            modifier = Modifier
+                .width(0.1 * screenWidth.value.dp)
+                .height(0.1 * screenWidth.value.dp),
+        )
+        Spacer(modifier = Modifier.width(24.dp))
+        OrderDetails(screenWidth, textColor)
+        Box(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(24.dp))
+    }
+}
+
+@Composable
+fun OrderDetails(screenWidth: Dp, textColor: Color) {
+    Row {
+        Column {
+            Text(
+                text = stringResource(id = R.string.order_number),
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(id = R.string.box_number),
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+        }
+        Column {
+            Text(
+                text = "930859037",
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "16",
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+        }
+        Column(modifier = Modifier.padding(start = 0.05 * screenWidth.value.dp)) {
+            Text(
+                text = stringResource(id = R.string.mobile),
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(id = R.string.time),
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+        }
+        Column {
+            Text(
+                text = "0552516789",
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "00:00:04 17/03/2024",
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = (screenWidth.value * 0.03f).sp
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun DropOffListDivider(screenWidth: Dp) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        VerticalDivider(
+            modifier = Modifier
+                .height(1.dp)
+                .width(screenWidth - (0.15 * screenWidth))
+                .background(color = borderColor)
+                .padding(horizontal = 24.dp)
+                .padding(vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
+fun BottomButtons(screenWidth: Dp, screenHeight: Dp, showContinueToDropOff: () -> Unit){
+    Row(
+        modifier = Modifier
+            .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(32.dp)
+    ) {
+        val buttonModifier = Modifier
+            .weight(1f)
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        blueGradient,
+                        secondaryColor,
+                    ),
+                )
+            )
+            .padding(
+                top = (screenHeight.value * 0.02f).dp,
+                bottom = (screenHeight.value * 0.02f).dp,
+                start = (screenWidth.value * 0.04f).dp,
+                end = (screenWidth.value * 0.04f).dp
+            )
+
+        Box(
+            modifier = buttonModifier.clickable {
+
+            },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.recall_clothes),
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = (screenWidth.value * 0.03f).sp,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Box(
+            modifier = buttonModifier.clickable {
+                showContinueToDropOff()
+            },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.continue_to_drop_off),
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = (screenWidth.value * 0.03f).sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewDropOffView() {
+    DropOffView(
+        screenWidth = 360.dp,
+        screenHeight = 640.dp,
+        showStaffStart = {},
+        showContinueToDropOff = {},
+        showAd2 = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewHeader() {
+    Header(screenWidth = 360.dp)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPickupList() {
+    DropOffList(screenWidth = 360.dp, screenHeight = 640.dp, selectedIndex = -1, onItemSelected = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewDropOffItem() {
+    DropOffItem(screenWidth = 360.dp, screenHeight = 640.dp, isSelected = false, onClick = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewOrderDetails() {
+    OrderDetails(screenWidth = 360.dp, textColor = primaryDark)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewDropOffListDivider() {
+    DropOffListDivider(screenWidth = 360.dp)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewBottomButtons() {
+    BottomButtons(screenWidth = 360.dp, screenHeight = 640.dp, showContinueToDropOff = {})
+}

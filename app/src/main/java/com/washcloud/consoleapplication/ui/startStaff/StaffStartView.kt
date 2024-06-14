@@ -48,6 +48,7 @@ fun DriverLoginForm(
     screenWidth: Dp,
     screenHeight: Dp,
     showPickUp: () -> Unit,
+    showDropOff: () -> Unit,
     showAd2: () -> Unit,
 ) {
     val viewModel: DateTimeViewModel = hiltViewModel()
@@ -114,8 +115,13 @@ fun DriverLoginForm(
                             width = 1.dp,
                             shape = RoundedCornerShape(24.dp)
                         )
-                        .padding(24.dp),
+                        .padding(24.dp)
+                        .clickable {
+                            showDropOff()
+                        },
+
                     horizontalAlignment = Alignment.CenterHorizontally
+
                 ) {
                     Box(
                         modifier = Modifier
