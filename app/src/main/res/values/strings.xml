@@ -33,4 +33,10 @@
     <string name="box_number">Box #:</string>
     <string name="scan_order_number">Scan Order Number</string>
     <string name="pick_up_and_close_door">Pickup and Close the Door</string>
+    <string name="mobile">Mobile: </string>
+    <string name="time">Time: </string>
+    <string name="continue_to_drop_off">Continue to Drop Off</string>
+    <string name="recall_clothes">Recall Clothes</string>
+    <string name="select_locker">1- Select Locker</string>
+    <string name="drop_off_clothes">2- Drop Off Clothes</string>
 </resources>

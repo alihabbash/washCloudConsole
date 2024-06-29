@@ -35,6 +35,7 @@ class StaffLoginViewModel @Inject constructor(
                 onFailure = {
                     _uiState.value =
                         LoginState.Error(it.message?:"" )
+
                 }
             )
         }

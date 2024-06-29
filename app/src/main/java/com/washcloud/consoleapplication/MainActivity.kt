@@ -45,6 +45,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
@@ -59,6 +61,7 @@ import com.washcloud.consoleapplication.local.preferences.language
 import com.washcloud.consoleapplication.ui.common.BottomNavigation
 import com.washcloud.consoleapplication.ui.common.MainViewModel
 import com.washcloud.consoleapplication.ui.common.SelectedView
+import com.washcloud.consoleapplication.ui.dropoff.DropOffViewModel
 import com.washcloud.consoleapplication.ui.help.HelpForm
 import com.washcloud.consoleapplication.utils.lightGreen
 import com.washcloud.consoleapplication.utils.lightGrey
@@ -69,6 +72,8 @@ import com.washcloud.consoleapplication.utils.unSelectedTextColor
 import java.util.Locale
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
 import com.washcloud.consoleapplication.ui.login.LoginForm
+import com.washcloud.consoleapplication.ui.dropoff.DropOffView
+import com.washcloud.consoleapplication.ui.dropoff.SelectLockerView
 import com.washcloud.consoleapplication.ui.pickup.PickupView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -105,60 +110,13 @@ class MainActivity : ComponentActivity() {
                 screenWidth = LocalConfiguration.current.screenWidthDp.dp
                 val mainViewModel: MainViewModel = hiltViewModel()
                 val stack by mainViewModel.stack.collectAsState()
-
-
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = Color.White
                 ) {
                     Box {
-                        Image(
-                            painterResource(R.drawable.background),
-                            "background",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillWidth
-                        )
-                        if (stack[stack.size-1] is SelectedView.Ad2Form)
-                            MainScreen(
-                                {
-                                    mainViewModel.resetStack()
-                                },
-                                {//show login form
-                                    mainViewModel.addToStack(SelectedView.LoginForm)
-                                },
-                                {//show help form
-                                    mainViewModel.addToStack(SelectedView.HelpForm)
-                                },
-                            )
-                        if (stack[stack.size-1] is SelectedView.LoginForm)
-                            LoginForm({
-                                mainViewModel.resetStack()
-                            }, {
-                                mainViewModel.addToStack(SelectedView.DriverLoginForm)
-                            },
-                                screenWidth,
-                                screenHeight
-                            )
-                        if (stack[stack.size-1] is SelectedView.HelpForm)
-                            HelpForm(screenWidth, screenHeight, {
-                                changeLanguage()
-                            }) {
-                                mainViewModel.resetStack()
-                            }
-                        if (stack[stack.size-1] is SelectedView.DriverLoginForm)
-                            DriverLoginForm(screenWidth, screenHeight,
-                                {
-                                    mainViewModel.addToStack(SelectedView.PickUpView)
-                            }) {
-                                mainViewModel.resetStack()
-                            }
-                        if (stack[stack.size-1] is SelectedView.PickUpView)
-                            PickupView(screenWidth, screenHeight,{
-                                mainViewModel.popStack()
-                            }){
-                                mainViewModel.resetStack()
-                            }
+                        BackgroundImage()
+                        CurrentView(stack.last(), screenWidth, screenHeight, mainViewModel)
                     }
                 }
             }
@@ -166,6 +124,68 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    @Composable
+    fun BackgroundImage() {
+        Image(
+            painter = painterResource(R.drawable.background),
+            contentDescription = "background",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillWidth
+        )
+    }
+
+    @Composable
+    fun CurrentView(
+        selectedView: SelectedView,
+        screenWidth: Dp,
+        screenHeight: Dp,
+        mainViewModel: MainViewModel
+    ) {
+        when (selectedView) {
+            is SelectedView.Ad2Form -> MainScreen(
+                 { mainViewModel.resetStack() },
+                 { mainViewModel.addToStack(SelectedView.LoginForm) },
+                 { mainViewModel.addToStack(SelectedView.HelpForm) }
+            )
+            is SelectedView.LoginForm -> LoginForm(
+                { mainViewModel.resetStack() },
+                { mainViewModel.addToStack(SelectedView.DriverLoginForm) },
+                screenWidth = screenWidth,
+                screenHeight = screenHeight
+            )
+            is SelectedView.HelpForm -> HelpForm(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                 { changeLanguage() },
+                { mainViewModel.resetStack() }
+            )
+            is SelectedView.DriverLoginForm -> DriverLoginForm(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                { mainViewModel.addToStack(SelectedView.PickUpView) }, { mainViewModel.addToStack(SelectedView.DropOffView) },
+                 { mainViewModel.resetStack() }
+            )
+            is SelectedView.PickUpView -> PickupView(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                 { mainViewModel.popStack() },
+                { mainViewModel.resetStack() }
+            )
+            is SelectedView.DropOffView -> DropOffView(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                { mainViewModel.popStack() },
+                { mainViewModel.addToStack(SelectedView.SelectLockerView) },
+                { mainViewModel.resetStack() }
+            )
+            is SelectedView.SelectLockerView -> SelectLockerView(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onBack = { mainViewModel.popStack() },
+                { mainViewModel.resetStack() }
+            )
+        }
+    }
     @Composable
     fun MainScreen(
         showAd2: () -> Unit,
