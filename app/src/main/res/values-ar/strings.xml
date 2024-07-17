@@ -40,5 +40,26 @@
     <string name="recall_clothes">إسترجاع الملابس</string>
     <string name="select_locker">1- اختر النوع</string>
     <string name="drop_off_clothes">2- إنزال الملابس</string>
+    <string name="admin_login">تسجيل دخول كمسؤول</string>
+    <string name="admin_menu">قائمة المسؤول</string>
+    <string name="pc_setting">إعدادات الجهاز</string>
+    <string name="admin_setting">إعدادات المسؤول</string>
+    <string name="ads_management">إدارة الإعلانات</string>
+    <string name="locket_management">إدارة الصناديق</string>
+    <string name="incorrect_password">كلمة السر غير صحيحة</string>
+    <string name="incorrect_password_msg">الرقم السري الذي أدخلته غير صحيح. الرجاء المحاولة مرة أخرى.</string>
+    <string name="ok">موافق</string>
+    <string name="change_password">تحديث كلمة السر</string>
+    <string name="help_phone_number">رقم الهاتف للمساعدة</string>
+    <string name="sub_admin_setting">إعدادات المسؤول الفرعي</string>
+    <string name="current_password">كلمة السر الحالية</string>
+    <string name="new_password">كلمة السر الجديدة</string>
+    <string name="confirm_password">تأكيد كلمة السر</string>
+    <string name="save">حفظ</string>
+    <string name="add_phone_number">إضافة رقم الجوال</string>
+    <string name="current_phone_number">رقم الجوال الحالي</string>
+    <string name="new_phone_number">رقم الجوال الجديد</string>
+    <string name="add_file">إضافة ملف</string>
+
 
 </resources>

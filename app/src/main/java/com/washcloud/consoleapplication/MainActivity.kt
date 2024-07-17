@@ -52,12 +52,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.preference.PreferenceManager
+import com.washcloud.consoleapplication.local.preferences.ADMIN_PASSWORD
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.local.preferences.language
+import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
+import com.washcloud.consoleapplication.ui.admin.ads.AdsManagementScreen
+import com.washcloud.consoleapplication.ui.admin.locker.AdminLockerScreen
+import com.washcloud.consoleapplication.ui.admin.login.AdminLogInView
+import com.washcloud.consoleapplication.ui.admin.menu.AdminMenuView
+import com.washcloud.consoleapplication.ui.admin.password.ChangePasswordScreen
+import com.washcloud.consoleapplication.ui.admin.phoneNumber.UpdatePhoneNumberScreen
+import com.washcloud.consoleapplication.ui.admin.settings.PCSettingsScreen
 import com.washcloud.consoleapplication.ui.common.BottomNavigation
 import com.washcloud.consoleapplication.ui.common.MainViewModel
 import com.washcloud.consoleapplication.ui.common.SelectedView
@@ -96,6 +105,7 @@ class MainActivity : ComponentActivity() {
             return
 
         Locale.setDefault(dLocale)
+
         val configuration = Configuration()
         configuration.setLocale(dLocale)
         wrapper.applyOverrideConfiguration(configuration)
@@ -104,6 +114,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setAdminPassword()
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -145,6 +156,7 @@ class MainActivity : ComponentActivity() {
             is SelectedView.Ad2Form -> MainScreen(
                  { mainViewModel.resetStack() },
                  { mainViewModel.addToStack(SelectedView.LoginForm) },
+                 { mainViewModel.addToStack(SelectedView.AdminLogInView) },
                  { mainViewModel.addToStack(SelectedView.HelpForm) }
             )
             is SelectedView.LoginForm -> LoginForm(
@@ -184,12 +196,75 @@ class MainActivity : ComponentActivity() {
                 onBack = { mainViewModel.popStack() },
                 { mainViewModel.resetStack() }
             )
+            is SelectedView.AdminLogInView -> AdminLogInView(
+                { mainViewModel.resetStack() },
+                { mainViewModel.addToStack(SelectedView.AdminMenuView) },
+                screenWidth = screenWidth,
+                screenHeight = screenHeight
+            )
+
+            is SelectedView.AdminMenuView -> AdminMenuView(
+                screenWidth = screenWidth,
+                screenHeight =  screenHeight,
+                showSetting = { mainViewModel.addToStack(SelectedView.PCSettingsScreen) },
+                showAdminSetting = { mainViewModel.addToStack(SelectedView.SubAdminSettingsScreen) },
+                showAdsSetting = { mainViewModel.addToStack(SelectedView.AdsManagementScreen) },
+                showLockerManagement = { mainViewModel.addToStack(SelectedView.AdminLockerScreen) }) {
+                mainViewModel.resetStack()
+            }
+
+            is SelectedView.PCSettingsScreen -> PCSettingsScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onSaveLocker = {},
+                onSaveRebootSchedule = {}) {
+                mainViewModel.resetStack()
+            }
+
+            is SelectedView.SubAdminSettingsScreen -> SubAdminSettingsScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onChangePassword = { mainViewModel.addToStack(SelectedView.ChangePasswordScreen) },
+                onHelpPhoneNumber = {  mainViewModel.addToStack(SelectedView.UpdatePhoneNumberScreen) },
+                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+            )
+
+            is SelectedView.ChangePasswordScreen -> ChangePasswordScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onSave = {  },
+                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+            )
+
+            is SelectedView.UpdatePhoneNumberScreen -> UpdatePhoneNumberScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onSave = {  },
+                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+            )
+
+            is SelectedView.AdsManagementScreen -> AdsManagementScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) },
+                onBack = { mainViewModel.resetStack() }
+            )
+
+            is SelectedView.AdminLockerScreen -> AdminLockerScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                numberOfLockers = 60,
+                onBack = { mainViewModel.resetStack() },
+                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+            )
+
         }
     }
     @Composable
     fun MainScreen(
         showAd2: () -> Unit,
         showStaffLogin: () -> Unit,
+        showAdminLogin: () -> Unit,
         showHelpForm: () -> Unit,
     ) {
 
@@ -203,6 +278,15 @@ class MainActivity : ComponentActivity() {
                     .height(0.08 * screenHeight)
                     .width(screenWidth)
             ) {
+                Box(
+                    modifier =
+                    Modifier
+                        .weight(1f, true)
+                        .fillMaxHeight()
+                        .clickable {
+                            showAdminLogin()
+                        }
+                )
                 Box(
                     modifier =
                     Modifier
@@ -255,6 +339,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun setAdminPassword() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val storedPassword = sharedPreferences.getString(ADMIN_PASSWORD, "")
+        if (storedPassword == "") {
+            sharedPreferences.edit().putString(ADMIN_PASSWORD, "123321").apply()
+        }
+    }
 
     private fun changeLanguage() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
