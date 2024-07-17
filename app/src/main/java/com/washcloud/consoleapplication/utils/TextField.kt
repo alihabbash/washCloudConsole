@@ -31,12 +31,14 @@ fun OutlinedInputField(
     fontSize: TextUnit? = null,
     colors: TextFieldColors? = null,
     cornerRadius: Float? = null,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
+        enabled = enabled,
         placeholder = {
             Text(
                 text = hintText,

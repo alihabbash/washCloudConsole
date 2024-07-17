@@ -39,4 +39,30 @@
     <string name="recall_clothes">Recall Clothes</string>
     <string name="select_locker">1- Select Locker</string>
     <string name="drop_off_clothes">2- Drop Off Clothes</string>
+    <string name="admin_login">Admin Login</string>
+    <string name="admin_menu">Admin Menu</string>
+    <string name="pc_setting">PC Setting</string>
+    <string name="admin_setting">Admin Setting</string>
+    <string name="ads_management">Ads Management</string>
+    <string name="locket_management">Locker Management</string>
+    <string name="incorrect_password">Incorrect Password</string>
+    <string name="incorrect_password_msg">The password you entered is incorrect. Please try again.</string>
+    <string name="ok">OK</string>
+    <string name="help_phone_number">Help Phone Number</string>
+    <string name="sub_admin_setting">Sub Admin Setting</string>
+    <string name="change_password">Change Password</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="save">Save</string>
+    <string name="add_phone_number">Add Phone Number</string>
+    <string name="current_phone_number">Current Phone Number</string>
+    <string name="new_phone_number">New Phone Number</string>
+    <string name="add_file">Add File</string>
+
+
+
+
+
+
 </resources>
