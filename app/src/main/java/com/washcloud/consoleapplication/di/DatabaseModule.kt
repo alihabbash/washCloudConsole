@@ -2,6 +2,8 @@ package com.washcloud.consoleapplication.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.washcloud.consoleapplication.local.database.ConsoleDatabase
 import com.washcloud.consoleapplication.local.database.DatabaseConstants
 import com.washcloud.consoleapplication.local.database.dao.BoxDao
@@ -12,6 +14,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+
+
 
 @Module
 @InstallIn(SingletonComponent::class)

@@ -81,10 +81,13 @@ dependencies {
     implementation("com.google.android.material:material:1.4.0")
     implementation ("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.compose.material3:material3-android:1.2.1")
+
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.8")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+
+    kapt("androidx.room:room-compiler:$roomVersion")
 
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -99,7 +102,11 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.44")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation ("io.github.xmaihh:serialport:2.1.2")
 
+    implementation("com.google.android.exoplayer:exoplayer:2.18.1")
+    implementation("com.google.android.exoplayer:exoplayer-core:2.18.1")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.18.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -108,6 +115,8 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+
 }
 
 kapt {
