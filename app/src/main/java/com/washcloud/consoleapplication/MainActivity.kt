@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -8,7 +9,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,27 +17,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -45,19 +34,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.preference.PreferenceManager
+import com.washcloud.consoleapplication.di.DatabaseModule
+import com.washcloud.consoleapplication.hardware.SerialPortService
+import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.ADMIN_PASSWORD
-import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
-import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
-import com.washcloud.consoleapplication.utils.OutlinedInputField
-import com.washcloud.consoleapplication.utils.blueGradient
-import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.local.preferences.language
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
 import com.washcloud.consoleapplication.ui.admin.ads.AdsManagementScreen
@@ -70,21 +56,21 @@ import com.washcloud.consoleapplication.ui.admin.settings.PCSettingsScreen
 import com.washcloud.consoleapplication.ui.common.BottomNavigation
 import com.washcloud.consoleapplication.ui.common.MainViewModel
 import com.washcloud.consoleapplication.ui.common.SelectedView
-import com.washcloud.consoleapplication.ui.dropoff.DropOffViewModel
-import com.washcloud.consoleapplication.ui.help.HelpForm
-import com.washcloud.consoleapplication.utils.lightGreen
-import com.washcloud.consoleapplication.utils.lightGrey
-import com.washcloud.consoleapplication.utils.primaryDark
-import com.washcloud.consoleapplication.utils.screenBackground
-import com.washcloud.consoleapplication.utils.secondaryColor
-import com.washcloud.consoleapplication.utils.unSelectedTextColor
-import java.util.Locale
-import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
-import com.washcloud.consoleapplication.ui.login.LoginForm
 import com.washcloud.consoleapplication.ui.dropoff.DropOffView
 import com.washcloud.consoleapplication.ui.dropoff.SelectLockerView
+import com.washcloud.consoleapplication.ui.help.HelpForm
+import com.washcloud.consoleapplication.ui.login.LoginForm
+import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.pickup.PickupView
+import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
+import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
+import com.washcloud.consoleapplication.utils.lightGrey
+import com.washcloud.consoleapplication.utils.screenBackground
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.Locale
 
 
 @AndroidEntryPoint
@@ -115,6 +101,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setAdminPassword()
+        insertBoxes()
+        startPortService()
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -345,6 +333,20 @@ class MainActivity : ComponentActivity() {
         if (storedPassword == "") {
             sharedPreferences.edit().putString(ADMIN_PASSWORD, "123321").apply()
         }
+    }
+
+
+    private  fun insertBoxes() {
+
+        val database = DatabaseModule.provideConsoleDatabase(this)
+         val boxDao = database.getBoxDao()
+        CoroutineScope(Dispatchers.IO).launch {
+            BoxSeeder.seed(boxDao)
+        }
+    }
+
+    private fun startPortService() {
+        startService(Intent(this, SerialPortService::class.java))
     }
 
     private fun changeLanguage() {

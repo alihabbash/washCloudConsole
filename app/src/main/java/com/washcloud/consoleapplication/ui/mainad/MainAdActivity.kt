@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -33,6 +34,7 @@ import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import java.util.Locale
+
 
 class MainAdActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
@@ -65,6 +67,7 @@ class MainAdActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = screenBackground
                 ) {
+                    val context = LocalContext.current
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -77,21 +80,23 @@ class MainAdActivity : ComponentActivity() {
                                 )
                             }
                     ) {
-                        Image(
-                            painterResource(R.drawable.empty_image),
-                            "ad_1",
-                            modifier = Modifier.width(screenWidth * 0.3f)
-                                .height(screenWidth*0.3f)
-                        )
-                        Text(
-                            text = stringResource(id = R.string.ad1),
-                            style = TextStyle(
-                                fontSize = (screenWidth.value * 0.07f).sp,
-                                fontWeight = FontWeight.Medium,
-                                color = lightGrey
-                            ),
-                            textAlign = TextAlign.Center,
-                        )
+//                        Image(
+//                            painterResource(R.drawable.empty_image),
+//                            "ad_1",
+//                            modifier = Modifier.width(screenWidth * 0.3f)
+//                                .height(screenWidth*0.3f)
+//                        )
+//                        Text(
+//                            text = stringResource(id = R.string.ad1),
+//                            style = TextStyle(
+//                                fontSize = (screenWidth.value * 0.07f).sp,
+//                                fontWeight = FontWeight.Medium,
+//                                color = lightGrey
+//                            ),
+//                            textAlign = TextAlign.Center,
+//                        )
+
+                        VideoPlayer(context, Modifier.fillMaxSize())
                     }
                 }
             }
