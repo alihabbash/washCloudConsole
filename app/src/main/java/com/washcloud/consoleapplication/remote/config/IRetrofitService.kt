@@ -1,9 +1,13 @@
 package com.washcloud.consoleapplication.remote.config
 
+import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatRequest
+import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatResponse
 import com.washcloud.consoleapplication.remote.model.locker.VerifyOrderResponse
 import com.washcloud.consoleapplication.remote.model.login.StaffLoginResponse
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -24,4 +28,10 @@ interface IRetrofitService {
         @Query("serial") serialQ: String,//order serial
         @Query("terminalSn") terminalSnQ: String,
     ): Response<List<VerifyOrderResponse>>
+
+    @POST(HEART_BEAT)
+    suspend fun sendHeartbeat(
+        @Body heartbeatRequest: HeartbeatRequest
+    ): Response<HeartbeatResponse>
+
 }

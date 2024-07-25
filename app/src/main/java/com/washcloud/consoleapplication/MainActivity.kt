@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.ContextThemeWrapper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,12 +39,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.ADMIN_PASSWORD
+import com.washcloud.consoleapplication.local.preferences.API_KEY
+import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.local.preferences.language
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
 import com.washcloud.consoleapplication.ui.admin.ads.AdsManagementScreen
@@ -71,12 +76,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
+
+
+
 
     companion object {
         public var dLocale: Locale? = null
@@ -103,6 +112,9 @@ class MainActivity : ComponentActivity() {
         setAdminPassword()
         insertBoxes()
         startPortService()
+
+
+
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -368,6 +380,7 @@ class MainActivity : ComponentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
         recreate()
     }
+
 
 
 }

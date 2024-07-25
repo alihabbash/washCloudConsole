@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.ContextThemeWrapper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,8 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContentProviderCompat.requireContext
 import com.washcloud.consoleapplication.MainActivity
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.local.preferences.API_KEY
+import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
@@ -39,6 +43,7 @@ import java.util.Locale
 class MainAdActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
+
     companion object {
         public var dLocale: Locale? = null
     }
@@ -59,6 +64,8 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp

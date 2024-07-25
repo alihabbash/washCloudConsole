@@ -1,5 +1,7 @@
 package com.washcloud.consoleapplication.di
 
+import com.washcloud.consoleapplication.remote.datasource.HeartbeatRemoteDataSource
+import com.washcloud.consoleapplication.remote.datasource.IHeartbeatRemoteDataSource
 import com.washcloud.consoleapplication.remote.datasource.IStaffRemoteDataSource
 import com.washcloud.consoleapplication.remote.datasource.StaffRemoteDataSource
 import com.washcloud.consoleapplication.repository.IStaffRepository
@@ -17,4 +19,7 @@ interface RepositoryModule {
     fun bindsStaffRepository(staffRepository: StaffRepository): IStaffRepository
     @Binds
     fun bindsStaffRemoteDataSource(staffRemoteDataSource: StaffRemoteDataSource): IStaffRemoteDataSource
+
+    @Binds
+    fun bindsHeartbeatRemoteDataSource(heartbeatRemoteDataSource: HeartbeatRemoteDataSource): IHeartbeatRemoteDataSource
 }
