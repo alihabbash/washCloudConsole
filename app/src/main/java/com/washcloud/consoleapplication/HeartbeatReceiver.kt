@@ -1,61 +1,64 @@
-package com.washcloud.consoleapplication.ui.mainad
+package com.washcloud.consoleapplication
 
-
+import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.Context
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import android.content.Intent
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.washcloud.consoleapplication.di.DatabaseModule
-import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
+import com.washcloud.consoleapplication.local.preferences.API_KEY
+import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatRequest
 import com.washcloud.consoleapplication.remote.usecase.SendHeartbeatUseCase
-import dagger.hilt.android.lifecycle.HiltViewModel
-
+import com.washcloud.consoleapplication.ui.mainad.HeartbeatViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@AndroidEntryPoint
+class HeartbeatReceiver : BroadcastReceiver() {
 
+    @Inject
+    lateinit var sendHeartbeatUseCase: SendHeartbeatUseCase
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    override fun onReceive(context: Context, intent: Intent) {
+        val apiKey = intent.getStringExtra("API_KEY")
+        val terminalSn = intent.getStringExtra("TERMINAL_SN")
 
-@HiltViewModel
-class HeartbeatViewModel @Inject constructor(
-    private val sendHeartbeatUseCase: SendHeartbeatUseCase
-) : ViewModel() {
-
-
-    private lateinit var boxDao: BoxDao
-
-    fun initialize(context: Context) {
-        boxDao = DatabaseModule.provideConsoleDatabase(context).getBoxDao()
+        if (apiKey != null && terminalSn != null) {
+            sendHeartbeat(context)
+        }
     }
 
-    fun sendHeartbeat(apiKey: String, terminalSn: String) {
 
-       println("sendHeartbeat")
-        viewModelScope.launch {
+    private fun sendHeartbeat(context: Context) {
+        val boxDao = DatabaseModule.provideConsoleDatabase(context.applicationContext).getBoxDao()
+
+        scope.launch(Dispatchers.IO) {
 
             val boxesDto = boxDao.getAllBoxes()
             val boxes = boxesDto.map { mapBoxDtoToHeartbeatBox(it) }
 
-            runCatching {
-                sendHeartbeatUseCase(
-                    SendHeartbeatUseCase.Params(
-                        apiKey = apiKey,
-                        terminalSn = terminalSn,
-                        boxes = boxes
-                    )
+            sendHeartbeatUseCase(
+                SendHeartbeatUseCase.Params(
+                    apiKey = API_KEY,
+                    terminalSn = TERMINAL_SN,
+                    boxes = boxes
                 )
-            }.onSuccess {
-                println("sendHeartbeat success")
-
-            }.onFailure {
-                println("sendHeartbeat falied: ${it.message}")
-            }
+            )
         }
     }
+
 
     private fun mapBoxDtoToHeartbeatBox(boxDto: BoxDto): HeartbeatRequest.Box {
         return HeartbeatRequest.Box(

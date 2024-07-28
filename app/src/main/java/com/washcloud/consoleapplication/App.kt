@@ -12,39 +12,14 @@ import javax.inject.Inject
 import androidx.work.*
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
-import com.washcloud.consoleapplication.ui.mainad.SendHeartbeatWorker
+
 import java.util.concurrent.TimeUnit
 
 
 @HiltAndroidApp
-class App : Application(), Configuration.Provider {
-
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
-
-    override fun getWorkManagerConfiguration(): Configuration {
-        return Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
-    }
+class App : Application() {
 
 
-    private fun scheduleHeartbeatWorker() {
-        val workRequest = PeriodicWorkRequestBuilder<SendHeartbeatWorker>(3, TimeUnit.MINUTES)
-            .setInputData(
-                workDataOf(
-                    "API_KEY" to API_KEY,
-                    "TERMINAL_SN" to TERMINAL_SN
-                )
-            )
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "SendHeartbeatWorker",
-            ExistingPeriodicWorkPolicy.REPLACE,
-            workRequest
-        )
-    }
     override fun onCreate() {
         super.onCreate()
 
