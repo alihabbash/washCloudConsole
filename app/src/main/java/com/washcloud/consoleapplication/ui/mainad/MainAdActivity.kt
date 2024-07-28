@@ -1,12 +1,21 @@
 package com.washcloud.consoleapplication.ui.mainad
 
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbManager
 import android.os.Bundle
+import android.util.Log
 import android.view.ContextThemeWrapper
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.NonNull
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,19 +39,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import com.washcloud.consoleapplication.MainActivity
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.hardware.UsbBroadcastReceiver
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Locale
 
-
+@AndroidEntryPoint
 class MainAdActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
+
+    private lateinit var usbManager: UsbManager
+    private lateinit var usbReceiver: UsbBroadcastReceiver
+    private val viewModel: MainAdViewModel by viewModels()
 
     companion object {
         public var dLocale: Locale? = null
@@ -62,9 +82,41 @@ class MainAdActivity : ComponentActivity() {
         wrapper.applyOverrideConfiguration(configuration)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(usbReceiver)
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+        usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+        usbReceiver = UsbBroadcastReceiver(usbManager, this)
+        IntentFilter().apply {
+            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+            addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+            addAction(UsbBroadcastReceiver.ACTION_USB_PERMISSION)
+            registerReceiver(usbReceiver, this)
+        }
+
+        requestPermissionsIfNeeded()
+
+        viewModel.apiResponse.observe(this, Observer { response ->
+            handleApiResponse(response)
+        })
+
+
+        viewModel.error.observe(this, Observer { errorMessage ->
+            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        })
+
+       /* GlobalScope.launch {
+            delay(5000)
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12407270001-1/123456789"
+            viewModel.fetchDirectly(url)
+        }*/
 
         setContent {
             ConsoleApplicationTheme {
@@ -109,5 +161,83 @@ class MainAdActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun handleApiResponse(response: ApiResponse) {
+
+        response.data.forEach {
+            Log.d("MainAdActivity", "Operation Type: ${it.operationType}")
+
+        }
+    }
+
+    private val requestPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        permissions.entries.forEach {
+            val isGranted = it.value
+            if (isGranted) {
+                Log.d("MainActivity", "Permission granted: ${it.key}")
+                // Handle the USB device if permission was granted
+                val intent = intent
+                if (intent != null && UsbManager.ACTION_USB_DEVICE_ATTACHED == intent.action) {
+                    val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
+                    device?.let { handleDeviceConnection(it) }
+                }
+            } else {
+                Log.d("MainActivity", "Permission denied: ${it.key}")
+            }
+        }
+    }
+
+
+    private fun requestPermissionsIfNeeded() {
+        val permissionsNeeded = listOf(
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        ).filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }.toTypedArray()
+
+        if (permissionsNeeded.isNotEmpty()) {
+            requestPermissionsLauncher.launch(permissionsNeeded)
+        }
+    }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        val action = intent.action
+        if (UsbBroadcastReceiver.ACTION_USB_PERMISSION == action) {
+            synchronized(this) {
+                val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    device?.let { handleDeviceConnection(it) }
+                } else {
+                    Log.d("MainActivity", "Permission denied for device $device")
+                }
+            }
+        }
+    }
+
+    fun handleDeviceConnection(device: UsbDevice) {
+        val usbInterface = device.getInterface(0)
+        val endpoint = usbInterface.getEndpoint(0)
+        val connection = usbManager.openDevice(device)
+
+        val buffer = ByteArray(64)
+        connection.bulkTransfer(endpoint, buffer, buffer.size, 0)
+        val barcode = String(buffer).trim()
+
+        if (barcode != null) {
+            viewModel.handleBarcode(barcode)
+        }
+
+    }
+
+    fun handleDeviceDisconnection(device: UsbDevice) {
+
+        Log.d("MainActivity", "Device disconnected: $device")
+    }
+
 }
 

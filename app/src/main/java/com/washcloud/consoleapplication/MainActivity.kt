@@ -1,5 +1,8 @@
 package com.washcloud.consoleapplication
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
@@ -43,6 +46,10 @@ import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.preference.PreferenceManager
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
@@ -65,6 +72,8 @@ import com.washcloud.consoleapplication.ui.dropoff.DropOffView
 import com.washcloud.consoleapplication.ui.dropoff.SelectLockerView
 import com.washcloud.consoleapplication.ui.help.HelpForm
 import com.washcloud.consoleapplication.ui.login.LoginForm
+import com.washcloud.consoleapplication.ui.mainad.HeartbeatViewModel
+import com.washcloud.consoleapplication.ui.mainad.HeartbeatWorker
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.pickup.PickupView
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
@@ -76,6 +85,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -84,7 +94,7 @@ class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
 
-
+    private val viewModel: HeartbeatViewModel by viewModels()
 
 
     companion object {
@@ -111,8 +121,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setAdminPassword()
         insertBoxes()
-        startPortService()
+      //  startPortService()
 
+
+        scheduleHeartbeat(this)
 
 
         setContent {
@@ -132,6 +144,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun scheduleHeartbeat(context: Context) {
+        val intent = Intent(context, HeartbeatReceiver::class.java).apply {
+            putExtra("API_KEY", API_KEY)
+            putExtra("TERMINAL_SN", TERMINAL_SN)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis(),
+            60 * 1000,
+            pendingIntent
+        )
     }
 
 
