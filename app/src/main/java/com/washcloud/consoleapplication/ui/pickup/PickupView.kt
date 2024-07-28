@@ -15,9 +15,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +40,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.local.database.dto.TransactionDto
+import com.washcloud.consoleapplication.local.preferences.API_KEY
+import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
@@ -53,7 +63,10 @@ fun PickupView(
     showAd2: () -> Unit,
 ) {
     val viewModel: PickupViewModel = hiltViewModel()
-
+    val transactions = viewModel.transactions.collectAsState().value
+//    val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
+//    val error by viewModel.error.collectAsState()
+    var wayBillNo by remember { mutableStateOf("") }
     Box {
         Column(
             modifier = Modifier
@@ -90,13 +103,14 @@ fun PickupView(
                     .fillMaxWidth()
                     .height(0.7 * screenHeight)
             ) {
-                LazyColumn (
-                    modifier = Modifier.padding(top = 0.006*screenHeight,)
-                ){
-                    items(20) { item ->
+                LazyColumn(
+                    modifier = Modifier.padding(top = 0.006 * screenHeight)
+                ) {
+                    items(transactions.size) { index ->
+                        val transaction = transactions[index]
                         Column {
-                            pickUpItem(screenWidth, screenHeight)
-                            if(item != 19)
+                            pickUpItem(screenWidth, screenHeight, transaction)
+                            if (index != transactions.size - 1) {
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.CenterHorizontally)
@@ -107,8 +121,13 @@ fun PickupView(
                                 ) {
                                     PickUpListDivider(screenWidth, screenHeight)
                                 }
+
+                            }
+
                         }
+
                     }
+
                 }
             }
 
@@ -143,10 +162,10 @@ fun PickupView(
                     ){
                         Spacer(modifier = Modifier.height(0.01 * screenHeight))
                         OutlinedInputField(
-                            value = "",
+                            value = wayBillNo,
                             hintText = "XXXX-XXXX-XXXX",
-                            onValueChange = {
-
+                            onValueChange = { newValue ->
+                                wayBillNo = newValue
                             },
                             hintTextSize = (screenWidth.value * 0.035f).sp,
                             fontSize = (screenWidth.value * 0.035f).sp,
@@ -175,11 +194,11 @@ fun PickupView(
                                     start = (screenWidth.value * 0.04f).dp
                                 )
                                 .clickable {
-                                    //todo clear
+                                   // viewModel.staffPickup(StaffPickupRequest(API_KEY, wayBillNo,  TERMINAL_SN,  1, 1))
                                 }
                         ) {
                             Text(
-                                text = stringResource(id = R.string.clear),
+                                text = stringResource(id = R.string.confirm),
                                 style = TextStyle(
                                     color = Color.White,
                                     fontSize = (screenWidth.value * 0.03f).sp
@@ -191,6 +210,18 @@ fun PickupView(
                 }
             }
 
+            Spacer(modifier = Modifier.height(32.dp))
+
+//            if (staffPickupResponse != null) {
+//                Text(text = "Status: ${staffPickupResponse!!.status}")
+//                staffPickupResponse!!.message?.let {
+//                    Text(text = "Message: $it")
+//                }
+//            } else if (error != null) {
+//                Text(text = "Error: $error")
+//            } else {
+//                CircularProgressIndicator()
+//            }
             Box(
                 modifier =
                 Modifier.weight(1f)
@@ -204,6 +235,7 @@ fun PickupView(
 fun pickUpItem(
     screenWidth: Dp,
     screenHeight: Dp,
+    transaction: TransactionDto
 ) {
     Row(
         modifier = Modifier
@@ -222,7 +254,7 @@ fun pickUpItem(
         Row {
             Column {
                 Text(
-                    text = stringResource(id = R.string.order_number),
+                    text = stringResource(id = R.string.order_number) ,
                     style = TextStyle(
                         color = clearText,
                         fontSize = (screenWidth.value * 0.03f).sp
@@ -239,7 +271,7 @@ fun pickUpItem(
             }
             Column {
                 Text(
-                    text = "930859037",
+                    text = transaction.orderSerial.toString(),
                     style = TextStyle(
                         color = numbersColor,
                         fontSize = (screenWidth.value * 0.03f).sp
@@ -247,7 +279,7 @@ fun pickUpItem(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "16",
+                    text =  transaction.boxId.toString(),
                     style = TextStyle(
                         color = numbersColor,
                         fontSize = (screenWidth.value * 0.03f).sp

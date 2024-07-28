@@ -60,6 +60,7 @@
     <string name="current_phone_number">رقم الجوال الحالي</string>
     <string name="new_phone_number">رقم الجوال الجديد</string>
     <string name="add_file">إضافة ملف</string>
+    <string name="cancel">إلغاء</string>
 
 
 </resources>

@@ -4,7 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
+import com.washcloud.consoleapplication.local.database.utils.BoxState
 
 @Dao
 interface BoxDao {
@@ -22,4 +24,14 @@ interface BoxDao {
 
     @Query("DELETE FROM boxes")
     suspend fun deleteAllBoxes()
+
+    @Update
+    suspend fun updateBox(box: BoxDto)
+
+    @Query("UPDATE boxes SET box_state = :newState WHERE box_id = :boxId")
+    suspend fun updateBoxState(boxId: Long, newState: BoxState)
+
+    @Query("SELECT * FROM boxes WHERE box_id = :boxId LIMIT 1")
+    suspend fun getBoxById(boxId: Long): BoxDto?
+
 }

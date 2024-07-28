@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
 
-    private val viewModel: HeartbeatViewModel by viewModels()
+
 
 
     companion object {
@@ -121,10 +121,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setAdminPassword()
         insertBoxes()
-       startPortService()
+     //  startPortService()
 
 
-        scheduleHeartbeat(this)
+
 
 
         setContent {
@@ -144,23 +144,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    private fun scheduleHeartbeat(context: Context) {
-        val intent = Intent(context, HeartbeatReceiver::class.java).apply {
-            putExtra("API_KEY", API_KEY)
-            putExtra("TERMINAL_SN", TERMINAL_SN)
-        }
-
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-        alarmManager.setRepeating(
-            AlarmManager.RTC_WAKEUP,
-            System.currentTimeMillis(),
-            60 * 1000,
-            pendingIntent
-        )
     }
 
 

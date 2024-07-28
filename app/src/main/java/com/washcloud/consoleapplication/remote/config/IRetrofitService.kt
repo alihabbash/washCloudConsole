@@ -4,6 +4,7 @@ import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatRequest
 import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatResponse
 import com.washcloud.consoleapplication.remote.model.locker.VerifyOrderResponse
 import com.washcloud.consoleapplication.remote.model.login.StaffLoginResponse
+import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -33,5 +34,14 @@ interface IRetrofitService {
     suspend fun sendHeartbeat(
         @Body heartbeatRequest: HeartbeatRequest
     ): Response<HeartbeatResponse>
+
+    @GET(STAFF_DROP_OFF)
+    suspend fun staffPickup(
+        @Query("Apikey") apiKey: String,
+        @Query("WayBillNo") wayBillNo: String,
+        @Query("TerminalSn") terminalSn: String,
+        @Query("Type") type: Int,
+        @Query("DoorNo") doorNo: Int
+    ): Response<StaffPickupResponse>
 
 }
