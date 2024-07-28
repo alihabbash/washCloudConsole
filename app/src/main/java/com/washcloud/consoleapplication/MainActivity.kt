@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setAdminPassword()
         insertBoxes()
-     //  startPortService()
+       startPortService()
 
 
 
