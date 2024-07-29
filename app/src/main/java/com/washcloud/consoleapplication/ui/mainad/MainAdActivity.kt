@@ -174,23 +174,23 @@ class MainAdActivity : ComponentActivity() {
                                 )
                             }
                     ) {
-//                        Image(
-//                            painterResource(R.drawable.empty_image),
-//                            "ad_1",
-//                            modifier = Modifier.width(screenWidth * 0.3f)
-//                                .height(screenWidth*0.3f)
-//                        )
-//                        Text(
-//                            text = stringResource(id = R.string.ad1),
-//                            style = TextStyle(
-//                                fontSize = (screenWidth.value * 0.07f).sp,
-//                                fontWeight = FontWeight.Medium,
-//                                color = lightGrey
-//                            ),
-//                            textAlign = TextAlign.Center,
-//                        )
+                        Image(
+                            painterResource(R.drawable.empty_image),
+                            "ad_1",
+                            modifier = Modifier.width(screenWidth * 0.3f)
+                                .height(screenWidth*0.3f)
+                        )
+                        Text(
+                            text = stringResource(id = R.string.ad1),
+                            style = TextStyle(
+                                fontSize = (screenWidth.value * 0.07f).sp,
+                                fontWeight = FontWeight.Medium,
+                                color = lightGrey
+                            ),
+                            textAlign = TextAlign.Center,
+                        )
 
-                        VideoPlayer(context, Modifier.fillMaxSize())
+                      //  VideoPlayer(context, Modifier.fillMaxSize())
                     }
 
 
