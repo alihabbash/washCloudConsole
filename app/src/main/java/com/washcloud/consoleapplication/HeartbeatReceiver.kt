@@ -46,8 +46,60 @@ class HeartbeatReceiver : BroadcastReceiver() {
 
         scope.launch(Dispatchers.IO) {
 
-            val boxesDto = boxDao.getAllBoxes()
-            val boxes = boxesDto.map { mapBoxDtoToHeartbeatBox(it) }
+            /*val boxesDto = boxDao.getAllBoxes()
+            val boxes = boxesDto.map { mapBoxDtoToHeartbeatBox(it) }*/
+
+            val boxes = listOf(
+                HeartbeatRequest.Box(
+                    no = "1",
+                    occupied = "1",
+                    status = "1",
+                    size = 0,
+                    open = "0",
+                    type = 1
+                ),
+                HeartbeatRequest.Box(
+                    no = "2",
+                    occupied = "0",
+                    status = "1",
+                    size = 1,
+                    open = "0",
+                    type = 1
+                ),
+                HeartbeatRequest.Box(
+                    no = "3",
+                    occupied = "1",
+                    status = "1",
+                    size = 2,
+                    open = "0",
+                    type = 1
+                ),
+                HeartbeatRequest.Box(
+                    no = "4",
+                    occupied = "0",
+                    status = "1",
+                    size = 4,
+                    open = "0",
+                    type = 1
+                ),
+                HeartbeatRequest.Box(
+                    no = "5",
+                    occupied = "1",
+                    status = "1",
+                    size = 5,
+                    open = "0",
+                    type = 1
+                ),
+                HeartbeatRequest.Box(
+                    no = "6",
+                    occupied = "0",
+                    status = "1",
+                    size = 6,
+                    open = "0",
+                    type = 1
+                ),
+
+            )
 
             sendHeartbeatUseCase(
                 SendHeartbeatUseCase.Params(
