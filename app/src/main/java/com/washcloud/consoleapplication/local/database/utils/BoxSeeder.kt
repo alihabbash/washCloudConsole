@@ -20,7 +20,7 @@ object BoxSeeder {
                 BoxDto(
                     orderSerial = "order_serial_$it",
                     orderId = it.toLong(),
-                    boxId = it.toLong(),
+                    boxId =  it.toLong() + 1,
                     trnasDate = Date(),
                     branchId = 1L,
                     trnasType = TransactionType.DROP_OFF,

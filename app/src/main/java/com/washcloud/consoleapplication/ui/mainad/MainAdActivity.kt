@@ -142,7 +142,7 @@ class MainAdActivity : ComponentActivity() {
             viewModel.fetchDirectly(url)
         }*/
 
-       scheduleHeartbeat(this)
+     //  scheduleHeartbeat(this)
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
