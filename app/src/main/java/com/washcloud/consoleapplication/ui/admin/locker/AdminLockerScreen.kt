@@ -157,7 +157,7 @@ fun AdminLockerScreen(
                    TextButton("Open") {
                        if(selectedLocker.isNotEmpty()) {
 
-                       viewModel.sendCommand("com.washcloud.open_door", "2", selectedLocker)
+                       viewModel.sendCommand("com.washcloud.open_door", "02", selectedLocker)
                    }
                    }
                    TextButton("Reset") { /* Handle Reset */ }
