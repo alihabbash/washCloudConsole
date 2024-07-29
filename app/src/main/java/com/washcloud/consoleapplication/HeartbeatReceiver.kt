@@ -17,6 +17,7 @@ import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatRequest
 import com.washcloud.consoleapplication.remote.usecase.SendHeartbeatUseCase
 import com.washcloud.consoleapplication.ui.mainad.HeartbeatViewModel
+import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,72 +43,29 @@ class HeartbeatReceiver : BroadcastReceiver() {
 
 
     private fun sendHeartbeat(context: Context) {
-        val boxDao = DatabaseModule.provideConsoleDatabase(context.applicationContext).getBoxDao()
+        try {
+            val boxDao = DatabaseModule.provideConsoleDatabase(context.applicationContext).getBoxDao()
 
-        scope.launch(Dispatchers.IO) {
+            scope.launch {
+                try {
+                    val boxesDto = boxDao.getAllBoxes()
+                    val boxes = boxesDto.map { mapBoxDtoToHeartbeatBox(it) }
 
-            /*val boxesDto = boxDao.getAllBoxes()
-            val boxes = boxesDto.map { mapBoxDtoToHeartbeatBox(it) }*/
+                    val response = sendHeartbeatUseCase(
+                        SendHeartbeatUseCase.Params(
+                            apiKey = API_KEY,
+                            terminalSn = TERMINAL_SN,
+                            boxes = boxes
+                        )
+                    )
 
-            val boxes = listOf(
-                HeartbeatRequest.Box(
-                    no = "1",
-                    occupied = "1",
-                    status = "1",
-                    size = 0,
-                    open = "0",
-                    type = 1
-                ),
-                HeartbeatRequest.Box(
-                    no = "2",
-                    occupied = "0",
-                    status = "1",
-                    size = 1,
-                    open = "0",
-                    type = 1
-                ),
-                HeartbeatRequest.Box(
-                    no = "3",
-                    occupied = "1",
-                    status = "1",
-                    size = 2,
-                    open = "0",
-                    type = 1
-                ),
-                HeartbeatRequest.Box(
-                    no = "4",
-                    occupied = "0",
-                    status = "1",
-                    size = 4,
-                    open = "0",
-                    type = 1
-                ),
-                HeartbeatRequest.Box(
-                    no = "5",
-                    occupied = "1",
-                    status = "1",
-                    size = 5,
-                    open = "0",
-                    type = 1
-                ),
-                HeartbeatRequest.Box(
-                    no = "6",
-                    occupied = "0",
-                    status = "1",
-                    size = 6,
-                    open = "0",
-                    type = 1
-                ),
-
-            )
-
-            sendHeartbeatUseCase(
-                SendHeartbeatUseCase.Params(
-                    apiKey = API_KEY,
-                    terminalSn = TERMINAL_SN,
-                    boxes = boxes
-                )
-            )
+                    FileLogger.log(context, "HeartbeatReceiver", "Heartbeat sent successfully: $response")
+                } catch (e: Exception) {
+                    FileLogger.log(context, "HeartbeatReceiver", "Error sending heartbeat: ${e.message}")
+                }
+            }
+        } catch (e: Exception) {
+            FileLogger.log(context, "HeartbeatReceiver", "Error initializing database: ${e.message}")
         }
     }
 

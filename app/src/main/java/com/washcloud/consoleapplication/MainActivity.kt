@@ -7,9 +7,11 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.ContextThemeWrapper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -78,6 +80,7 @@ import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.pickup.PickupView
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
+import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import dagger.hilt.android.AndroidEntryPoint
@@ -93,8 +96,6 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
-
-
 
 
     companion object {
@@ -370,7 +371,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startPortService() {
-        startService(Intent(this, SerialPortService::class.java))
+        try {
+            startService(Intent(this, SerialPortService::class.java))
+            FileLogger.log(this, "MainActivity", "SerialPortService started successfully")
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error starting SerialPortService", e)
+            FileLogger.log(this, "MainActivity", "Error starting SerialPortService: ${e.message}")
+        }
+
     }
 
     private fun changeLanguage() {
