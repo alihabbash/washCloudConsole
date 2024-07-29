@@ -6,4 +6,5 @@ const val STAFF_LOGIN = PREFIX + "StaffVerification"
 const val VERIFY_ORDER = PREFIX + "Verification/{serial}/{terminalSn}"
 const val HEART_BEAT =  "api/LockerIntegration/Heartbeat"
 const val STAFF_DROP_OFF = PREFIX + "StaffDropOff"
-const val STAFF_PICKUP = PREFIX + "StaffPickup"
+const val STAFF_PICKUP = "api/LockerIntegration/StaffPickup"
+

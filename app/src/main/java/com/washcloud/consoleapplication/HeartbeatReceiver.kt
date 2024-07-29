@@ -63,8 +63,8 @@ class HeartbeatReceiver : BroadcastReceiver() {
     private fun mapBoxDtoToHeartbeatBox(boxDto: BoxDto): HeartbeatRequest.Box {
         return HeartbeatRequest.Box(
             no = boxDto.boxId.toString(),
-            status = if (boxDto.boxState == BoxState.AVAILABLE) "1" else "0",
-            occupied = if (boxDto.trnasType == TransactionType.PICKUP) "1" else "0",
+            occupied = if (boxDto.boxState == BoxState.AVAILABLE) "1" else "0",
+            status = "1",
             size = when (boxDto.boxSize) {
                 BoxSizeType.LARGE -> 0
                 BoxSizeType.MEDIUM -> 1
@@ -73,7 +73,7 @@ class HeartbeatReceiver : BroadcastReceiver() {
                 BoxSizeType.X_SMALL -> 5
                 BoxSizeType.CONVEYOR -> 6
             },
-            open = "1",
+            open = "0",
             type = if (boxDto.boxType == BoxType.BOX) 1 else 2
         )
     }
