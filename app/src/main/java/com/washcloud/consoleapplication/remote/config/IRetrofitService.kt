@@ -35,7 +35,7 @@ interface IRetrofitService {
         @Body heartbeatRequest: HeartbeatRequest
     ): Response<HeartbeatResponse>
 
-    @GET(STAFF_DROP_OFF)
+    @GET(STAFF_PICKUP)
     suspend fun staffPickup(
         @Query("Apikey") apiKey: String,
         @Query("WayBillNo") wayBillNo: String,

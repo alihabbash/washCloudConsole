@@ -1,6 +1,5 @@
 package com.washcloud.consoleapplication.utils
 
-
 import android.content.Context
 import android.util.Log
 import java.io.File
@@ -22,7 +21,7 @@ object FileLogger {
     }
 
     private fun writeLogToFile(context: Context, logMessage: String) {
-        val logFile = File(context.getExternalFilesDir(null), LOG_FILE_NAME)
+        val logFile = File(context.filesDir, LOG_FILE_NAME)  // Use internal storage
         try {
             FileWriter(logFile, true).use { writer ->
                 writer.append(logMessage)
@@ -34,7 +33,7 @@ object FileLogger {
     }
 
     fun clearLogFile(context: Context) {
-        val logFile = File(context.getExternalFilesDir(null), LOG_FILE_NAME)
+        val logFile = File(context.filesDir, LOG_FILE_NAME)  // Use internal storage
         if (logFile.exists()) {
             logFile.delete()
         }

@@ -121,8 +121,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setAdminPassword()
-        insertBoxes()
-       startPortService()
 
 
 
@@ -361,25 +359,9 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private  fun insertBoxes() {
 
-        val database = DatabaseModule.provideConsoleDatabase(this)
-         val boxDao = database.getBoxDao()
-        CoroutineScope(Dispatchers.IO).launch {
-            BoxSeeder.seed(boxDao)
-        }
-    }
 
-    private fun startPortService() {
-        try {
-            startService(Intent(this, SerialPortService::class.java))
-            FileLogger.log(this, "MainActivity", "SerialPortService started successfully")
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Error starting SerialPortService", e)
-            FileLogger.log(this, "MainActivity", "Error starting SerialPortService: ${e.message}")
-        }
 
-    }
 
     private fun changeLanguage() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)

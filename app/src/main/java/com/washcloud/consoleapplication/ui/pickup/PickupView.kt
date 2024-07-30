@@ -64,8 +64,8 @@ fun PickupView(
 ) {
     val viewModel: PickupViewModel = hiltViewModel()
     val transactions = viewModel.transactions.collectAsState().value
-//    val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
-//    val error by viewModel.error.collectAsState()
+    val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
+    val error by viewModel.error.collectAsState()
     var wayBillNo by remember { mutableStateOf("") }
     Box {
         Column(
@@ -194,7 +194,7 @@ fun PickupView(
                                     start = (screenWidth.value * 0.04f).dp
                                 )
                                 .clickable {
-                                   // viewModel.staffPickup(StaffPickupRequest(API_KEY, wayBillNo,  TERMINAL_SN,  1, 1))
+                                    viewModel.staffPickup(wayBillNo)
                                 }
                         ) {
                             Text(
@@ -210,18 +210,8 @@ fun PickupView(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
 
-//            if (staffPickupResponse != null) {
-//                Text(text = "Status: ${staffPickupResponse!!.status}")
-//                staffPickupResponse!!.message?.let {
-//                    Text(text = "Message: $it")
-//                }
-//            } else if (error != null) {
-//                Text(text = "Error: $error")
-//            } else {
-//                CircularProgressIndicator()
-//            }
+
             Box(
                 modifier =
                 Modifier.weight(1f)
