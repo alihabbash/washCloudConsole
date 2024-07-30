@@ -23,7 +23,7 @@ class TimerViewModel @Inject constructor() : ViewModel() {
                 val minutesRemaining = secondsRemaining / 60
                 val seconds = secondsRemaining % 60
                 // Update a TextView or perform other actions based on remaining seconds
-                println("$secondsRemaining seconds remaining")
+              //  println("$secondsRemaining seconds remaining")
                 _timerText.value ="%02d:%02d".format(minutesRemaining, seconds)
             }
 

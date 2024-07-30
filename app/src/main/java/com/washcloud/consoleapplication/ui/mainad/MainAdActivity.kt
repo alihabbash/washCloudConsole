@@ -38,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -62,15 +63,21 @@ import androidx.lifecycle.Observer
 import com.washcloud.consoleapplication.HeartbeatReceiver
 import com.washcloud.consoleapplication.MainActivity
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.di.DatabaseModule
+import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.hardware.UsbBroadcastReceiver
+import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
+import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import com.washcloud.consoleapplication.utils.secondaryColor
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -84,6 +91,7 @@ class MainAdActivity : ComponentActivity() {
     private lateinit var usbManager: UsbManager
     private lateinit var usbReceiver: UsbBroadcastReceiver
     private val viewModel: MainAdViewModel by viewModels()
+
 
 
 
@@ -136,13 +144,17 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        /*GlobalScope.launch {
+        GlobalScope.launch {
             delay(100)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407280012-1/21222213701A-001"
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407300011-1/21222213701A-001"
             viewModel.fetchDirectly(url)
-        }*/
+        }
 
        scheduleHeartbeat(this)
+
+        insertBoxes()
+
+       startPortService()
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -153,7 +165,7 @@ class MainAdActivity : ComponentActivity() {
                 ) {
                     val context = LocalContext.current
                     val apiData by viewModel.showDialog.observeAsState()
-
+                    val isDoorOpen by viewModel.isDoorOpen.collectAsState()
 
                     var showDialog by remember { mutableStateOf(false) }
 
@@ -194,10 +206,10 @@ class MainAdActivity : ComponentActivity() {
                     }
 
 
-                    if (showDialog) {
+                    if (showDialog && isDoorOpen) {
 
                         apiData?.let { data ->
-                            viewModel.sendCommand("2", data.doorNo)
+                            viewModel.sendCommand("02", "0"+data.doorNo)
                             DropOffDialog(
                                 doorNo = data.doorNo,
                                 onDismiss = { showDialog = false },
@@ -213,9 +225,29 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
+
+    private  fun insertBoxes() {
+
+        val database = DatabaseModule.provideConsoleDatabase(this)
+        val boxDao = database.getBoxDao()
+        CoroutineScope(Dispatchers.IO).launch {
+            BoxSeeder.seed(boxDao)
+        }
+    }
+
+    private fun startPortService() {
+        try {
+            startService(Intent(this, SerialPortService::class.java))
+            FileLogger.log(this, "MainActivity", "SerialPortService started successfully")
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error starting SerialPortService", e)
+            FileLogger.log(this, "MainActivity", "Error starting SerialPortService: ${e.message}")
+        }
+
+    }
     private fun handleApiResponse(response: ApiResponse) {
 
-        response.data.forEach {
+        response.data?.forEach {
             Log.d("MainAdActivity", "Operation Type: ${it.operationType}")
 
         }
@@ -309,10 +341,20 @@ class MainAdActivity : ComponentActivity() {
 
     @Composable
     fun DropOffDialog(doorNo: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+        var timer by remember { mutableStateOf(60) }
+
+        LaunchedEffect(Unit) {
+            while (timer > 0) {
+                delay(1000L)
+                timer--
+            }
+
+            onConfirm()
+        }
         AlertDialog(
-            onDismissRequest = onDismiss,
+            onDismissRequest = {},
             title = { Text(text = "Drop Off Clothes",  style = TextStyle(
-                fontSize = (screenWidth.value * 0.032f).sp,
+                fontSize = (screenWidth.value * 0.033f).sp,
                 fontWeight = FontWeight.Bold,
                 color = secondaryColor
             ),) },
@@ -338,14 +380,16 @@ class MainAdActivity : ComponentActivity() {
                             ),
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .clickable { onConfirm() },
+                        .clickable {
+                            //onConfirm()
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = stringResource(id = R.string.ok),
+                        text = "Time remaining: $timer seconds",
                         style = TextStyle(
                             color = Color.White,
-                            fontSize = (screenWidth.value * 0.025f).sp,
+                            fontSize = (screenWidth.value * 0.024f).sp,
                             fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.padding(16.dp)

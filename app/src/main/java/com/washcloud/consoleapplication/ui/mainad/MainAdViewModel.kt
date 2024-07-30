@@ -1,11 +1,14 @@
 package com.washcloud.consoleapplication.ui.mainad
 import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 import android.util.Log
 import android.webkit.URLUtil
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -21,10 +24,17 @@ import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.API_KEY
+import com.washcloud.consoleapplication.local.preferences.BRANCH_ID
+import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.config.BASE_URL
+import com.washcloud.consoleapplication.remote.config.CUSTOMER_DROP_OFF
+import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -65,13 +75,22 @@ object RetrofitClient {
 interface ApiService {
     @GET
     suspend fun fetchData(@Url url: String): Response<ApiResponse>
+
+    @GET(CUSTOMER_DROP_OFF)
+    suspend fun customerDropOff(
+        @Query("Apikey") apiKey: String,
+        @Query("WayBillNo") wayBillNo: String,
+        @Query("TerminalSn") terminalSn: String,
+        @Query("DoorNo") doorNo: String,
+        @Query("Type") type: Int
+    ): Response<ApiResponse>
 }
 
 @JsonClass(generateAdapter = true)
 data class ApiResponse(
     @Json(name = "Status") val status: String,
     @Json(name = "message") val message: String,
-    @Json(name = "data") val data: List<ApiData>
+    @Json(name = "data") val data: List<ApiData>?
 )
 
 @JsonClass(generateAdapter = true)
@@ -91,7 +110,7 @@ class MainAdViewModel @Inject constructor(
     application: Application
 ) : AndroidViewModel(application)  {
 
-    private val context: Context = getApplication<Application>().applicationContext
+    private  val context: Context = getApplication<Application>().applicationContext
 
     private val apiService: ApiService = RetrofitClient.apiService
     private val _apiResponse = MutableLiveData<ApiResponse>()
@@ -104,6 +123,62 @@ class MainAdViewModel @Inject constructor(
     val error: LiveData<String> get() = _error
 
 
+    private val _isDoorOpen = MutableStateFlow(false)
+    val isDoorOpen: StateFlow<Boolean> = _isDoorOpen.asStateFlow()
+
+    init {
+        registerReceiver()
+    }
+    private val dataReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "com.washcloud.door_status") {
+                _isDoorOpen.value  = intent.getBooleanExtra("status", false)
+                if(!_isDoorOpen.value){
+                    setCustomerDropOff()
+                }
+            }
+        }
+    }
+
+    private fun registerReceiver() {
+        println("registerReceiver com.washcloud.door_status")
+        val filter = IntentFilter("com.washcloud.door_status")
+        context.registerReceiver(dataReceiver, filter)
+    }
+
+    private fun unregisterReceiver() {
+        context.unregisterReceiver(dataReceiver)
+    }
+
+
+
+    private fun setCustomerDropOff() {
+        viewModelScope.launch {
+            try {
+                val response: Response<ApiResponse> = apiService.customerDropOff(
+                    apiKey = API_KEY,
+                    wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
+                    terminalSn = TERMINAL_SN,
+                    doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
+                    type = 1
+                )
+                if (response.isSuccessful) {
+                    Log.d("MainAdViewModel", "Response: ${response.body()}")
+                    FileLogger.log(context,  "setCustomerDropOff"   ,"Response: ${response.body()}")
+                    response.body()?.let {
+                     //TODO
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    _error.value = "Error fetching data: $errorBody"
+                    FileLogger.log(context,  "setCustomerDropOff"   ,"Error fetching data: $errorBody")
+                }
+            } catch (e: Exception) {
+                _error.value = "Error fetching data: ${e.message ?: "An error occurred"}"
+                FileLogger.log(context,  "setCustomerDropOff"   ,"Error fetching data: ${e.message ?: "An error occurred"}")
+            }
+        }
+    }
 
     fun handleBarcode(barcode: String) {
         if (URLUtil.isValidUrl(barcode)) {
@@ -112,20 +187,25 @@ class MainAdViewModel @Inject constructor(
                     val fullUrl = "$barcode?apiKey=$API_KEY"
                     Log.d("MainAdViewModel", "Fetching data from $fullUrl")
 
+                    FileLogger.log(context,  "handleBarcode"   ,"Fetching data from $fullUrl")
                     val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
                     if (response.isSuccessful) {
                         Log.d("MainAdViewModel", "Response: ${response.body()}")
+                        FileLogger.log(context,  "handleBarcode"   ,"Response: ${response.body()}")
                         response.body()?.let {
                             _apiResponse.value = it
-                            _showDialog.value = it.data.firstOrNull()
+                            _showDialog.value = it.data?.firstOrNull()
+                            _isDoorOpen.value = true
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
                         _error.value = "Error fetching data from $fullUrl: $errorBody"
+                        FileLogger.log(context,  "handleBarcode"   ,"Error fetching data from $fullUrl: $errorBody")
                     }
                 } catch (e: Exception) {
                     val fullUrl = "$barcode?apiKey=$API_KEY"
                     _error.value = "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
+                    FileLogger.log(context,  "handleBarcode"   ,"Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}")
                 }
             }
         } else {
@@ -133,16 +213,7 @@ class MainAdViewModel @Inject constructor(
         }
     }
 
-   /* fun fetchDirectly(url: String) {
-        val client = OkHttpClient()
-        val request = Request.Builder()
-            .url("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407280004-1/21222213701A-001?apiKey=cb71a12703264742b5b8")
-            .build()
-        val response = client.newCall(request).execute()
-        val responseBody = response.body?.string()
-        Log.d("MainAdViewModel", "Response: $responseBody")
 
-    }*/
 
     fun fetchDirectly(url: String) {
         viewModelScope.launch {
@@ -155,7 +226,8 @@ class MainAdViewModel @Inject constructor(
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
                     response.body()?.let {
                         _apiResponse.value = it
-                        _showDialog.value = it.data.firstOrNull()
+                        _showDialog.value = it.data?.firstOrNull()
+                        _isDoorOpen.value = true
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
@@ -172,11 +244,11 @@ class MainAdViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val transaction = TransactionDto(
                 orderSerial = data.wayBillNo,
-                orderId = data.wayBillNo.toLong(),
+                orderId = data.doorNo.toLong(),
                 boxId = data.doorNo.toLong(),
                 trnasDate = Date(),
-                branchId = 28,
-                trnasType = TransactionType.DROP_OFF,
+                branchId = BRANCH_ID,
+                trnasType =  if (data.operationType == "DropOff") TransactionType.DROP_OFF else TransactionType.PICKUP,
                 boxSize = BoxSizeType.MEDIUM
             )
             transactionDao.insertTransaction(transaction)
@@ -203,5 +275,10 @@ class MainAdViewModel @Inject constructor(
         }
         context.sendBroadcast(intent)
     }
+
+//    override fun onCleared() {
+//        super.onCleared()
+//        unregisterReceiver()
+//    }
 
 }

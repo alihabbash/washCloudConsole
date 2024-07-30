@@ -23,4 +23,6 @@ interface TransactionDao {
     @Query("DELETE FROM transactions")
     suspend fun deleteAllTransactions()
 
+    @Query("DELETE FROM transactions WHERE order_serial = :orderSerial")
+    suspend fun deleteTransactionsByOrderSerial(orderSerial: String)
 }

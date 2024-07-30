@@ -73,7 +73,7 @@ class HeartbeatReceiver : BroadcastReceiver() {
     private fun mapBoxDtoToHeartbeatBox(boxDto: BoxDto): HeartbeatRequest.Box {
         return HeartbeatRequest.Box(
             no = boxDto.boxId.toString(),
-            occupied = if (boxDto.boxState == BoxState.AVAILABLE) "1" else "0",
+            occupied = if (boxDto.boxState == BoxState.AVAILABLE) "0" else "1",
             status = "1",
             size = when (boxDto.boxSize) {
                 BoxSizeType.LARGE -> 0
