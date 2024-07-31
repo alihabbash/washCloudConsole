@@ -144,17 +144,17 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        GlobalScope.launch {
+        /*GlobalScope.launch {
             delay(100)
             val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407300011-1/21222213701A-001"
             viewModel.fetchDirectly(url)
-        }
+        }*/
 
        scheduleHeartbeat(this)
 
         insertBoxes()
 
-       startPortService()
+      startPortService()
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
