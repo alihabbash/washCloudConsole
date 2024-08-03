@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.washcloud.consoleapplication.hardware.CustomPrinterHelper
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.preferences.API_KEY
@@ -38,8 +39,28 @@ class PickupViewModel @Inject constructor(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> get() = _error
+
+    private lateinit var customPrinterHelper: CustomPrinterHelper
     init {
         fetchTransactions()
+        initializePrinterHelper()
+    }
+
+
+  private fun initializePrinterHelper() {
+        customPrinterHelper = CustomPrinterHelper(context)
+    }
+
+    fun printTransaction(transaction: TransactionDto) {
+        viewModelScope.launch {
+            if (customPrinterHelper.openDevice(0)) {
+                FileLogger.log(context, "PickupViewModel", "Printing transaction: $transaction")
+                customPrinterHelper.printText(transaction.orderSerial.toString())
+                customPrinterHelper.closeDevice()
+            } else {
+              FileLogger.log(context, "PickupViewModel", "Error opening print device")
+            }
+        }
     }
 
     private fun fetchTransactions() {

@@ -67,6 +67,7 @@ fun PickupView(
     val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
     val error by viewModel.error.collectAsState()
     var wayBillNo by remember { mutableStateOf("") }
+
     Box {
         Column(
             modifier = Modifier
@@ -109,7 +110,7 @@ fun PickupView(
                     items(transactions.size) { index ->
                         val transaction = transactions[index]
                         Column {
-                            pickUpItem(screenWidth, screenHeight, transaction)
+                            pickUpItem(screenWidth, screenHeight, transaction, viewModel)
                             if (index != transactions.size - 1) {
                                 Box(
                                     modifier = Modifier
@@ -225,7 +226,8 @@ fun PickupView(
 fun pickUpItem(
     screenWidth: Dp,
     screenHeight: Dp,
-    transaction: TransactionDto
+    transaction: TransactionDto,
+    viewModel: PickupViewModel,
 ) {
     Row(
         modifier = Modifier
@@ -299,7 +301,7 @@ fun pickUpItem(
                     start = (screenWidth.value * 0.04f).dp
                 )
                 .clickable {
-                    //todo print
+                    viewModel.printTransaction(transaction)
                 }
         ) {
             Text(
