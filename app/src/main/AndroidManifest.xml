@@ -36,6 +36,7 @@
             android:name=".ui.mainad.MainAdActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:label="@string/app_name" >
             <intent-filter>

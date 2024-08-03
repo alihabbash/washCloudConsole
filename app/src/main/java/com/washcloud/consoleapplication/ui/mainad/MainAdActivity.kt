@@ -293,8 +293,11 @@ class MainAdActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
 
+        FileLogger.log(this, "MainActivity", "Received new intent: $intent")
+
         val action = intent.action
         if (UsbBroadcastReceiver.ACTION_USB_PERMISSION == action) {
+            FileLogger.log(this, "MainActivity", "Received USB permission intent")
             synchronized(this) {
                 val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -305,6 +308,8 @@ class MainAdActivity : ComponentActivity() {
                     Log.d("MainActivity", "Permission denied for device $device")
                 }
             }
+        }else{
+            FileLogger.log(this, "MainActivity", "Received new intent: $intent")
         }
     }
 
