@@ -298,8 +298,10 @@ class MainAdActivity : ComponentActivity() {
             synchronized(this) {
                 val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    FileLogger.log(this, "MainActivity", "Permission granted for device $device")
                     device?.let { handleDeviceConnection(it) }
                 } else {
+                    FileLogger.log(this, "MainActivity", "Permission denied for device $device")
                     Log.d("MainActivity", "Permission denied for device $device")
                 }
             }
@@ -307,16 +309,27 @@ class MainAdActivity : ComponentActivity() {
     }
 
     fun handleDeviceConnection(device: UsbDevice) {
-        val usbInterface = device.getInterface(0)
-        val endpoint = usbInterface.getEndpoint(0)
-        val connection = usbManager.openDevice(device)
+        try {
 
-        val buffer = ByteArray(64)
-        connection.bulkTransfer(endpoint, buffer, buffer.size, 0)
-        val barcode = String(buffer).trim()
+            val usbInterface = device.getInterface(0)
+            val endpoint = usbInterface.getEndpoint(0)
+            val connection = usbManager.openDevice(device)
 
-        if (barcode != null) {
-            viewModel.handleBarcode(barcode)
+            FileLogger.log(this, "handleDeviceConnection", "Device connected: $device")
+            val buffer = ByteArray(64)
+            FileLogger.log(this, "handleDeviceConnection", "Buffer size: ${buffer.size}")
+            connection.bulkTransfer(endpoint, buffer, buffer.size, 0)
+            val barcode = String(buffer).trim()
+
+            FileLogger.log(this, "handleDeviceConnection", "Barcode: $barcode")
+
+            if (barcode != null) {
+                viewModel.handleBarcode(barcode)
+            }
+
+        }
+        catch (e: Exception) {
+            Log.e("MainActivity", "Error handling device connection", e)
         }
 
     }
