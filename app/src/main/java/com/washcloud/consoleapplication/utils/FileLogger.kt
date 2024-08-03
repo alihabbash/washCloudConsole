@@ -1,7 +1,10 @@
 package com.washcloud.consoleapplication.utils
 
 import android.content.Context
+import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.os.Environment
 import android.util.Log
+import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
@@ -21,7 +24,7 @@ object FileLogger {
     }
 
     private fun writeLogToFile(context: Context, logMessage: String) {
-        val logFile = File(context.filesDir, LOG_FILE_NAME)  // Use internal storage
+        val logFile = getLogFile(context)
         try {
             FileWriter(logFile, true).use { writer ->
                 writer.append(logMessage)
@@ -32,10 +35,28 @@ object FileLogger {
         }
     }
 
+
     fun clearLogFile(context: Context) {
-        val logFile = File(context.filesDir, LOG_FILE_NAME)  // Use internal storage
+        val logFile = getLogFile(context)
         if (logFile.exists()) {
             logFile.delete()
         }
+    }
+
+    private fun getLogFile(context: Context): File {
+        return if (isExternalStorageWritable() && isPermissionGranted(context)) {
+            File(context.getExternalFilesDir(null), LOG_FILE_NAME)
+        } else {
+            File(context.filesDir, LOG_FILE_NAME)
+        }
+    }
+
+    private fun isPermissionGranted(context: Context): Boolean {
+        val permission = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+        return ContextCompat.checkSelfPermission(context, permission) == PERMISSION_GRANTED
+    }
+
+    private fun isExternalStorageWritable(): Boolean {
+        return Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
     }
 }
