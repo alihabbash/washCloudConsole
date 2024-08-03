@@ -181,11 +181,13 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun handleBarcode(barcode: String) {
+        FileLogger.log(context,  "handleBarcode"   ,"handleBarcode: $barcode")
         if (URLUtil.isValidUrl(barcode)) {
             viewModelScope.launch {
                 try {
                     val fullUrl = "$barcode?apiKey=$API_KEY"
-                    Log.d("MainAdViewModel", "Fetching data from $fullUrl")
+
+
 
                     FileLogger.log(context,  "handleBarcode"   ,"Fetching data from $fullUrl")
                     val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
@@ -210,6 +212,7 @@ class MainAdViewModel @Inject constructor(
             }
         } else {
             _error.value = "Invalid URL"
+            FileLogger.log(context,  "handleBarcode"   ,"Invalid URL")
         }
     }
 
