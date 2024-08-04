@@ -18,7 +18,10 @@ class UsbBroadcastReceiver(
     override fun onReceive(context: Context, intent: Intent) {
 
         FileLogger.log(context, "UsbBroadcastReceiver", "onReceive")
+
         val action = intent.action
+
+        FileLogger.log(context, "UsbBroadcastReceiver", "Action: $action")
 
         when (action) {
             UsbManager.ACTION_USB_DEVICE_ATTACHED -> {

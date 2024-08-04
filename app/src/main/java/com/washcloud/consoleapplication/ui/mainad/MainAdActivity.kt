@@ -140,12 +140,18 @@ class MainAdActivity : ComponentActivity() {
 
         usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
         usbReceiver = UsbBroadcastReceiver(usbManager, this)
-        IntentFilter().apply {
+//        IntentFilter().apply {
+//            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+//            addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+//            addAction(UsbBroadcastReceiver.ACTION_USB_PERMISSION)
+//
+//        }
+
+        registerReceiver(usbReceiver, IntentFilter().apply {
             addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
             addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
             addAction(UsbBroadcastReceiver.ACTION_USB_PERMISSION)
-            registerReceiver(usbReceiver, this)
-        }
+        });
 
         requestPermissionsIfNeeded()
 
@@ -159,12 +165,12 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        GlobalScope.launch {
-            delay(12000)
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407300011-1/21222213701A-001"
-//            viewModel.fetchDirectly(url)
-            simulateBarcodeRead("4442407300011-1")
-        }
+//        GlobalScope.launch {
+//            delay(12000)
+////            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407300011-1/21222213701A-001"
+////            viewModel.fetchDirectly(url)
+//            simulateBarcodeRead("4442407300011-1")
+//        }
 
        scheduleHeartbeat(this)
 
@@ -206,8 +212,9 @@ class MainAdActivity : ComponentActivity() {
                         Image(
                             painterResource(R.drawable.empty_image),
                             "ad_1",
-                            modifier = Modifier.width(screenWidth * 0.3f)
-                                .height(screenWidth*0.3f)
+                            modifier = Modifier
+                                .width(screenWidth * 0.3f)
+                                .height(screenWidth * 0.3f)
                         )
                         Text(
                             text = stringResource(id = R.string.ad1),
@@ -391,15 +398,21 @@ class MainAdActivity : ComponentActivity() {
         }
         AlertDialog(
             onDismissRequest = {},
-            title = { Text(text = "Drop Off Clothes",  style = TextStyle(
-                fontSize = (screenWidth.value * 0.033f).sp,
-                fontWeight = FontWeight.Bold,
-                color = secondaryColor
-            ),) },
-            text = { Text(text = "Locker Number: $doorNo\nPlease drop off your clothes in the locker.",  style = TextStyle(
-                fontSize = (screenWidth.value * 0.025f).sp,
-                fontWeight = FontWeight.Bold
-            ),) },
+            title = { Text(
+                text = "Drop Off Clothes",
+                style = TextStyle(
+                    fontSize = (screenWidth.value * 0.033f).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = secondaryColor
+                ),
+            ) },
+            text = { Text(
+                text = "Locker Number: $doorNo\nPlease drop off your clothes in the locker.",
+                style = TextStyle(
+                    fontSize = (screenWidth.value * 0.025f).sp,
+                    fontWeight = FontWeight.Bold
+                ),
+            ) },
             confirmButton = {
 //                Button(onClick = onConfirm) {
 //                    Text("OK")
@@ -408,7 +421,7 @@ class MainAdActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start =  16.dp, end = 16.dp)
+                        .padding(start = 16.dp, end = 16.dp)
                         .background(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(
