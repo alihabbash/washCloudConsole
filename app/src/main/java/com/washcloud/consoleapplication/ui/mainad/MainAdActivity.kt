@@ -121,6 +121,19 @@ class MainAdActivity : ComponentActivity() {
     }
 
 
+    fun simulateBarcodeRead(barcode: String) {
+        val simulatedIntent = Intent().apply {
+            action = UsbBroadcastReceiver.ACTION_USB_PERMISSION
+            putExtra(UsbManager.EXTRA_PERMISSION_GRANTED, true)
+        }
+
+        // Simulate handling the intent in onNewIntent
+        onNewIntent(simulatedIntent)
+
+        // Directly handle the barcode data
+       // viewModel.handleBarcode(barcode)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -146,17 +159,17 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        /*GlobalScope.launch {
-            delay(100)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407300011-1/21222213701A-001"
-            viewModel.fetchDirectly(url)
-        }*/
+        GlobalScope.launch {
+            delay(12000)
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407300011-1/21222213701A-001"
+//            viewModel.fetchDirectly(url)
+            simulateBarcodeRead("4442407300011-1")
+        }
 
        scheduleHeartbeat(this)
 
         insertBoxes()
-
-      startPortService()
+        startPortService()
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -294,6 +307,7 @@ class MainAdActivity : ComponentActivity() {
         setIntent(intent)
 
         FileLogger.log(this, "MainActivity", "Received new intent: $intent")
+        FileLogger.log(this, "MainActivity", "Intent action: ${intent.action}")
 
         val action = intent.action
         if (UsbBroadcastReceiver.ACTION_USB_PERMISSION == action) {
@@ -310,6 +324,7 @@ class MainAdActivity : ComponentActivity() {
             }
         }else{
             FileLogger.log(this, "MainActivity", "Received new intent: $intent")
+
         }
     }
 
@@ -341,7 +356,8 @@ class MainAdActivity : ComponentActivity() {
 
     fun handleDeviceDisconnection(device: UsbDevice) {
 
-        Log.d("MainActivity", "Device disconnected: $device")
+
+        FileLogger.log(this, "MainActivity", "Device disconnected: $device")
     }
 
     private fun scheduleHeartbeat(context: Context) {

@@ -8,6 +8,7 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.util.Log
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
+import com.washcloud.consoleapplication.utils.FileLogger
 
 class UsbBroadcastReceiver(
     private val usbManager: UsbManager,
@@ -15,11 +16,15 @@ class UsbBroadcastReceiver(
 ) : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+
+        FileLogger.log(context, "UsbBroadcastReceiver", "onReceive")
         val action = intent.action
 
         when (action) {
             UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
+                FileLogger.log(context, "UsbBroadcastReceiver", "ACTION_USB_DEVICE_ATTACHED")
                 val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
+
                 device?.let {
                     if (usbManager.hasPermission(it)) {
                         mainActivity.handleDeviceConnection(it)
@@ -36,8 +41,10 @@ class UsbBroadcastReceiver(
             }
 
             UsbManager.ACTION_USB_DEVICE_DETACHED -> {
+                FileLogger.log(context, "UsbBroadcastReceiver", "ACTION_USB_DEVICE_DETACHED")
                 val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
                 device?.let {
+                    FileLogger.log(context, "UsbBroadcastReceiver", "Device detached: ${device.deviceName}")
                     mainActivity.handleDeviceDisconnection(it)
                 }
             }
