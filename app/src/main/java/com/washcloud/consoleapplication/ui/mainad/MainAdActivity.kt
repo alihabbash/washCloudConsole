@@ -12,12 +12,12 @@ import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.util.Log
 import android.view.ContextThemeWrapper
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.NonNull
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,7 +25,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,8 +32,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,7 +56,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import com.washcloud.consoleapplication.HeartbeatReceiver
@@ -80,7 +76,6 @@ import com.washcloud.consoleapplication.utils.secondaryColor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -89,6 +84,7 @@ import java.util.Locale
 class MainAdActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
+    private val barcodeData = StringBuilder()
 
     private lateinit var usbManager: UsbManager
     private lateinit var usbReceiver: UsbBroadcastReceiver
@@ -121,17 +117,36 @@ class MainAdActivity : ComponentActivity() {
     }
 
 
-    fun simulateBarcodeRead(barcode: String) {
-        val simulatedIntent = Intent().apply {
-            action = UsbBroadcastReceiver.ACTION_USB_PERMISSION
-            putExtra(UsbManager.EXTRA_PERMISSION_GRANTED, true)
+
+
+//    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+//        val pressedKey = event.getUnicodeChar()
+//
+//        FileLogger.log(this, "onKeyDown", pressedKey.toString());
+//        Toast.makeText(applicationContext, "barcode--->>>$pressedKey",  Toast.LENGTH_SHORT)
+//            .show()
+//        viewModel.handleBarcode(pressedKey.toString())
+//        return true
+//    }
+
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+
+        val pressedKey = event.unicodeChar.toChar()
+        FileLogger.log(this, "MainActivity", "pressedKey: $pressedKey")
+        return if (keyCode == KeyEvent.KEYCODE_ENTER) {
+            val barcode = barcodeData.toString().trim()
+            FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
+            if (barcode.isNotEmpty()) {
+                Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
+                viewModel.handleBarcode(barcode)
+                barcodeData.setLength(0)
+            }
+            true
+        } else {
+            barcodeData.append(event.unicodeChar.toChar())
+            super.onKeyDown(keyCode, event)
         }
-
-        // Simulate handling the intent in onNewIntent
-        onNewIntent(simulatedIntent)
-
-        // Directly handle the barcode data
-       // viewModel.handleBarcode(barcode)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,6 +155,7 @@ class MainAdActivity : ComponentActivity() {
 
         usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
         usbReceiver = UsbBroadcastReceiver(usbManager, this)
+
 //        IntentFilter().apply {
 //            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
 //            addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
