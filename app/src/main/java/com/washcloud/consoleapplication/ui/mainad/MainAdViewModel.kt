@@ -181,6 +181,13 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun handleBarcode(barcode: String) {
+
+
+        if(isDoorOpen.value){
+            FileLogger.log(context,  "handleBarcode"   ,"rejected handleBarcode: $barcode")
+            return
+        }
+
         FileLogger.log(context,  "handleBarcode"   ,"handleBarcode: $barcode")
         if (URLUtil.isValidUrl(barcode)) {
             viewModelScope.launch {
@@ -216,6 +223,9 @@ class MainAdViewModel @Inject constructor(
         }
     }
 
+    fun setCloseDoor() {
+        _isDoorOpen.value = false
+    }
 
 
     fun fetchDirectly(url: String) {
