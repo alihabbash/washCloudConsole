@@ -76,6 +76,7 @@ import com.washcloud.consoleapplication.utils.secondaryColor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -132,10 +133,10 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
 
-        val pressedKey = event.unicodeChar.toChar()
-        FileLogger.log(this, "MainActivity", "pressedKey: $pressedKey")
+
         return if (keyCode == KeyEvent.KEYCODE_ENTER) {
-            val barcode = barcodeData.toString().trim()
+            FileLogger.log(this, "MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+            val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
             FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
             if (barcode.isNotEmpty()) {
                 Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
@@ -181,12 +182,14 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-//        GlobalScope.launch {
-//            delay(12000)
-////            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442407300011-1/21222213701A-001"
-////            viewModel.fetchDirectly(url)
-//            simulateBarcodeRead("4442407300011-1")
-//        }
+        /*GlobalScope.launch {
+            delay(4000)
+            val url = "https\u0000:\\\\devwashcloud.azurewebsites.net\\api\\\u0000Locker\u0000Integration\\\u0000Verification\\4442408040003-1\\21222213701\u0000A-001".replace("\u0000", "") // Remove null characters
+                .replace("\\", "/")
+            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+            viewModel.fetchDirectly(url)
+
+        }*/
 
        scheduleHeartbeat(this)
 
@@ -256,6 +259,7 @@ class MainAdActivity : ComponentActivity() {
                                 onConfirm = {
                                    viewModel.insertTransaction(data)
                                     showDialog = false
+                                    viewModel.setCloseDoor()
                                 }
                             )
                         }
