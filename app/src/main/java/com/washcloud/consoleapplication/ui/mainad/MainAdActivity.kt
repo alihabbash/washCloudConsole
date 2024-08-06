@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
@@ -184,8 +185,7 @@ class MainAdActivity : ComponentActivity() {
 
         /*GlobalScope.launch {
             delay(4000)
-            val url = "https\u0000:\\\\devwashcloud.azurewebsites.net\\api\\\u0000Locker\u0000Integration\\\u0000Verification\\4442408040003-1\\21222213701\u0000A-001".replace("\u0000", "") // Remove null characters
-                .replace("\\", "/")
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408060003-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
 
@@ -212,6 +212,15 @@ class MainAdActivity : ComponentActivity() {
                     LaunchedEffect(apiData) {
                         apiData?.let {
                             showDialog = true
+                        }
+                    }
+
+                    LaunchedEffect(showDialog) {
+                        while (showDialog) {
+                            delay(3000L)
+                            apiData?.let { data ->
+                                viewModel.sendCheckDoorStatusCommand("02", "0" + data.doorNo)
+                            }
                         }
                     }
                     Column(
@@ -399,7 +408,7 @@ class MainAdActivity : ComponentActivity() {
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
             System.currentTimeMillis(),
-            60 * 1000,
+            60 * 5000,
             pendingIntent
         )
     }
@@ -467,6 +476,11 @@ class MainAdActivity : ComponentActivity() {
                     )
                 }
             },
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(16.dp)
+
 
         )
     }

@@ -74,6 +74,7 @@ class PickupViewModel @Inject constructor(
 
         println("orderSerial: $orderSerial")
         println("transactions: ${_transactions.value}")
+        FileLogger.log(context, "PickupViewModel", "Staff Pickup: $orderSerial")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         val doorNo = _transactions.value.first { it.orderSerial == orderSerial }.boxId
 
