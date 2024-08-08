@@ -3,6 +3,7 @@ package com.washcloud.consoleapplication.hardware
 
 import android.content.Context
 import android.hardware.usb.UsbDevice
+import com.washcloud.consoleapplication.utils.FileLogger
 import it.custom.printer.api.android.CustomAndroidAPI
 import it.custom.printer.api.android.CustomException
 import it.custom.printer.api.android.CustomPrinter
@@ -28,6 +29,8 @@ class PrintQR(context: Context?) {
             usbDeviceList = CustomAndroidAPI.EnumUsbDevices(context)
             prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
         } catch (e: CustomException) {
+            context?.let { FileLogger.log(it, "Init PrintQR", e.message.toString()) };
+
         }
     }
 
@@ -35,11 +38,15 @@ class PrintQR(context: Context?) {
         if (prnDevice == null) {
             try {
                 //Open and connect it
+                context?.let { FileLogger.log(it, "PrintQR", "Device was opened successfully") };
                 prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
                 return true
             } catch (e: CustomException) {
+                context?.let { FileLogger.log(it, "CustomException-PrintQR",  e.message.toString()) };
                 return false
             } catch (e: Exception) {
+
+                context?.let { FileLogger.log(it, "Exception-PrintQR",  e.message.toString()) };
                 return false
             }
         }

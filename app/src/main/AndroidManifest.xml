@@ -25,13 +25,6 @@
         <receiver android:name=".HeartbeatReceiver" />
 
 
-        <receiver android:name=".hardware.UsbBroadcastReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
-                <action android:name="com.washcloud.consoleapplication.USB_PERMISSION" />
-            </intent-filter>
-        </receiver>
         <activity
             android:name=".ui.mainad.MainAdActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

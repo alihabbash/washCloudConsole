@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
@@ -63,7 +64,6 @@ import com.washcloud.consoleapplication.MainActivity
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.hardware.SerialPortService
-import com.washcloud.consoleapplication.hardware.UsbBroadcastReceiver
 import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
@@ -87,8 +87,6 @@ class MainAdActivity : ComponentActivity() {
     private var screenWidth = 0.0.dp
     private val barcodeData = StringBuilder()
 
-    private lateinit var usbManager: UsbManager
-    private lateinit var usbReceiver: UsbBroadcastReceiver
     private val viewModel: MainAdViewModel by viewModels()
 
 
@@ -114,21 +112,10 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(usbReceiver)
     }
 
 
 
-
-//    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-//        val pressedKey = event.getUnicodeChar()
-//
-//        FileLogger.log(this, "onKeyDown", pressedKey.toString());
-//        Toast.makeText(applicationContext, "barcode--->>>$pressedKey",  Toast.LENGTH_SHORT)
-//            .show()
-//        viewModel.handleBarcode(pressedKey.toString())
-//        return true
-//    }
 
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -154,22 +141,6 @@ class MainAdActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 
-        usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
-        usbReceiver = UsbBroadcastReceiver(usbManager, this)
-
-//        IntentFilter().apply {
-//            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
-//            addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
-//            addAction(UsbBroadcastReceiver.ACTION_USB_PERMISSION)
-//
-//        }
-
-        registerReceiver(usbReceiver, IntentFilter().apply {
-            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
-            addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
-            addAction(UsbBroadcastReceiver.ACTION_USB_PERMISSION)
-        });
-
         requestPermissionsIfNeeded()
 
         viewModel.apiResponse.observe(this, Observer { response ->
@@ -184,8 +155,7 @@ class MainAdActivity : ComponentActivity() {
 
         /*GlobalScope.launch {
             delay(4000)
-            val url = "https\u0000:\\\\devwashcloud.azurewebsites.net\\api\\\u0000Locker\u0000Integration\\\u0000Verification\\4442408040003-1\\21222213701\u0000A-001".replace("\u0000", "") // Remove null characters
-                .replace("\\", "/")
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408060003-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
 
@@ -194,7 +164,7 @@ class MainAdActivity : ComponentActivity() {
        scheduleHeartbeat(this)
 
         insertBoxes()
-        startPortService()
+       // startPortService()
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -212,6 +182,15 @@ class MainAdActivity : ComponentActivity() {
                     LaunchedEffect(apiData) {
                         apiData?.let {
                             showDialog = true
+                        }
+                    }
+
+                    LaunchedEffect(showDialog) {
+                        while (showDialog) {
+                            delay(3000L)
+                            apiData?.let { data ->
+                                viewModel.sendCheckDoorStatusCommand("02", "0" + data.doorNo)
+                            }
                         }
                     }
                     Column(
@@ -308,7 +287,6 @@ class MainAdActivity : ComponentActivity() {
                 val intent = intent
                 if (intent != null && UsbManager.ACTION_USB_DEVICE_ATTACHED == intent.action) {
                     val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
-                    device?.let { handleDeviceConnection(it) }
                 }
             } else {
                 Log.d("MainActivity", "Permission denied: ${it.key}")
@@ -329,63 +307,7 @@ class MainAdActivity : ComponentActivity() {
             requestPermissionsLauncher.launch(permissionsNeeded)
         }
     }
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
 
-        FileLogger.log(this, "MainActivity", "Received new intent: $intent")
-        FileLogger.log(this, "MainActivity", "Intent action: ${intent.action}")
-
-        val action = intent.action
-        if (UsbBroadcastReceiver.ACTION_USB_PERMISSION == action) {
-            FileLogger.log(this, "MainActivity", "Received USB permission intent")
-            synchronized(this) {
-                val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    FileLogger.log(this, "MainActivity", "Permission granted for device $device")
-                    device?.let { handleDeviceConnection(it) }
-                } else {
-                    FileLogger.log(this, "MainActivity", "Permission denied for device $device")
-                    Log.d("MainActivity", "Permission denied for device $device")
-                }
-            }
-        }else{
-            FileLogger.log(this, "MainActivity", "Received new intent: $intent")
-
-        }
-    }
-
-    fun handleDeviceConnection(device: UsbDevice) {
-        try {
-
-            val usbInterface = device.getInterface(0)
-            val endpoint = usbInterface.getEndpoint(0)
-            val connection = usbManager.openDevice(device)
-
-            FileLogger.log(this, "handleDeviceConnection", "Device connected: $device")
-            val buffer = ByteArray(64)
-            FileLogger.log(this, "handleDeviceConnection", "Buffer size: ${buffer.size}")
-            connection.bulkTransfer(endpoint, buffer, buffer.size, 0)
-            val barcode = String(buffer).trim()
-
-            FileLogger.log(this, "handleDeviceConnection", "Barcode: $barcode")
-
-            if (barcode != null) {
-                viewModel.handleBarcode(barcode)
-            }
-
-        }
-        catch (e: Exception) {
-            Log.e("MainActivity", "Error handling device connection", e)
-        }
-
-    }
-
-    fun handleDeviceDisconnection(device: UsbDevice) {
-
-
-        FileLogger.log(this, "MainActivity", "Device disconnected: $device")
-    }
 
     private fun scheduleHeartbeat(context: Context) {
         val intent = Intent(context, HeartbeatReceiver::class.java).apply {
@@ -399,7 +321,7 @@ class MainAdActivity : ComponentActivity() {
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
             System.currentTimeMillis(),
-            60 * 1000,
+            60 * 5000,
             pendingIntent
         )
     }
@@ -467,6 +389,11 @@ class MainAdActivity : ComponentActivity() {
                     )
                 }
             },
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(16.dp)
+
 
         )
     }

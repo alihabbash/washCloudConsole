@@ -289,6 +289,18 @@ class MainAdViewModel @Inject constructor(
         context.sendBroadcast(intent)
     }
 
+
+    fun sendCheckDoorStatusCommand(stationId: String, boxId: String) {
+        val intent = Intent("com.washcloud.check_door").apply {
+            putExtra("stationId", stationId)
+            putExtra("boxId", boxId)
+        }
+        context.sendBroadcast(intent)
+    }
+
+
+
+
 //    override fun onCleared() {
 //        super.onCleared()
 //        unregisterReceiver()
