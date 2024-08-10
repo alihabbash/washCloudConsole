@@ -33,9 +33,9 @@ object NetworkModule {
         return OkHttpClient.Builder().apply {
             addInterceptor(headersInterceptors)
             if (BuildConfig.DEBUG) addInterceptor(loggingInterceptor)
-            connectTimeout(3, TimeUnit.MINUTES)
-            readTimeout(3, TimeUnit.MINUTES)
-            writeTimeout(3, TimeUnit.MINUTES)
+            connectTimeout(50, TimeUnit.SECONDS)
+            readTimeout(50, TimeUnit.SECONDS)
+            writeTimeout(50, TimeUnit.SECONDS)
         }.build()
     }
 
