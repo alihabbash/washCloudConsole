@@ -120,7 +120,7 @@ class PickupViewModel @Inject constructor(
 
     private fun deleteTransactionsByOrderSerial(order: TransactionDto) {
         viewModelScope.launch {
-            transactionDao.deleteTransaction(order.id);
+          //  transactionDao.deleteTransaction(order.id);
             FileLogger.log(context, "PickupViewModel", "Deleted transactions by id: $order")
             fetchTransactions()
         }
