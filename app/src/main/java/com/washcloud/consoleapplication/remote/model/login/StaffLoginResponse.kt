@@ -5,5 +5,5 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class StaffLoginResponse(
-    @field:Json(name = "Message") val message: String,
+    @field:Json(name = "message") val message: String?,
 )

@@ -25,6 +25,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -57,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import com.washcloud.consoleapplication.HeartbeatReceiver
@@ -70,6 +74,8 @@ import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.blueGradient
+import com.washcloud.consoleapplication.utils.dimBackground
+import com.washcloud.consoleapplication.utils.hints
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import com.washcloud.consoleapplication.utils.secondaryColor
@@ -153,18 +159,18 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        /*GlobalScope.launch {
+        GlobalScope.launch {
             delay(4000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408060003-1/21222213701A-001"
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408100005-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
 
-        }*/
+        }
 
        scheduleHeartbeat(this)
 
         insertBoxes()
-       // startPortService()
+        startPortService()
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -189,10 +195,12 @@ class MainAdActivity : ComponentActivity() {
                         while (showDialog) {
                             delay(3000L)
                             apiData?.let { data ->
+                                FileLogger.log(context, "MainAdActivity", "Sending check door status command for door ${data.doorNo} and station 02")
                                 viewModel.sendCheckDoorStatusCommand("02", "0" + data.doorNo)
                             }
                         }
                     }
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
@@ -232,7 +240,7 @@ class MainAdActivity : ComponentActivity() {
 
                         apiData?.let { data ->
                             viewModel.sendCommand("02", "0"+data.doorNo)
-                            DropOffDialog(
+                           /*DropOffDialog(
                                 doorNo = data.doorNo,
                                 onDismiss = { showDialog = false },
                                 onConfirm = {
@@ -240,7 +248,98 @@ class MainAdActivity : ComponentActivity() {
                                     showDialog = false
                                     viewModel.setCloseDoor()
                                 }
-                            )
+                            )*/
+
+
+                            var timer by remember { mutableStateOf(60) }
+
+                            LaunchedEffect(Unit) {
+                                while (timer > 0) {
+                                    delay(1000L)
+                                    timer--
+                                }
+
+                                viewModel.insertTransaction(data)
+                                showDialog = false
+                                viewModel.setCloseDoor()
+                            }
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .width(screenWidth)
+                                        .height(screenHeight)
+                                        .background(dimBackground)
+                                ) {
+                                    Box(
+                                        modifier =
+                                        Modifier
+                                            .clip(
+                                                RoundedCornerShape(0.02 * screenWidth)
+                                            )
+                                            .background(color = Color.White)
+                                            .width(0.8 * screenWidth)
+                                            .height(0.15 * screenHeight)
+                                            .padding(start =  16.dp, end = 16.dp),
+
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Column(
+                                            verticalArrangement = Arrangement.Center,
+                                            horizontalAlignment = Alignment.Start
+                                        ) {
+
+                                            Text(
+                                                text = "Drop Off Clothes",
+                                                style = TextStyle(
+                                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                                    fontWeight = FontWeight.Bold,
+
+                                                    color = secondaryColor
+                                                ),
+                                            )
+
+
+                                            Text(
+                                                text = "Locker Number: ${data.doorNo}\nPlease drop off your clothes in the locker.",
+                                                style = TextStyle(
+                                                    fontSize = (screenWidth.value * 0.025f).sp,
+                                                    fontWeight = FontWeight.Bold
+                                                ),
+                                            )
+
+                                            Spacer(modifier = Modifier.height(0.02 * screenHeight))
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(start = 16.dp, end = 16.dp)
+                                                    .background(
+                                                        brush = Brush.horizontalGradient(
+                                                            colors = listOf(
+                                                                blueGradient,
+                                                                secondaryColor,
+                                                            ),
+                                                        ),
+                                                        shape = RoundedCornerShape(8.dp)
+                                                    )
+                                                    .clickable {
+                                                        //onConfirm()
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "Time remaining: $timer seconds",
+                                                    style = TextStyle(
+                                                        color = Color.White,
+                                                        fontSize = (screenWidth.value * 0.024f).sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    modifier = Modifier.padding(16.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                         }
                     }
                 }
@@ -326,77 +425,77 @@ class MainAdActivity : ComponentActivity() {
         )
     }
 
-    @Composable
-    fun DropOffDialog(doorNo: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
-        var timer by remember { mutableStateOf(60) }
-
-        LaunchedEffect(Unit) {
-            while (timer > 0) {
-                delay(1000L)
-                timer--
-            }
-
-            onConfirm()
-        }
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text(
-                text = "Drop Off Clothes",
-                style = TextStyle(
-                    fontSize = (screenWidth.value * 0.033f).sp,
-                    fontWeight = FontWeight.Bold,
-                    color = secondaryColor
-                ),
-            ) },
-            text = { Text(
-                text = "Locker Number: $doorNo\nPlease drop off your clothes in the locker.",
-                style = TextStyle(
-                    fontSize = (screenWidth.value * 0.025f).sp,
-                    fontWeight = FontWeight.Bold
-                ),
-            ) },
-            confirmButton = {
-//                Button(onClick = onConfirm) {
-//                    Text("OK")
+//    @Composable
+//    fun DropOffDialog(doorNo: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+//        var timer by remember { mutableStateOf(60) }
+//
+//        LaunchedEffect(Unit) {
+//            while (timer > 0) {
+//                delay(1000L)
+//                timer--
+//            }
+//
+//            onConfirm()
+//        }
+//        AlertDialog(
+//            onDismissRequest = {},
+//            title = { Text(
+//                text = "Drop Off Clothes",
+//                style = TextStyle(
+//                    fontSize = (screenWidth.value * 0.033f).sp,
+//                    fontWeight = FontWeight.Bold,
+//                    color = secondaryColor
+//                ),
+//            ) },
+//            text = { Text(
+//                text = "Locker Number: $doorNo\nPlease drop off your clothes in the locker.",
+//                style = TextStyle(
+//                    fontSize = (screenWidth.value * 0.025f).sp,
+//                    fontWeight = FontWeight.Bold
+//                ),
+//            ) },
+//            confirmButton = {
+////                Button(onClick = onConfirm) {
+////                    Text("OK")
+////                }
+//
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(start = 16.dp, end = 16.dp)
+//                        .background(
+//                            brush = Brush.horizontalGradient(
+//                                colors = listOf(
+//                                    blueGradient,
+//                                    secondaryColor,
+//                                ),
+//                            ),
+//                            shape = RoundedCornerShape(8.dp)
+//                        )
+//                        .clickable {
+//                            //onConfirm()
+//                        },
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Text(
+//                        text = "Time remaining: $timer seconds",
+//                        style = TextStyle(
+//                            color = Color.White,
+//                            fontSize = (screenWidth.value * 0.024f).sp,
+//                            fontWeight = FontWeight.Bold
+//                        ),
+//                        modifier = Modifier.padding(16.dp)
+//                    )
 //                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp)
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    blueGradient,
-                                    secondaryColor,
-                                ),
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .clickable {
-                            //onConfirm()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Time remaining: $timer seconds",
-                        style = TextStyle(
-                            color = Color.White,
-                            fontSize = (screenWidth.value * 0.024f).sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(16.dp)
-
-
-        )
-    }
+//            },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .wrapContentHeight()
+//                .padding(16.dp)
+//
+//
+//        )
+//    }
 
 
 

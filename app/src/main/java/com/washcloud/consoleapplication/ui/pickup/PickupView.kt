@@ -1,5 +1,7 @@
 package com.washcloud.consoleapplication.ui.pickup
 
+import android.webkit.URLUtil
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -67,7 +70,7 @@ fun PickupView(
     val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
     val error by viewModel.error.collectAsState()
     var wayBillNo by remember { mutableStateOf("") }
-
+ val context = LocalContext.current
     Box {
         Column(
             modifier = Modifier
@@ -195,7 +198,17 @@ fun PickupView(
                                     start = (screenWidth.value * 0.04f).dp
                                 )
                                 .clickable {
-                                    viewModel.staffPickup(wayBillNo)
+
+                                    if (!URLUtil.isValidUrl(wayBillNo))
+                                        viewModel.staffPickup(wayBillNo)
+                                    else
+                                        Toast.makeText(
+                                            context,
+                                            "Invalid order number",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+
                                 }
                         ) {
                             Text(

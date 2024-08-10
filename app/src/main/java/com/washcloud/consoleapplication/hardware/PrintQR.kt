@@ -11,13 +11,13 @@ import it.custom.printer.api.android.PrinterFont
 
 class PrintQR(context: Context?) {
     private val lock = "lockAccess"
-    private val fntPrinterNormal: PrinterFont? = null
+    private lateinit var fntPrinterNormal: PrinterFont
     private var context: Context? = null
 
     init {
         try {
             this.context = context
-            val fntPrinterNormal: PrinterFont = PrinterFont()
+             fntPrinterNormal = PrinterFont()
             //Fill class: NORMAL
             fntPrinterNormal.setCharHeight(PrinterFont.FONT_SIZE_X2) //Height x2
             fntPrinterNormal.setCharWidth(PrinterFont.FONT_SIZE_X2) //Width x2
@@ -58,7 +58,7 @@ class PrintQR(context: Context?) {
         synchronized(lock) {
             try {
                 //Print Text (NORMAL)
-                prnDevice?.present(40)
+              //  prnDevice?.present(40)
                 prnDevice?.printText("SN:", fntPrinterNormal)
                 prnDevice?.printTextLF(consoleSN, fntPrinterNormal)
                 prnDevice?.feed(3)
