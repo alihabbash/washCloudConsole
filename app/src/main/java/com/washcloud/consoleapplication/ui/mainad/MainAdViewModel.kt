@@ -88,8 +88,8 @@ interface ApiService {
 
 @JsonClass(generateAdapter = true)
 data class ApiResponse(
-    @Json(name = "Status") val status: String,
-    @Json(name = "message") val message: String,
+    @Json(name = "Status") val status: String?,
+    @Json(name = "message") val message: String?,
     @Json(name = "data") val data: List<ApiData>?
 )
 
@@ -133,6 +133,7 @@ class MainAdViewModel @Inject constructor(
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == "com.washcloud.door_status") {
                 _isDoorOpen.value  = intent.getBooleanExtra("status", false)
+                FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
                 if(!_isDoorOpen.value){
                     setCustomerDropOff()
                 }
@@ -143,6 +144,7 @@ class MainAdViewModel @Inject constructor(
     private fun registerReceiver() {
         println("registerReceiver com.washcloud.door_status")
         val filter = IntentFilter("com.washcloud.door_status")
+        FileLogger.log(context,  "registerReceiver"   ,"registerReceiver com.washcloud.door_status")
         context.registerReceiver(dataReceiver, filter)
     }
 
@@ -153,8 +155,11 @@ class MainAdViewModel @Inject constructor(
 
 
     private fun setCustomerDropOff() {
+        setCloseDoor()
+
         viewModelScope.launch {
             try {
+                FileLogger.log(context,  "setCustomerDropOff"   ,"Fetching data from ${CUSTOMER_DROP_OFF}")
                 val response: Response<ApiResponse> = apiService.customerDropOff(
                     apiKey = API_KEY,
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
@@ -162,8 +167,10 @@ class MainAdViewModel @Inject constructor(
                     doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
                     type = 1
                 )
+
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
+
                     FileLogger.log(context,  "setCustomerDropOff"   ,"Response: ${response.body()}")
                     response.body()?.let {
                      //TODO
@@ -224,6 +231,7 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun setCloseDoor() {
+        FileLogger.log(context,  "setCloseDoor"   ,"setCloseDoor")
         _isDoorOpen.value = false
     }
 
@@ -254,6 +262,7 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun insertTransaction(data: ApiData) {
+        setCustomerDropOff()
         viewModelScope.launch(Dispatchers.IO) {
             val transaction = TransactionDto(
                 orderSerial = data.wayBillNo,

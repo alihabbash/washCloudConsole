@@ -75,8 +75,9 @@ class PickupViewModel @Inject constructor(
 
         println("orderSerial: $orderSerial")
         println("transactions: ${_transactions.value}")
-        FileLogger.log(context, "PickupViewModel", "Staff Pickup: $orderSerial")
+        FileLogger.log(context, "PickupViewModel", "confirm Staff Pickup button clicked: $orderSerial")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
+        FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         val doorNo = _transactions.value.first { it.orderSerial == orderSerial }.boxId
 
         val request = StaffPickupRequest(
@@ -86,6 +87,8 @@ class PickupViewModel @Inject constructor(
             type = 1,
             doorNo = doorNo.toInt()
         )
+
+        FileLogger.log(context, "PickupViewModel", "Staff Pickup request: $request")
         viewModelScope.launch {
             try {
                 val response = staffPickupUseCase(request)
@@ -102,6 +105,7 @@ class PickupViewModel @Inject constructor(
     }
 
     private fun sendCommand(stationId: String, boxId: String) {
+        FileLogger.log(context, "PickupViewModel", "Sending command to open door: stationId: $stationId, boxId: $boxId")
         val intent = Intent("com.washcloud.open_door").apply {
             putExtra("stationId", stationId)
             putExtra("boxId", boxId)
