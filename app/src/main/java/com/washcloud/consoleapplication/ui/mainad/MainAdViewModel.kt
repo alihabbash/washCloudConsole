@@ -212,6 +212,7 @@ class MainAdViewModel @Inject constructor(
                             _apiResponse.value = it
                             _showDialog.value = it.data?.firstOrNull()
                             _isDoorOpen.value = true
+                            sendCommand("02", "0"+it.data?.firstOrNull()?.doorNo)
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
@@ -291,6 +292,8 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun sendCommand(stationId: String, boxId: String) {
+
+        FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: $stationId, boxId: $boxId")
         val intent = Intent("com.washcloud.open_door").apply {
             putExtra("stationId", stationId)
             putExtra("boxId", boxId)
