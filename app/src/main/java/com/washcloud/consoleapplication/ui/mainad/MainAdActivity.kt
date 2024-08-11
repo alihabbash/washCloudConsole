@@ -159,13 +159,13 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-//        GlobalScope.launch {
-//            delay(4000)
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408100005-1/21222213701A-001"
-//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-//            viewModel.fetchDirectly(url)
-//
-//        }
+        GlobalScope.launch {
+            delay(4000)
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408100005-1/21222213701A-001"
+            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+            viewModel.fetchDirectly(url)
+
+        }
 
        scheduleHeartbeat(this)
 
@@ -195,7 +195,7 @@ class MainAdActivity : ComponentActivity() {
                         while (showDialog) {
                             delay(3000L)
                             apiData?.let { data ->
-                                FileLogger.log(context, "MainAdActivity", "Sending check door status command for door ${data.doorNo} and station 02")
+                                FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${data.doorNo} and station 02")
                                 viewModel.sendCheckDoorStatusCommand("02", "0" + data.doorNo)
                             }
                         }
@@ -208,9 +208,16 @@ class MainAdActivity : ComponentActivity() {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onDoubleTap = {
-                                        finish()
-                                        val intent = Intent(context, MainActivity::class.java)
-                                        context.startActivity(intent)
+//                                        finish()
+//                                        val intent = Intent(context, MainActivity::class.java)
+//                                        context.startActivity(intent)
+                                        viewModel.sendCheckDoorStatusCommand("02", "03")
+
+
+
+
+                                        viewModel.sendCommand("02", "03")
+
                                     }
                                 )
                             }
@@ -280,7 +287,7 @@ class MainAdActivity : ComponentActivity() {
                                             .background(color = Color.White)
                                             .width(0.8 * screenWidth)
                                             .height(0.15 * screenHeight)
-                                            .padding(start =  16.dp, end = 16.dp),
+                                            .padding(start = 16.dp, end = 16.dp),
 
                                         contentAlignment = Alignment.Center,
                                     ) {

@@ -1,22 +1,21 @@
 package com.washcloud.consoleapplication.ui.mainad
+
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-
 import android.util.Log
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
@@ -29,15 +28,14 @@ import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.config.BASE_URL
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_DROP_OFF
 import com.washcloud.consoleapplication.utils.FileLogger
-import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -131,9 +129,14 @@ class MainAdViewModel @Inject constructor(
     }
     private val dataReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            FileLogger.log(context,  "onReceive"   ,"onReceive intent: ${intent.action}")
             if (intent.action == "com.washcloud.door_status") {
+
                 _isDoorOpen.value  = intent.getBooleanExtra("status", false)
+                val stationId = intent.getStringExtra("stationId")
+                val boxId = intent.getStringExtra("boxId")
                 FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
+                Toast.makeText(context, "Door status received: ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
                 if(!_isDoorOpen.value){
                     setCustomerDropOff()
                 }
@@ -293,12 +296,17 @@ class MainAdViewModel @Inject constructor(
 
     fun sendCommand(stationId: String, boxId: String) {
 
-        FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: $stationId, boxId: $boxId")
-        val intent = Intent("com.washcloud.open_door").apply {
-            putExtra("stationId", stationId)
-            putExtra("boxId", boxId)
+        viewModelScope.launch {
+
+            delay(1000L)
+            FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: $stationId, boxId: $boxId")
+            val intent = Intent("com.washcloud.open_door").apply {
+                putExtra("stationId", stationId)
+                putExtra("boxId", boxId)
+            }
+            context.sendBroadcast(intent)
         }
-        context.sendBroadcast(intent)
+
     }
 
 
