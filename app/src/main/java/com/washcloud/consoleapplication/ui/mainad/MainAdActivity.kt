@@ -159,13 +159,13 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        GlobalScope.launch {
-            delay(4000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408100005-1/21222213701A-001"
-            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-            viewModel.fetchDirectly(url)
-
-        }
+//        GlobalScope.launch {
+//            delay(4000)
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408100005-1/21222213701A-001"
+//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+//            viewModel.fetchDirectly(url)
+//
+//        }
 
        scheduleHeartbeat(this)
 
@@ -239,7 +239,7 @@ class MainAdActivity : ComponentActivity() {
                     if (showDialog && isDoorOpen) {
 
                         apiData?.let { data ->
-                            viewModel.sendCommand("02", "0"+data.doorNo)
+
                            /*DropOffDialog(
                                 doorNo = data.doorNo,
                                 onDismiss = { showDialog = false },

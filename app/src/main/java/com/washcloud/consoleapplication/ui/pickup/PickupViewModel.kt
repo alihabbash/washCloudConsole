@@ -78,8 +78,13 @@ class PickupViewModel @Inject constructor(
         FileLogger.log(context, "PickupViewModel", "confirm Staff Pickup button clicked: $orderSerial")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
-        val doorNo = _transactions.value.first { it.orderSerial == orderSerial }.boxId
+        val doorNo = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId
 
+        if (doorNo == null) {
+            _error.value = "Door number not found"
+            FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: Door number not found")
+            return
+        }
         val request = StaffPickupRequest(
             apiKey = API_KEY,
             wayBillNo = orderSerial,
@@ -115,7 +120,7 @@ class PickupViewModel @Inject constructor(
 
     private fun deleteTransactionsByOrderSerial(order: TransactionDto) {
         viewModelScope.launch {
-            transactionDao.deleteTransaction(order.id);
+          //  transactionDao.deleteTransaction(order.id);
             FileLogger.log(context, "PickupViewModel", "Deleted transactions by id: $order")
             fetchTransactions()
         }
