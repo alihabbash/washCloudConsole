@@ -2,6 +2,7 @@ package com.washcloud.consoleapplication.ui.mainad
 
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -31,13 +32,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -75,7 +72,6 @@ import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.dimBackground
-import com.washcloud.consoleapplication.utils.hints
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import com.washcloud.consoleapplication.utils.secondaryColor
@@ -85,7 +81,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import tp.xmaihh.serialport.SerialHelper
 import java.util.Locale
+
 
 @AndroidEntryPoint
 class MainAdActivity : ComponentActivity() {
@@ -94,8 +92,29 @@ class MainAdActivity : ComponentActivity() {
     private val barcodeData = StringBuilder()
 
     private val viewModel: MainAdViewModel by viewModels()
+    private val serialHelper: SerialHelper? = null
 
+    private val dataReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            FileLogger.log(context,  "onReceive"   ,"onReceive intent: ${intent.action}")
+            Log.e("MainAdViewModel", "onReceive intent: ${intent.action}")
+            if (intent.action == "com.washcloud.door_status") {
 
+                val isOpen  = intent.getBooleanExtra("status", false)
+                val stationId = intent.getStringExtra("stationId")
+                val boxId = intent.getStringExtra("boxId")
+
+                viewModel.handCheckDoorStatusResponse(stationId, boxId, isOpen)
+            }
+        }
+    }
+
+    private fun registerReceiver() {
+        println("registerReceiver com.washcloud.door_status")
+        val filter = IntentFilter("com.washcloud.door_status")
+        FileLogger.log(this,  "registerReceiver"   ,"registerReceiver com.washcloud.door_status")
+        registerReceiver(dataReceiver, filter)
+    }
 
 
     companion object {
@@ -145,7 +164,8 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        registerReceiver()
+        startPortService()
 
         requestPermissionsIfNeeded()
 
@@ -159,18 +179,18 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        GlobalScope.launch {
-            delay(4000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408100005-1/21222213701A-001"
+        /*GlobalScope.launch {
+            delay(3000)
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408120004-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
 
-        }
+        }*/
 
        scheduleHeartbeat(this)
 
         insertBoxes()
-        startPortService()
+
         setContent {
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -208,15 +228,10 @@ class MainAdActivity : ComponentActivity() {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onDoubleTap = {
-//                                        finish()
-//                                        val intent = Intent(context, MainActivity::class.java)
-//                                        context.startActivity(intent)
-                                        viewModel.sendCheckDoorStatusCommand("02", "03")
+                                        finish()
+                                        val intent = Intent(context, MainActivity::class.java)
+                                        context.startActivity(intent)
 
-
-
-
-                                        viewModel.sendCommand("02", "03")
 
                                     }
                                 )

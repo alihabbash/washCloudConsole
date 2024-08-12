@@ -46,26 +46,8 @@ class SerialPortService : Service() {
         serialHelper = object : SerialHelper("dev/ttyS1", 9600) {
             public override fun onDataReceived(comBean: ComBean) {
 
-               // val expectedLength = 7
-
-
-
-
-
                     val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
-                    val dataString = String(comBean.bRec, charset("UTF-8"))
 
-                    //FileLogger.log(applicationContext, "SerialPortService", "Received data: $dataReceive")
-
-//                FileLogger.log(
-//                        applicationContext,
-//                        "SerialPortService",
-//                        "Received data expectedLength: ${comBean.bRec.size}")
-//                    FileLogger.log(
-//                        applicationContext,
-//                        "SerialPortService",
-//                        "Received data String: $dataString"
-//                    )
                     FileLogger.log(
                         applicationContext,
                         "SerialPortService",

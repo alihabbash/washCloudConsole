@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication.ui.pickup
 
+import android.view.KeyEvent
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -31,11 +33,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.key
+
+
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -171,11 +178,26 @@ fun PickupView(
                             onValueChange = { newValue ->
                                 wayBillNo = newValue
                             },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             hintTextSize = (screenWidth.value * 0.035f).sp,
                             fontSize = (screenWidth.value * 0.035f).sp,
                             cornerRadius = (screenWidth.value * 0.06f),
                             modifier = Modifier
                                 .width(0.66 * screenWidth)
+                                .onKeyEvent { event ->
+                                    if (event.key.keyCode.toInt() == KeyEvent.KEYCODE_ENTER) {
+                                        if (isValidSerialNumber(wayBillNo)) {
+                                            viewModel.staffPickup(wayBillNo)
+                                            wayBillNo = ""
+                                        } else
+                                            Toast.makeText(
+                                                context,
+                                                "Invalid order number",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                    }
+                                    false
+                                }
                         )
                         Spacer(modifier = Modifier.width(0.04*screenWidth))
                         Box(
@@ -199,8 +221,10 @@ fun PickupView(
                                 )
                                 .clickable {
 
-                                    if (!URLUtil.isValidUrl(wayBillNo))
+                                    if (!URLUtil.isValidUrl(wayBillNo)) {
                                         viewModel.staffPickup(wayBillNo)
+                                        wayBillNo = ""
+                                    }
                                     else
                                         Toast.makeText(
                                             context,
@@ -344,4 +368,10 @@ fun PickUpListDivider(
             .padding(start = 24.dp, end = 24.dp),
 
         )
+}
+
+fun isValidSerialNumber(serial: String): Boolean {
+    //  "4442408120002-1"
+    val serialPattern = Regex("^\\d{13}-\\d{1}\$")
+    return serial.matches(serialPattern)
 }
