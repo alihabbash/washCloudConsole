@@ -179,9 +179,9 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        /*GlobalScope.launch {
-            delay(3000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408120004-1/21222213701A-001"
+       /* GlobalScope.launch {
+            delay(1000)
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408120009-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
 
@@ -212,7 +212,7 @@ class MainAdActivity : ComponentActivity() {
                     }
 
                     LaunchedEffect(showDialog) {
-                        while (showDialog) {
+                        while (showDialog && isDoorOpen) {
                             delay(3000L)
                             apiData?.let { data ->
                                 FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${data.doorNo} and station 02")
@@ -281,9 +281,13 @@ class MainAdActivity : ComponentActivity() {
                                     timer--
                                 }
 
-                                viewModel.insertTransaction(data)
-                                showDialog = false
-                                viewModel.setCloseDoor()
+                                if(isDoorOpen){
+                                    viewModel.insertTransaction(data)
+                                    showDialog = false
+                                    viewModel.setCustomerDropOff()
+                                }
+
+
                             }
                                 Column(
                                     verticalArrangement = Arrangement.Center,
