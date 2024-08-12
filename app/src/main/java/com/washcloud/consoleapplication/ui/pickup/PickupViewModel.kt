@@ -3,6 +3,7 @@ package com.washcloud.consoleapplication.ui.pickup
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -41,6 +42,9 @@ class PickupViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> get() = _error
 
+    private val _isSuccessed = MutableStateFlow<Boolean>(false)
+    val isSuccessed: StateFlow<Boolean> get() = _isSuccessed
+
     private lateinit var customPrinterHelper: PrintQR
     init {
         fetchTransactions()
@@ -77,11 +81,12 @@ class PickupViewModel @Inject constructor(
         println("transactions: ${_transactions.value}")
         FileLogger.log(context, "PickupViewModel", "confirm Staff Pickup button clicked: $orderSerial")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
-        FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
+        FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId}")
         val doorNo = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId
 
         if (doorNo == null) {
             _error.value = "Door number not found"
+            Toast.makeText(context, "Order number not found", Toast.LENGTH_SHORT).show()
             FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: Door number not found")
             return
         }
@@ -98,9 +103,10 @@ class PickupViewModel @Inject constructor(
             try {
                 val response = staffPickupUseCase(request)
                 _staffPickupResponse.value = response
+                _isSuccessed.value = true
                 sendCommand("02", "0$doorNo")
                 FileLogger.log(context, "PickupViewModel", "Staff Pickup successful: $response")
-                deleteTransactionsByOrderSerial(_transactions.value.first { it.orderSerial == orderSerial })
+              //  deleteTransactionsByOrderSerial(_transactions.value.first { it.orderSerial == orderSerial })
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: ${e.message}")

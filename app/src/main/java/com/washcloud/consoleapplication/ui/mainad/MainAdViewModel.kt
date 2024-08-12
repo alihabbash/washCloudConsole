@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.webkit.URLUtil
 import android.widget.Toast
@@ -124,23 +126,39 @@ class MainAdViewModel @Inject constructor(
     private val _isDoorOpen = MutableStateFlow(false)
     val isDoorOpen: StateFlow<Boolean> = _isDoorOpen.asStateFlow()
 
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var checkDoorRunnable: Runnable
+
+    fun startRepeatingCheck(stationId: String, boxId: String) {
+        checkDoorRunnable = object : Runnable {
+            override fun run() {
+                sendCheckDoorStatusCommand(stationId, boxId)
+                handler.postDelayed(this, 3000L)  // Repeat every 3 seconds
+            }
+        }
+        handler.post(checkDoorRunnable)
+    }
     init {
         registerReceiver()
     }
     private val dataReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             FileLogger.log(context,  "onReceive"   ,"onReceive intent: ${intent.action}")
+            Log.e("MainAdViewModel", "onReceive intent: ${intent.action}")
             if (intent.action == "com.washcloud.door_status") {
 
-                _isDoorOpen.value  = intent.getBooleanExtra("status", false)
-                val stationId = intent.getStringExtra("stationId")
-                val boxId = intent.getStringExtra("boxId")
-                FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
-                Toast.makeText(context, "Door status received: ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
-                if(!_isDoorOpen.value){
-                    setCustomerDropOff()
-                }
+
+
             }
+        }
+    }
+
+    fun handCheckDoorStatusResponse(stationId: String?, boxId: String?,  isOpen: Boolean) {
+        _isDoorOpen.value = isOpen
+        FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
+        Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
+        if(!_isDoorOpen.value){
+            setCustomerDropOff()
         }
     }
 
@@ -253,6 +271,9 @@ class MainAdViewModel @Inject constructor(
                         _apiResponse.value = it
                         _showDialog.value = it.data?.firstOrNull()
                         _isDoorOpen.value = true
+
+                        delay(20000L)
+                        sendMockDoorStatusBrodcast()
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
@@ -294,7 +315,7 @@ class MainAdViewModel @Inject constructor(
         }
     }
 
-    fun sendCommand(stationId: String, boxId: String) {
+   private fun sendCommand(stationId: String, boxId: String) {
 
         viewModelScope.launch {
 
@@ -304,7 +325,9 @@ class MainAdViewModel @Inject constructor(
                 putExtra("stationId", stationId)
                 putExtra("boxId", boxId)
             }
+
             context.sendBroadcast(intent)
+
         }
 
     }
@@ -316,6 +339,19 @@ class MainAdViewModel @Inject constructor(
             putExtra("boxId", boxId)
         }
         context.sendBroadcast(intent)
+    }
+
+
+   private fun sendMockDoorStatusBrodcast() {
+        val intent = Intent("com.washcloud.door_status").apply {
+            putExtra("stationId", "02")
+            putExtra("boxId", "03")
+            putExtra("status", true)
+            putExtra("data", "900785010101")
+        }
+       Log.e("MainAdViewModel", "sendDoorStatusBrodcast: ${intent.action}")
+        context.sendBroadcast(intent)
+
     }
 
 
