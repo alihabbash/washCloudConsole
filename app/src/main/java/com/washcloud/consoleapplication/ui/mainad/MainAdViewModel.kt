@@ -126,7 +126,7 @@ class MainAdViewModel @Inject constructor(
     private val _isDoorOpen = MutableStateFlow(false)
     val isDoorOpen: StateFlow<Boolean> = _isDoorOpen.asStateFlow()
 
-    private val handler = Handler(Looper.getMainLooper())
+   /* private val handler = Handler(Looper.getMainLooper())
     private lateinit var checkDoorRunnable: Runnable
 
     fun startRepeatingCheck(stationId: String, boxId: String) {
@@ -137,21 +137,9 @@ class MainAdViewModel @Inject constructor(
             }
         }
         handler.post(checkDoorRunnable)
-    }
-    init {
-        registerReceiver()
-    }
-    private val dataReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            FileLogger.log(context,  "onReceive"   ,"onReceive intent: ${intent.action}")
-            Log.e("MainAdViewModel", "onReceive intent: ${intent.action}")
-            if (intent.action == "com.washcloud.door_status") {
+    }*/
 
 
-
-            }
-        }
-    }
 
     fun handCheckDoorStatusResponse(stationId: String?, boxId: String?,  isOpen: Boolean) {
         _isDoorOpen.value = isOpen
@@ -159,23 +147,13 @@ class MainAdViewModel @Inject constructor(
         Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
         if(!_isDoorOpen.value){
             setCustomerDropOff()
+            insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
         }
     }
 
-    private fun registerReceiver() {
-        println("registerReceiver com.washcloud.door_status")
-        val filter = IntentFilter("com.washcloud.door_status")
-        FileLogger.log(context,  "registerReceiver"   ,"registerReceiver com.washcloud.door_status")
-        context.registerReceiver(dataReceiver, filter)
-    }
-
-    private fun unregisterReceiver() {
-        context.unregisterReceiver(dataReceiver)
-    }
 
 
-
-    private fun setCustomerDropOff() {
+     fun setCustomerDropOff() {
         setCloseDoor()
 
         viewModelScope.launch {
@@ -287,7 +265,7 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun insertTransaction(data: ApiData) {
-        setCustomerDropOff()
+
         viewModelScope.launch(Dispatchers.IO) {
             val transaction = TransactionDto(
                 orderSerial = data.wayBillNo,
@@ -300,6 +278,7 @@ class MainAdViewModel @Inject constructor(
             )
             transactionDao.insertTransaction(transaction)
             Log.d("MainAdViewModel", "Inserted transaction: $transaction")
+            FileLogger.log(context,  "insertTransaction"   ,"Inserted transaction: $transaction")
 
 
             val boxId = data.doorNo.toLong()
@@ -307,9 +286,11 @@ class MainAdViewModel @Inject constructor(
             if (box != null) {
                 val updatedBox = box.copy(boxState = BoxState.OCCUPIED)
                 boxDao.updateBox(updatedBox)
+                FileLogger.log(context,  "insertTransaction"   ,"Updated box status to ${updatedBox.boxState} for boxId: $boxId")
                 Log.d("MainAdViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId")
             } else {
                 Log.e("MainAdViewModel", "Box with ID $boxId not found.")
+                FileLogger.log(context,  "insertTransaction"   ,"Box with ID $boxId not found.")
             }
 
         }
@@ -346,7 +327,7 @@ class MainAdViewModel @Inject constructor(
         val intent = Intent("com.washcloud.door_status").apply {
             putExtra("stationId", "02")
             putExtra("boxId", "03")
-            putExtra("status", true)
+            putExtra("status", false)
             putExtra("data", "900785010101")
         }
        Log.e("MainAdViewModel", "sendDoorStatusBrodcast: ${intent.action}")

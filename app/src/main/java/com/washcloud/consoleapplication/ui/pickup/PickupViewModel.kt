@@ -106,7 +106,7 @@ class PickupViewModel @Inject constructor(
                 _isSuccessed.value = true
                 sendCommand("02", "0$doorNo")
                 FileLogger.log(context, "PickupViewModel", "Staff Pickup successful: $response")
-              //  deleteTransactionsByOrderSerial(_transactions.value.first { it.orderSerial == orderSerial })
+                deleteTransactionsByOrderSerial(_transactions.value.first { it.orderSerial == orderSerial })
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: ${e.message}")
@@ -126,7 +126,7 @@ class PickupViewModel @Inject constructor(
 
     private fun deleteTransactionsByOrderSerial(order: TransactionDto) {
         viewModelScope.launch {
-          //  transactionDao.deleteTransaction(order.id);
+           transactionDao.deleteTransaction(order.id);
             FileLogger.log(context, "PickupViewModel", "Deleted transactions by id: $order")
             fetchTransactions()
         }

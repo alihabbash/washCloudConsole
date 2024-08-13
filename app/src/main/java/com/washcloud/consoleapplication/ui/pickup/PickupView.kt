@@ -77,7 +77,7 @@ fun PickupView(
     val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
     val error by viewModel.error.collectAsState()
     var wayBillNo by remember { mutableStateOf("") }
- val context = LocalContext.current
+    val context = LocalContext.current
     Box {
         Column(
             modifier = Modifier
@@ -188,7 +188,7 @@ fun PickupView(
                                     if (event.key.keyCode.toInt() == KeyEvent.KEYCODE_ENTER) {
                                         if (isValidSerialNumber(wayBillNo)) {
                                             viewModel.staffPickup(wayBillNo)
-                                            wayBillNo = ""
+                                            //wayBillNo = ""
                                         } else
                                             Toast.makeText(
                                                 context,
