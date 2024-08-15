@@ -61,6 +61,9 @@
     <string name="new_phone_number">رقم الجوال الجديد</string>
     <string name="add_file">إضافة ملف</string>
     <string name="cancel">إلغاء</string>
-
+    <string name="no_transactions_available">لا توجد طلبيات متاحة</string>
+    <string name="no_lockers_available">لا توجد صناديق متاحة</string>
+    <string name="available">متاح</string>
+    <string name="occupied">محجوز</string>
 
 </resources>

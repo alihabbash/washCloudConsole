@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication.ui.dropoff
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,8 +28,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.local.database.dto.TransactionDto
+import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
+import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.utils.*
+import java.util.Date
 
 @Composable
 fun DropOffView(
@@ -40,7 +45,12 @@ fun DropOffView(
 ) {
     val viewModel: DropOffViewModel = hiltViewModel()
     var selectedIndex by remember { mutableIntStateOf(-1) }
+    val transactions by viewModel.transactions.collectAsState()
 
+    LaunchedEffect(Unit) {
+        Log.e("DropOffView", "LaunchedEffect")
+        viewModel.fetchTransactions()
+    }
     Box {
         Column(
             modifier = Modifier
@@ -50,9 +60,14 @@ fun DropOffView(
             verticalArrangement = Arrangement.Top,
         ) {
             Header(screenWidth)
-            DropOffList(screenWidth, screenHeight, selectedIndex) { index ->
-                selectedIndex = index
+            if(transactions.isEmpty()) {
+                NoTransactionsMessage(screenWidth)
+            }else{
+                DropOffList(screenWidth, screenHeight, transactions, selectedIndex) { index ->
+                    selectedIndex = index
+                }
             }
+
             BottomButtons(screenWidth, screenHeight, showContinueToDropOff)
             Spacer(modifier = Modifier.weight(1f))
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showStaffStart)
@@ -76,7 +91,7 @@ fun Header(screenWidth: Dp) {
 }
 
 @Composable
-fun DropOffList(screenWidth: Dp, screenHeight: Dp, selectedIndex: Int, onItemSelected: (Int) -> Unit) {
+fun DropOffList(screenWidth: Dp, screenHeight: Dp, transactions: List<TransactionDto>,selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     Box(
         modifier = Modifier
             .padding(24.dp)
@@ -93,12 +108,17 @@ fun DropOffList(screenWidth: Dp, screenHeight: Dp, selectedIndex: Int, onItemSel
             .height(0.7 * screenHeight.value.dp)
     ) {
         LazyColumn(modifier = Modifier.padding(top = 0.006 * screenHeight.value.dp)) {
-            items(20) { item ->
+            items(transactions.size) { index ->
                 Column {
-                    DropOffItem(screenWidth, screenHeight, item == selectedIndex) {
-                        onItemSelected(item)
+                    DropOffItem(
+                        screenWidth = screenWidth,
+                        screenHeight = screenHeight,
+                        transaction = transactions[index],
+                        isSelected = index == selectedIndex
+                    ) {
+                        onItemSelected(index)
                     }
-                    if (item != 19) {
+                    if (index != transactions.size - 1) {
                         DropOffListDivider(screenWidth)
                     }
                 }
@@ -108,7 +128,7 @@ fun DropOffList(screenWidth: Dp, screenHeight: Dp, selectedIndex: Int, onItemSel
 }
 
 @Composable
-fun DropOffItem(screenWidth: Dp, screenHeight: Dp, isSelected: Boolean, onClick: () -> Unit) {
+fun DropOffItem(screenWidth: Dp, screenHeight: Dp,transaction: TransactionDto ,isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) lightGrey else Color.White
     val textColor = if (isSelected) secondaryColor else primaryDark
 
@@ -129,14 +149,14 @@ fun DropOffItem(screenWidth: Dp, screenHeight: Dp, isSelected: Boolean, onClick:
                 .height(0.1 * screenWidth.value.dp),
         )
         Spacer(modifier = Modifier.width(24.dp))
-        OrderDetails(screenWidth, textColor)
+        OrderDetails(screenWidth, textColor, transaction)
         Box(modifier = Modifier.weight(1f))
         Spacer(modifier = Modifier.width(24.dp))
     }
 }
 
 @Composable
-fun OrderDetails(screenWidth: Dp, textColor: Color) {
+fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: TransactionDto) {
     Row {
         Column {
             Text(
@@ -157,7 +177,7 @@ fun OrderDetails(screenWidth: Dp, textColor: Color) {
         }
         Column {
             Text(
-                text = "930859037",
+                text = transaction.orderSerial,
                 style = TextStyle(
                     color = textColor,
                     fontSize = (screenWidth.value * 0.03f).sp
@@ -165,7 +185,7 @@ fun OrderDetails(screenWidth: Dp, textColor: Color) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "16",
+                text = transaction.boxId.toString(),
                 style = TextStyle(
                     color = textColor,
                     fontSize = (screenWidth.value * 0.03f).sp
@@ -199,7 +219,7 @@ fun OrderDetails(screenWidth: Dp, textColor: Color) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "00:00:04 17/03/2024",
+                text = transaction.trnasDate.toString(),
                 style = TextStyle(
                     color = textColor,
                     fontSize = (screenWidth.value * 0.03f).sp
@@ -223,6 +243,26 @@ fun DropOffListDivider(screenWidth: Dp) {
                 .background(color = borderColor)
                 .padding(horizontal = 24.dp)
                 .padding(vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
+fun NoTransactionsMessage(screenWidth: Dp) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.no_transactions_available),
+            style = TextStyle(
+                fontSize = (screenWidth.value * 0.04f).sp,
+                fontWeight = FontWeight.Medium,
+                color = primaryDark
+            ),
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -314,19 +354,23 @@ fun PreviewHeader() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewPickupList() {
-    DropOffList(screenWidth = 360.dp, screenHeight = 640.dp, selectedIndex = -1, onItemSelected = {})
+    DropOffList(screenWidth = 360.dp, screenHeight = 640.dp, selectedIndex = -1, onItemSelected = {}, transactions = listOf(
+        TransactionDto(0, "123", 1, 1, Date(), 1, TransactionType.DROP_OFF, BoxSizeType.SMALL),
+        TransactionDto(1, "124", 2, 2, Date(), 2, TransactionType.DROP_OFF, BoxSizeType.MEDIUM),
+        TransactionDto(2, "125", 3, 3, Date(), 3, TransactionType.DROP_OFF, BoxSizeType.LARGE),
+    ))
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewDropOffItem() {
-    DropOffItem(screenWidth = 360.dp, screenHeight = 640.dp, isSelected = false, onClick = {})
+    DropOffItem(screenWidth = 360.dp, screenHeight = 640.dp, isSelected = false, onClick = {}, transaction = TransactionDto(0, "123", 1, 1, Date(), 1, TransactionType.DROP_OFF, BoxSizeType.SMALL))
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewOrderDetails() {
-    OrderDetails(screenWidth = 360.dp, textColor = primaryDark)
+    OrderDetails(screenWidth = 360.dp, textColor = primaryDark, transaction = TransactionDto(0, "123", 1, 1, Date(), 1, TransactionType.DROP_OFF, BoxSizeType.SMALL))
 }
 
 @Preview(showBackground = true)

@@ -92,7 +92,7 @@ class MainAdActivity : ComponentActivity() {
     private val barcodeData = StringBuilder()
 
     private val viewModel: MainAdViewModel by viewModels()
-    private val serialHelper: SerialHelper? = null
+
 
     private val dataReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -181,7 +181,7 @@ class MainAdActivity : ComponentActivity() {
 
        /* GlobalScope.launch {
             delay(1000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408120009-1/21222213701A-001"
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408140003-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
 
@@ -275,8 +275,8 @@ class MainAdActivity : ComponentActivity() {
 
                             var timer by remember { mutableStateOf(60) }
 
-                            LaunchedEffect(Unit) {
-                                while (timer > 0) {
+                            LaunchedEffect(isDoorOpen) {
+                                while (timer > 0 && isDoorOpen) {
                                     delay(1000L)
                                     timer--
                                 }
@@ -284,7 +284,7 @@ class MainAdActivity : ComponentActivity() {
                                 if(isDoorOpen){
                                     viewModel.insertTransaction(data)
                                     showDialog = false
-                                    viewModel.setCustomerDropOff()
+                                    viewModel.checkOperationType()
                                 }
 
 
@@ -316,7 +316,7 @@ class MainAdActivity : ComponentActivity() {
                                         ) {
 
                                             Text(
-                                                text = "Drop Off Clothes",
+                                                text = if (data.operationType == "PickUp")  "Pick Up Clothes" else "Drop Off Clothes",
                                                 style = TextStyle(
                                                     fontSize = (screenWidth.value * 0.033f).sp,
                                                     fontWeight = FontWeight.Bold,
@@ -327,7 +327,7 @@ class MainAdActivity : ComponentActivity() {
 
 
                                             Text(
-                                                text = "Locker Number: ${data.doorNo}\nPlease drop off your clothes in the locker.",
+                                                text = if (data.operationType == "PickUp") "Locker Number: ${data.doorNo}\nPlease pick up your clothes from the locker." else "Locker Number: ${data.doorNo}\nPlease drop off your clothes in the locker." ,
                                                 style = TextStyle(
                                                     fontSize = (screenWidth.value * 0.025f).sp,
                                                     fontWeight = FontWeight.Bold

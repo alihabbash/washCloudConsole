@@ -1,29 +1,18 @@
 package com.washcloud.consoleapplication.remote.datasource
 
-import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.remote.config.IApiProvider
 import com.washcloud.consoleapplication.remote.config.IRetrofitService
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffRequest
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffResponse
-import com.washcloud.consoleapplication.remote.model.login.StaffLoginRequest
-import com.washcloud.consoleapplication.remote.model.login.StaffLoginResponse
+import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
+import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupResponse
 import javax.inject.Inject
 
-class StaffRemoteDataSource @Inject constructor(
+
+class StaffDropoffRemoteDataSource @Inject constructor(
     private val retrofitService: IRetrofitService,
     private val apiProvider: IApiProvider
-) : IStaffRemoteDataSource {
-    override suspend fun login(account: String, password: String): StaffLoginResponse {
-        return apiProvider.proceedRequest {
-            retrofitService.staffLogin(
-                    account = account,
-                    password = password,
-                    apiKey = API_KEY,
-                    type = ""
-            )
-        }
-    }
-
+) : IStaffDropoffRemoteDataSource {
     override suspend fun staffDropOff(request: StaffDropoffRequest): StaffDropoffResponse {
         return apiProvider.proceedRequest {
             retrofitService.staffDropOff(

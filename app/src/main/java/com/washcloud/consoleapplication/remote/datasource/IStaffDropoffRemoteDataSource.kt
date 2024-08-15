@@ -2,11 +2,9 @@ package com.washcloud.consoleapplication.remote.datasource
 
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffRequest
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffResponse
-import com.washcloud.consoleapplication.remote.model.login.StaffLoginResponse
+import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
 
-interface IStaffRemoteDataSource {
 
-    suspend fun login(account: String, password: String): StaffLoginResponse
+interface IStaffDropoffRemoteDataSource {
     suspend fun staffDropOff(request: StaffDropoffRequest): StaffDropoffResponse
-
 }
