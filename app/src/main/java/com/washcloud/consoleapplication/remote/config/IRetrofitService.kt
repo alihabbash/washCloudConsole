@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication.remote.config
 
+import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffResponse
 import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatRequest
 import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatResponse
 import com.washcloud.consoleapplication.remote.model.locker.VerifyOrderResponse
@@ -44,4 +45,12 @@ interface IRetrofitService {
         @Query("DoorNo") doorNo: Int
     ): Response<StaffPickupResponse>
 
+    @GET(STAFF_DROP_OFF)
+    suspend fun staffDropOff(
+        @Query("Apikey") apiKey: String,
+        @Query("WayBillNo") wayBillNo: String,
+        @Query("TerminalSn") terminalSn: String,
+        @Query("Type") type: Int,
+        @Query("DoorNo") doorNo: Int
+    ): Response<StaffDropoffResponse>
 }

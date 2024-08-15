@@ -60,6 +60,10 @@
     <string name="new_phone_number">New Phone Number</string>
     <string name="add_file">Add File</string>
     <string name="cancel">Cancel</string>
+    <string name="no_transactions_available">No Orders available</string>
+    <string name="no_lockers_available">No Lockers available</string>
+    <string name="available">Available</string>
+    <string name="occupied">Occupied</string>
 
 
 

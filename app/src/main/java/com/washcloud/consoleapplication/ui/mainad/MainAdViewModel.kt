@@ -29,6 +29,7 @@ import com.washcloud.consoleapplication.local.preferences.BRANCH_ID
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.config.BASE_URL
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_DROP_OFF
+import com.washcloud.consoleapplication.remote.config.CUSTOMER_PICKUP
 import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -78,6 +79,15 @@ interface ApiService {
 
     @GET(CUSTOMER_DROP_OFF)
     suspend fun customerDropOff(
+        @Query("Apikey") apiKey: String,
+        @Query("WayBillNo") wayBillNo: String,
+        @Query("TerminalSn") terminalSn: String,
+        @Query("DoorNo") doorNo: String,
+        @Query("Type") type: Int
+    ): Response<ApiResponse>
+
+    @GET(CUSTOMER_PICKUP)
+    suspend fun customerPickup(
         @Query("Apikey") apiKey: String,
         @Query("WayBillNo") wayBillNo: String,
         @Query("TerminalSn") terminalSn: String,
@@ -146,14 +156,25 @@ class MainAdViewModel @Inject constructor(
         FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
         Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
         if(!_isDoorOpen.value){
-            setCustomerDropOff()
-            insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
+            checkOperationType()
+
         }
     }
 
 
 
-     fun setCustomerDropOff() {
+    fun checkOperationType() {
+        setCloseDoor()
+        if (_apiResponse.value?.data?.firstOrNull()?.operationType == "PickUp") {
+            requestCustomerPickup()
+        } else {
+
+            requestCustomerDropOff()
+        }
+    }
+
+    private fun requestCustomerDropOff() {
+
         setCloseDoor()
 
         viewModelScope.launch {
@@ -171,6 +192,7 @@ class MainAdViewModel @Inject constructor(
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
 
                     FileLogger.log(context,  "setCustomerDropOff"   ,"Response: ${response.body()}")
+                    insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
                     response.body()?.let {
                      //TODO
                     }
@@ -182,6 +204,38 @@ class MainAdViewModel @Inject constructor(
             } catch (e: Exception) {
                 _error.value = "Error fetching data: ${e.message ?: "An error occurred"}"
                 FileLogger.log(context,  "setCustomerDropOff"   ,"Error fetching data: ${e.message ?: "An error occurred"}")
+            }
+        }
+    }
+
+
+    private fun requestCustomerPickup() {
+        viewModelScope.launch {
+            try {
+                FileLogger.log(context,  "setCustomerPickup"   ,"Fetching data from ${CUSTOMER_PICKUP}")
+                val response: Response<ApiResponse> = apiService.customerPickup(
+                    apiKey = API_KEY,
+                    wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
+                    terminalSn = TERMINAL_SN,
+                    doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
+                    type = 1
+                )
+
+                if (response.isSuccessful) {
+                    Log.d("MainAdViewModel", "Response: ${response.body()}")
+                    updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE)
+                    FileLogger.log(context,  "setCustomerPickup"   ,"Response: ${response.body()}")
+                    response.body()?.let {
+
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    _error.value = "Error fetching data: $errorBody"
+                    FileLogger.log(context,  "setCustomerPickup"   ,"Error fetching data: $errorBody")
+                }
+            } catch (e: Exception) {
+                _error.value = "Error fetching data: ${e.message ?: "An error occurred"}"
+                FileLogger.log(context,  "setCustomerPickup"   ,"Error fetching data: ${e.message ?: "An error occurred"}")
             }
         }
     }
@@ -282,9 +336,17 @@ class MainAdViewModel @Inject constructor(
 
 
             val boxId = data.doorNo.toLong()
+            updateBoxStats(boxId, BoxState.OCCUPIED)
+
+        }
+    }
+
+
+    private fun  updateBoxStats(boxId: Long, state: BoxState) {
+        viewModelScope.launch(Dispatchers.IO) {
             val box = boxDao.getBoxById(boxId)
             if (box != null) {
-                val updatedBox = box.copy(boxState = BoxState.OCCUPIED)
+                val updatedBox = box.copy(boxState = state)
                 boxDao.updateBox(updatedBox)
                 FileLogger.log(context,  "insertTransaction"   ,"Updated box status to ${updatedBox.boxState} for boxId: $boxId")
                 Log.d("MainAdViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId")
@@ -292,7 +354,6 @@ class MainAdViewModel @Inject constructor(
                 Log.e("MainAdViewModel", "Box with ID $boxId not found.")
                 FileLogger.log(context,  "insertTransaction"   ,"Box with ID $boxId not found.")
             }
-
         }
     }
 

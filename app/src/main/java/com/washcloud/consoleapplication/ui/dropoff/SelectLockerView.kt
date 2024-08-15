@@ -1,5 +1,8 @@
 package com.washcloud.consoleapplication.ui.dropoff
 
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +32,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.local.database.dto.BoxDto
+import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.pickup.isValidSerialNumber
 import com.washcloud.consoleapplication.utils.*
 
 @Composable
@@ -40,7 +47,13 @@ fun SelectLockerView(
 ) {
     val viewModel: DropOffViewModel = hiltViewModel()
     var selectedLocker by remember { mutableStateOf<String?>(null) }
+    val lockers by viewModel.lockers.collectAsState()
+    val context = LocalContext.current
+    var wayBillNo by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.fetchLockers()
+    }
     Box {
         Column(
             modifier = Modifier
@@ -50,15 +63,91 @@ fun SelectLockerView(
             verticalArrangement = Arrangement.Top,
         ) {
             Header(screenWidth)
-            LockerList(lockers, screenWidth, screenHeight, selectedLocker) { selectedLocker = it }
-            Spacer(modifier = Modifier.weight(1f))
+            if (lockers.isEmpty()) {
+                NoLockersMessage(screenWidth)
+            } else {
+                LockerList(lockers, screenWidth, screenHeight, selectedLocker) { selectedLocker = it }
+            }
+
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .border(
+                        color = borderColor,
+                        width = 1.dp,
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .fillMaxWidth()
+
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                    text = stringResource(id = R.string.drop_off_clothes),
+                    style = TextStyle(
+                        fontSize = (screenWidth.value * 0.04f).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryDark
+                    ),
+                    textAlign = TextAlign.Start,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                DropOffSection(screenWidth = screenWidth, screenHeight = screenHeight, selectedLocker ,wayBillNo = wayBillNo ,onWayBillNoChange = { wayBillNo = it}, onConfirm = {
+
+                    if (selectedLocker == null) {
+                        Toast.makeText(
+                            context,
+                            "Please select a locker",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    } else if (isValidSerialNumber(wayBillNo)) {
+                        viewModel.dropoff(wayBillNo, selectedLocker!!)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Invalid order number",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                })
+            }
+
+            Spacer(modifier = Modifier.height(0.05 * screenHeight))
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, onBack)
         }
     }
 }
 
 @Composable
+fun NoLockersMessage(screenWidth: Dp) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.no_lockers_available),
+            style = TextStyle(
+                fontSize = (screenWidth.value * 0.04f).sp,
+                fontWeight = FontWeight.Medium,
+                color = primaryDark
+            ),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun LockerItem(
+    boxId: Long,
     type: String,
     abbreviation: String,
     availableNumber: Int,
@@ -108,7 +197,8 @@ fun LockerItem(
 
         Column(horizontalAlignment = Alignment.Start) {
             Text(
-                text = type,
+                text = if (isEnabled) stringResource(id = R.string.available
+                )  else stringResource(id = R.string.occupied),
                 style = TextStyle(
                     fontSize = (screenWidth.value * 0.03f).sp,
                     fontWeight = FontWeight.Bold,
@@ -116,7 +206,7 @@ fun LockerItem(
                 )
             )
             Text(
-                text = "Available: $availableNumber",
+                text = "0$boxId",
                 style = TextStyle(
                     fontSize = (screenWidth.value * 0.03f).sp,
                     color = if (isEnabled) secondaryColor else Color.Gray,
@@ -128,7 +218,7 @@ fun LockerItem(
 
 @Composable
 fun LockerList(
-    lockers: List<Pair<String, Int>>,
+    lockers: List<BoxDto>,
     screenWidth: Dp,
     screenHeight: Dp,
     selectedLocker: String?,
@@ -149,7 +239,7 @@ fun LockerList(
                 shape = RoundedCornerShape(24.dp)
             )
             .fillMaxWidth()
-            .height(0.7 * screenHeight.value.dp)
+            .height(0.45 * screenHeight.value.dp)
     ) {
         Spacer(modifier = Modifier.height(50.dp))
         Text(
@@ -173,16 +263,18 @@ fun LockerList(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    rowItems.forEach { (type, availableNumber) ->
+                    rowItems.forEach { locker ->
                         LockerItem(
-                            type = type,
-                            abbreviation = type.getAbbreviation(),
-                            availableNumber = availableNumber,
+                            boxId = locker.boxId,
+                            type = locker.boxSize.name,
+                            abbreviation = locker.boxSize.name.getAbbreviation(),
+                            availableNumber = if (locker.boxState == BoxState.AVAILABLE) 1 else 0,
                             itemWidth = itemWidth,
-                            isSelected = selectedLocker == type,
-                            onSelect = { onLockerSelect(type) },
+                            isSelected = selectedLocker == locker.boxId.toString(),
+                            onSelect = { onLockerSelect(locker.boxId.toString()) },
                             screenWidth = screenWidth
                         )
+
                     }
                     repeat(3 - rowItems.size) {
                         Spacer(modifier = Modifier.width(itemWidth))
@@ -190,24 +282,19 @@ fun LockerList(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(0.05 * screenHeight))
-        Text(
-            modifier = Modifier.padding(horizontal = 32.dp),
-            text = stringResource(id = R.string.drop_off_clothes),
-            style = TextStyle(
-                fontSize = (screenWidth.value * 0.04f).sp,
-                fontWeight = FontWeight.Bold,
-                color = primaryDark
-            ),
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        DropOffSection(screenWidth, screenHeight)
+
     }
 }
 
 @Composable
-fun DropOffSection(screenWidth: Dp, screenHeight: Dp) {
+fun DropOffSection(
+    screenWidth: Dp,
+    screenHeight: Dp,
+    selectedLocker: String?,
+    wayBillNo: String,
+    onWayBillNoChange: (String) -> Unit,
+    onConfirm: () -> Unit
+) {
     Box(
         modifier = Modifier
             .padding(24.dp)
@@ -221,7 +308,7 @@ fun DropOffSection(screenWidth: Dp, screenHeight: Dp) {
                 shape = RoundedCornerShape(24.dp)
             )
             .fillMaxWidth()
-            .height(0.25 * screenHeight),
+            .height(0.22 * screenHeight),
     ) {
         Column(
             modifier = Modifier.padding(
@@ -234,30 +321,32 @@ fun DropOffSection(screenWidth: Dp, screenHeight: Dp) {
                 text = stringResource(id = R.string.scan_order_number),
                 style = TextStyle(
                     color = fieldsTitles,
-                    fontSize = (screenWidth.value * 0.03f).sp
+                    fontSize = (screenWidth.value * 0.03f).sp,
+                    textAlign = TextAlign.Start
                 )
             )
             Spacer(modifier = Modifier.height(0.01 * screenHeight))
             Column {
                 Spacer(modifier = Modifier.height(0.01 * screenHeight))
                 OutlinedInputField(
-                    value = "",
+                    value = wayBillNo,
                     hintText = "XXXX-XXXX-XXXX",
-                    onValueChange = {},
+                    onValueChange = onWayBillNoChange,
                     hintTextSize = (screenWidth.value * 0.035f).sp,
                     fontSize = (screenWidth.value * 0.035f).sp,
                     cornerRadius = (screenWidth.value * 0.06f),
                     modifier = Modifier.width(0.8 * screenWidth)
                 )
                 Spacer(modifier = Modifier.height(0.03 * screenWidth))
-                ConfirmButton(screenWidth, screenHeight)
+                ConfirmButton(screenWidth, screenHeight, onConfirm)
             }
         }
     }
 }
 
 @Composable
-fun ConfirmButton(screenWidth: Dp, screenHeight: Dp) {
+fun ConfirmButton(screenWidth: Dp, screenHeight: Dp, onClick: () -> Unit) {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
@@ -276,8 +365,13 @@ fun ConfirmButton(screenWidth: Dp, screenHeight: Dp) {
                 start = (screenWidth.value * 0.04f).dp
             )
             .width(0.75 * screenWidth)
-            .height(0.08 * screenHeight)
-            .clickable {},
+            .height(0.05 * screenHeight)
+            .clickable {
+
+
+                    onClick()
+
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -304,23 +398,4 @@ fun String.getAbbreviation(): String {
         "Conveyor" -> "C"
         else -> this.first().toString()
     }
-}
-
-val lockers = listOf(
-    "X-small" to 7,
-    "Small" to 7,
-    "Medium" to 7,
-    "Large" to 7,
-    "X-Large" to 7,
-    "2X-Large" to 7,
-    "3X-Large" to 7,
-    "4X-Large" to 7,
-    "Conveyor" to 0
-)
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewLockerList() {
-    var selectedLocker by remember { mutableStateOf<String?>(null) }
-    LockerList(lockers, screenWidth = 1366.dp, screenHeight = 768.dp, selectedLocker) { selectedLocker = it }
 }

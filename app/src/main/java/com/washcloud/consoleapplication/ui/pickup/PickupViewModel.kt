@@ -3,6 +3,7 @@ package com.washcloud.consoleapplication.ui.pickup
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -11,8 +12,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.washcloud.consoleapplication.hardware.CustomPrinterHelper
 import com.washcloud.consoleapplication.hardware.PrintQR
+import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
+import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
@@ -29,6 +32,7 @@ import javax.inject.Inject
 class PickupViewModel @Inject constructor(
     private val transactionDao: TransactionDao,
     private val staffPickupUseCase: StaffPickupUseCase,
+    private val boxDao: BoxDao,
     application: Application
 ) : AndroidViewModel(application)  {
 
@@ -127,8 +131,27 @@ class PickupViewModel @Inject constructor(
     private fun deleteTransactionsByOrderSerial(order: TransactionDto) {
         viewModelScope.launch {
            transactionDao.deleteTransaction(order.id);
+            updateBoxState(order.boxId)
             FileLogger.log(context, "PickupViewModel", "Deleted transactions by id: $order")
             fetchTransactions()
+        }
+    }
+
+    private fun updateBoxState(boxId: Long) {
+
+        viewModelScope.launch(Dispatchers.IO) {
+
+
+            val box = boxDao.getBoxById(boxId)
+            if (box != null) {
+                val updatedBox = box.copy(boxState = BoxState.AVAILABLE)
+                boxDao.updateBox(updatedBox)
+                FileLogger.log(context,  "insertTransaction"   ,"Updated box status to ${updatedBox.boxState} for boxId: $boxId")
+                Log.d("PickupViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId")
+            } else {
+                Log.e("PickupViewModel", "Box with ID $boxId not found.")
+                FileLogger.log(context,  "insertTransaction"   ,"Box with ID $boxId not found.")
+            }
         }
     }
 }
