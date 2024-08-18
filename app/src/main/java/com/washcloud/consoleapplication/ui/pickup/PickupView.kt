@@ -32,6 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.key
@@ -39,6 +41,7 @@ import androidx.compose.ui.input.key.key
 
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -83,6 +86,12 @@ fun PickupView(
     var wayBillNo by remember { mutableStateOf("") }
     val context = LocalContext.current
 
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     /*LaunchedEffect(Unit) {
        delay(10000L)
         wayBillNo = "4442408170007-1"
@@ -91,6 +100,7 @@ fun PickupView(
     LaunchedEffect(wayBillNo) {
         if (isValidSerialNumber(wayBillNo)) {
             viewModel.staffPickup(wayBillNo)
+            wayBillNo = ""
         }
     }
 
@@ -200,6 +210,7 @@ fun PickupView(
                             cornerRadius = (screenWidth.value * 0.06f),
                             modifier = Modifier
                                 .width(0.66 * screenWidth)
+                                .focusRequester(focusRequester)
                               /*  .onKeyEvent { event ->
                                     if (event.key.keyCode.toInt() == KeyEvent.KEYCODE_ENTER) {
                                         if (isValidSerialNumber(wayBillNo)) {

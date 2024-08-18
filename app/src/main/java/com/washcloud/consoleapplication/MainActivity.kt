@@ -16,6 +16,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,11 +29,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -57,6 +60,7 @@ import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.ADMIN_PASSWORD
 import com.washcloud.consoleapplication.local.preferences.API_KEY
+import com.washcloud.consoleapplication.local.preferences.DELAY_MILLIS
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.local.preferences.language
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
@@ -86,6 +90,7 @@ import com.washcloud.consoleapplication.utils.screenBackground
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -164,24 +169,38 @@ class MainActivity : ComponentActivity() {
         mainViewModel: MainViewModel
     ) {
         when (selectedView) {
-            is SelectedView.Ad2Form -> MainScreen(
-                 { mainViewModel.resetStack() },
-                 { mainViewModel.addToStack(SelectedView.LoginForm) },
-                 { mainViewModel.addToStack(SelectedView.AdminLogInView) },
-                 { mainViewModel.addToStack(SelectedView.HelpForm) }
-            )
+            is SelectedView.Ad2Form -> {
+                LaunchedEffect(Unit) {
+                    delay(DELAY_MILLIS)
+                    finish()
+                }
+
+                MainScreen(
+                    { mainViewModel.resetStack() },
+                    { mainViewModel.addToStack(SelectedView.LoginForm) },
+                    { mainViewModel.addToStack(SelectedView.AdminLogInView) },
+                    { mainViewModel.addToStack(SelectedView.HelpForm) }
+                )
+            }
             is SelectedView.LoginForm -> LoginForm(
                 { mainViewModel.resetStack() },
                 { mainViewModel.addToStack(SelectedView.DriverLoginForm) },
                 screenWidth = screenWidth,
                 screenHeight = screenHeight
             )
-            is SelectedView.HelpForm -> HelpForm(
-                screenWidth = screenWidth,
-                screenHeight = screenHeight,
-                 { changeLanguage() },
-                { mainViewModel.resetStack() }
-            )
+            is SelectedView.HelpForm -> {
+                LaunchedEffect(Unit) {
+                    delay(DELAY_MILLIS)
+                    finish()
+                }
+
+                HelpForm(
+                    screenWidth = screenWidth,
+                    screenHeight = screenHeight,
+                    { changeLanguage() },
+                    { mainViewModel.resetStack() }
+                )
+            }
             is SelectedView.DriverLoginForm -> DriverLoginForm(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
@@ -294,9 +313,17 @@ class MainActivity : ComponentActivity() {
                     Modifier
                         .weight(1f, true)
                         .fillMaxHeight()
-                        .clickable {
-                            showAdminLogin()
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = {
+
+                                    showAdminLogin()
+
+
+                                }
+                            )
                         }
+
                 )
                 Box(
                     modifier =
@@ -309,9 +336,17 @@ class MainActivity : ComponentActivity() {
                     Modifier
                         .weight(1f, true)
                         .fillMaxHeight()
-                        .clickable {
-                            showStaffLogin()
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = {
+
+                                    showStaffLogin()
+
+
+                                }
+                            )
                         }
+
                 )
             }
 
