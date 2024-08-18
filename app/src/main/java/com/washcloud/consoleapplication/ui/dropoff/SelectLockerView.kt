@@ -83,6 +83,7 @@ fun SelectLockerView(
              alertMessage = "Please drop off clothes in locker $selectedLocker."
              viewModel.dropoff(wayBillNo, selectedLocker!!)
              wayBillNo = ""
+             selectedLocker = null
 
          }
 
@@ -166,6 +167,7 @@ fun SelectLockerView(
                             alertTitle = "Drop Off Clothes"
                             alertMessage = "Please drop off clothes in locker $selectedLocker."
                             wayBillNo = ""
+                            selectedLocker = null
                         } else {
                             showAlert = true
                             alertTitle = "Invalid Serial Number"
