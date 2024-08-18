@@ -20,6 +20,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -61,7 +63,7 @@ fun SelectLockerView(
     LaunchedEffect(Unit) {
         viewModel.fetchLockers()
     }
-  /*  LaunchedEffect(Unit) {
+   /* LaunchedEffect(Unit) {
     delay(10000L)
         wayBillNo = "4442408170005-1"
    }*/
@@ -80,12 +82,20 @@ fun SelectLockerView(
              alertTitle = "Drop Off Clothes"
              alertMessage = "Please drop off clothes in locker $selectedLocker."
              viewModel.dropoff(wayBillNo, selectedLocker!!)
+             wayBillNo = ""
 
          }
 
      }
     }
     Box {
+
+
+            Column(
+                modifier = Modifier
+                    .width(screenWidth)
+            ) {
+
         Column(
             modifier = Modifier
                 .height(screenHeight)
@@ -93,12 +103,18 @@ fun SelectLockerView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
+
+
             Header(screenWidth)
             if (lockers.isEmpty()) {
                 NoLockersMessage(screenWidth)
             } else {
-                LockerList(lockers, screenWidth, screenHeight, selectedLocker) { selectedLocker = it }
+                LockerList(lockers, screenWidth, screenHeight, selectedLocker) {
+                    selectedLocker = it
+                }
             }
+
+
 
             Column(
                 modifier = Modifier
@@ -128,79 +144,82 @@ fun SelectLockerView(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DropOffSection(screenWidth = screenWidth, screenHeight = screenHeight, selectedLocker ,wayBillNo = wayBillNo ,onWayBillNoChange = { wayBillNo = it}, onConfirm = {
 
-                    if (selectedLocker == null) {
-                       showAlert = true
-                       alertTitle = "Selection Required"
-                          alertMessage = "Please select a locker before proceeding."
 
-                    } else if (isValidSerialNumber(wayBillNo)) {
-                        Log.e("DropOffViewModel", "Drop off clothes in locker $selectedLocker")
-                        viewModel.dropoff(wayBillNo, selectedLocker!!)
-                        showAlert = true
-                        alertTitle = "Drop Off Clothes"
-                        alertMessage = "Please drop off clothes in locker $selectedLocker."
-                    } else {
-                        showAlert = true
-                        alertTitle = "Invalid Serial Number"
-                        alertMessage = "Please enter a valid serial number."
-                    }
+                DropOffSection(
+                    screenWidth = screenWidth,
+                    screenHeight = screenHeight,
+                    selectedLocker,
+                    wayBillNo = wayBillNo,
+                    onWayBillNoChange = { wayBillNo = it },
+                    onConfirm = {
 
-                })
+                        if (selectedLocker == null) {
+                            showAlert = true
+                            alertTitle = "Selection Required"
+                            alertMessage = "Please select a locker before proceeding."
+
+                        } else if (isValidSerialNumber(wayBillNo)) {
+                            Log.e("DropOffViewModel", "Drop off clothes in locker $selectedLocker")
+                            viewModel.dropoff(wayBillNo, selectedLocker!!)
+                            showAlert = true
+                            alertTitle = "Drop Off Clothes"
+                            alertMessage = "Please drop off clothes in locker $selectedLocker."
+                            wayBillNo = ""
+                        } else {
+                            showAlert = true
+                            alertTitle = "Invalid Serial Number"
+                            alertMessage = "Please enter a valid serial number."
+                        }
+
+                    })
             }
 
             Spacer(modifier = Modifier.height(0.05 * screenHeight))
+
+
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, onBack)
 
-            if (showAlert) {
-                AlertDialog(
-                    onDismissRequest = {
-                        showAlert = false
-                    },
-                    confirmButton = {
 
-                        TextButton(
-                            onClick = {
-                                showAlert = false
-                            },
-                            modifier = Modifier.padding(24.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp)
-                                    .background(
-                                        brush = Brush.horizontalGradient(
-                                            colors = listOf(
-                                                blueGradient,
-                                                secondaryColor,
-                                            ),
-                                        ),
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .clickable {
-                                        showAlert = false
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.confirm),
-                                    style = TextStyle(
-                                        color = Color.White,
-                                        fontSize = (screenWidth.value * 0.024f).sp,
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    modifier = Modifier.padding(16.dp)
+        }
+        }
 
-                                )
-                            }
-                        }
-                    },
-                    title = {
-                        Text(alertTitle, fontSize = (screenWidth.value * 0.04f).sp, color = secondaryColor, fontWeight = FontWeight.Bold)
-                    },
-                    text = {
+        if (showAlert) {
+
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(screenWidth)
+                    .height(screenHeight)
+                    .background(dimBackground)
+            ) {
+                Box(
+                    modifier =
+                    Modifier
+                        .clip(
+                            RoundedCornerShape(0.02 * screenWidth)
+                        )
+                        .background(color = Color.White)
+                        .width(0.8 * screenWidth)
+                        .height(0.15 * screenHeight)
+                        .padding(start = 16.dp, end = 16.dp),
+
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+
+                        Text(
+                            alertTitle,
+                            fontSize = (screenWidth.value * 0.04f).sp,
+                            color = secondaryColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+
                         Text(
                             text = alertMessage,
                             style = TextStyle(
@@ -209,11 +228,42 @@ fun SelectLockerView(
                             ),
                         )
 
+                        Spacer(modifier = Modifier.height(0.01 * screenHeight))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp)
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(
+                                            blueGradient,
+                                            secondaryColor,
+                                        ),
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable {
+                                    showAlert = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.confirm),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(16.dp)
+
+                            )
+                        }
 
                     }
-                )
-            }
+                }
 
+            }
         }
     }
 }
@@ -396,6 +446,11 @@ fun DropOffSection(
     onWayBillNoChange: (String) -> Unit,
     onConfirm: () -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
     Box(
         modifier = Modifier
             .padding(24.dp)
@@ -438,6 +493,8 @@ fun DropOffSection(
                     fontSize = (screenWidth.value * 0.035f).sp,
                     cornerRadius = (screenWidth.value * 0.06f),
                     modifier = Modifier.width(0.8 * screenWidth)
+                        .focusRequester(focusRequester)
+
                 )
                 Spacer(modifier = Modifier.height(0.03 * screenWidth))
                 ConfirmButton(screenWidth, screenHeight, onConfirm)

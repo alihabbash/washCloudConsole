@@ -6,3 +6,4 @@ const val language = "language"
 const val ADMIN_PASSWORD = "admin_password"
 const val PHONE_NUMBER = "phone_number"
 const val BRANCH_ID = 28L;
+const val DELAY_MILLIS = 10_000L

@@ -228,7 +228,7 @@ class MainAdActivity : ComponentActivity() {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onDoubleTap = {
-                                        finish()
+                                       // finish()
                                         val intent = Intent(context, MainActivity::class.java)
                                         context.startActivity(intent)
 
