@@ -223,7 +223,7 @@ class MainAdViewModel @Inject constructor(
 
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
-                    updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE)
+                    updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE, "-1")
                     FileLogger.log(context,  "setCustomerPickup"   ,"Response: ${response.body()}")
                     response.body()?.let {
 
@@ -336,17 +336,17 @@ class MainAdViewModel @Inject constructor(
 
 
             val boxId = data.doorNo.toLong()
-            updateBoxStats(boxId, BoxState.OCCUPIED)
+            updateBoxStats(boxId, BoxState.OCCUPIED, data.wayBillNo)
 
         }
     }
 
 
-    private fun  updateBoxStats(boxId: Long, state: BoxState) {
+    private fun  updateBoxStats(boxId: Long, state: BoxState, order_serial: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val box = boxDao.getBoxById(boxId)
             if (box != null) {
-                val updatedBox = box.copy(boxState = state)
+                val updatedBox = box.copy(boxState = state, orderSerial = order_serial, trnasType = TransactionType.DROP_OFF)
                 boxDao.updateBox(updatedBox)
                 FileLogger.log(context,  "insertTransaction"   ,"Updated box status to ${updatedBox.boxState} for boxId: $boxId")
                 Log.d("MainAdViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId")

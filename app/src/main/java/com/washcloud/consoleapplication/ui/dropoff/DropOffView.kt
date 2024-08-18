@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
@@ -91,7 +92,7 @@ fun Header(screenWidth: Dp) {
 }
 
 @Composable
-fun DropOffList(screenWidth: Dp, screenHeight: Dp, transactions: List<TransactionDto>,selectedIndex: Int, onItemSelected: (Int) -> Unit) {
+fun DropOffList(screenWidth: Dp, screenHeight: Dp, transactions: List<BoxDto>,selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     Box(
         modifier = Modifier
             .padding(24.dp)
@@ -128,7 +129,7 @@ fun DropOffList(screenWidth: Dp, screenHeight: Dp, transactions: List<Transactio
 }
 
 @Composable
-fun DropOffItem(screenWidth: Dp, screenHeight: Dp,transaction: TransactionDto ,isSelected: Boolean, onClick: () -> Unit) {
+fun DropOffItem(screenWidth: Dp, screenHeight: Dp,transaction: BoxDto ,isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) lightGrey else Color.White
     val textColor = if (isSelected) secondaryColor else primaryDark
 
@@ -156,7 +157,7 @@ fun DropOffItem(screenWidth: Dp, screenHeight: Dp,transaction: TransactionDto ,i
 }
 
 @Composable
-fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: TransactionDto) {
+fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: BoxDto) {
     Row {
         Column {
             Text(
@@ -193,13 +194,13 @@ fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: TransactionDto)
             )
         }
         Column(modifier = Modifier.padding(start = 0.05 * screenWidth.value.dp)) {
-            Text(
-                text = stringResource(id = R.string.mobile),
-                style = TextStyle(
-                    color = textColor,
-                    fontSize = (screenWidth.value * 0.03f).sp
-                )
-            )
+//            Text(
+//                text = stringResource(id = R.string.mobile),
+//                style = TextStyle(
+//                    color = textColor,
+//                    fontSize = (screenWidth.value * 0.03f).sp
+//                )
+//            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(id = R.string.time),
@@ -210,13 +211,13 @@ fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: TransactionDto)
             )
         }
         Column {
-            Text(
-                text = "0552516789",
-                style = TextStyle(
-                    color = textColor,
-                    fontSize = (screenWidth.value * 0.03f).sp
-                )
-            )
+//            Text(
+//                text = "0552516789",
+//                style = TextStyle(
+//                    color = textColor,
+//                    fontSize = (screenWidth.value * 0.03f).sp
+//                )
+//            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = transaction.trnasDate.toString(),
@@ -345,42 +346,3 @@ fun PreviewDropOffView() {
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewHeader() {
-    Header(screenWidth = 360.dp)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPickupList() {
-    DropOffList(screenWidth = 360.dp, screenHeight = 640.dp, selectedIndex = -1, onItemSelected = {}, transactions = listOf(
-        TransactionDto(0, "123", 1, 1, Date(), 1, TransactionType.DROP_OFF, BoxSizeType.SMALL),
-        TransactionDto(1, "124", 2, 2, Date(), 2, TransactionType.DROP_OFF, BoxSizeType.MEDIUM),
-        TransactionDto(2, "125", 3, 3, Date(), 3, TransactionType.DROP_OFF, BoxSizeType.LARGE),
-    ))
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewDropOffItem() {
-    DropOffItem(screenWidth = 360.dp, screenHeight = 640.dp, isSelected = false, onClick = {}, transaction = TransactionDto(0, "123", 1, 1, Date(), 1, TransactionType.DROP_OFF, BoxSizeType.SMALL))
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewOrderDetails() {
-    OrderDetails(screenWidth = 360.dp, textColor = primaryDark, transaction = TransactionDto(0, "123", 1, 1, Date(), 1, TransactionType.DROP_OFF, BoxSizeType.SMALL))
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewDropOffListDivider() {
-    DropOffListDivider(screenWidth = 360.dp)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewBottomButtons() {
-    BottomButtons(screenWidth = 360.dp, screenHeight = 640.dp, showContinueToDropOff = {})
-}

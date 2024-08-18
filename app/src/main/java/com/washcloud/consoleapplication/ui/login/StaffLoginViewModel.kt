@@ -43,6 +43,8 @@ class StaffLoginViewModel @Inject constructor(
 
     fun resetLoadingToInitial(){
         _uiState.value = LoginState.Initial
+        accountText.value = ""
+        passwordText.value = ""
     }
 
     private fun validateFields(): Boolean {

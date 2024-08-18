@@ -96,6 +96,8 @@ fun LoginForm(
     val isLoading = screenState is LoginState.Loading
     if (screenState is LoginState.Success) {
         showDriverLogin()
+        viewModel.resetLoadingToInitial()
+
     }
     Box {
 
