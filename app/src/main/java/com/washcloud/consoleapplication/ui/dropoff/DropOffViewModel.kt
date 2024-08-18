@@ -12,6 +12,7 @@ import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffRequest
@@ -33,8 +34,8 @@ class DropOffViewModel @Inject constructor(
 ) : AndroidViewModel(application)  {
 
     private  val context: Context = getApplication<Application>().applicationContext
-    private val _transactions = MutableStateFlow<List<TransactionDto>>(emptyList())
-    val transactions: StateFlow<List<TransactionDto>> get() = _transactions
+    private val _transactions = MutableStateFlow<List<BoxDto>>(emptyList())
+    val transactions: StateFlow<List<BoxDto>> get() = _transactions
     private val _lockers = MutableStateFlow<List<BoxDto>>(emptyList())
     val lockers: StateFlow<List<BoxDto>> get() = _lockers
 
@@ -62,7 +63,7 @@ class DropOffViewModel @Inject constructor(
 
      fun fetchTransactions() {
         viewModelScope.launch(Dispatchers.IO) {
-            val transactionsList = transactionDao.getAllTransactions()
+            val transactionsList = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED && it.trnasType == TransactionType.PICKUP }
             _transactions.value = transactionsList
         }
     }
@@ -92,7 +93,7 @@ class DropOffViewModel @Inject constructor(
                 _isSuccessed.value = true
                 sendCommand("02", "0$boxID")
                 FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
-                updateBoxState(boxID)
+                updateBoxState(boxID, orderSerial)
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "DropOffViewModel", "Error in Staff Dropoff: ${e.message}")
@@ -111,17 +112,20 @@ class DropOffViewModel @Inject constructor(
     }
 
 
-    private fun updateBoxState(boxId: String) {
+    private fun updateBoxState(boxId: String, orderSerial: String) {
 
         viewModelScope.launch(Dispatchers.IO) {
 
 
             val box = boxDao.getBoxById(boxId.toLong())
+            Log.e("box before updated ", box.toString());
             if (box != null) {
-                val updatedBox = box.copy(boxState = BoxState.OCCUPIED)
+                val updatedBox = box.copy(boxState = BoxState.OCCUPIED, trnasType = TransactionType.PICKUP, orderSerial = orderSerial)
                 boxDao.updateBox(updatedBox)
                 FileLogger.log(context,  "insertTransaction"   ,"Updated box status to ${updatedBox.boxState} for boxId: $boxId")
-                Log.d("DropOffViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId")
+                Log.e("DropOffViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId and orderSerial: ${updatedBox.orderSerial}")
+                fetchLockers()
+                fetchTransactions()
             } else {
                 Log.e("DropOffViewModel", "Box with ID $boxId not found.")
                 FileLogger.log(context,  "insertTransaction"   ,"Box with ID $boxId not found.")

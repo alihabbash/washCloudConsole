@@ -11,8 +11,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -37,6 +41,7 @@ import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.pickup.isValidSerialNumber
 import com.washcloud.consoleapplication.utils.*
+import kotlinx.coroutines.delay
 
 @Composable
 fun SelectLockerView(
@@ -50,9 +55,35 @@ fun SelectLockerView(
     val lockers by viewModel.lockers.collectAsState()
     val context = LocalContext.current
     var wayBillNo by remember { mutableStateOf("") }
-
+    var showAlert by remember { mutableStateOf(false) }
+    var alertTitle by remember { mutableStateOf("Selection Required") }
+    var alertMessage by remember { mutableStateOf("Please select a locker before proceeding.") }
     LaunchedEffect(Unit) {
         viewModel.fetchLockers()
+    }
+  /*  LaunchedEffect(Unit) {
+    delay(10000L)
+        wayBillNo = "4442408170005-1"
+   }*/
+
+    LaunchedEffect(wayBillNo) {
+     if (isValidSerialNumber(wayBillNo)) {
+
+
+         if (selectedLocker == null) {
+             showAlert = true
+                alertTitle = "Selection Required"
+                alertMessage = "Please select a locker before proceeding."
+
+         } else if (isValidSerialNumber(wayBillNo)) {
+             showAlert = true
+             alertTitle = "Drop Off Clothes"
+             alertMessage = "Please drop off clothes in locker $selectedLocker."
+             viewModel.dropoff(wayBillNo, selectedLocker!!)
+
+         }
+
+     }
     }
     Box {
         Column(
@@ -100,20 +131,20 @@ fun SelectLockerView(
                 DropOffSection(screenWidth = screenWidth, screenHeight = screenHeight, selectedLocker ,wayBillNo = wayBillNo ,onWayBillNoChange = { wayBillNo = it}, onConfirm = {
 
                     if (selectedLocker == null) {
-                        Toast.makeText(
-                            context,
-                            "Please select a locker",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                       showAlert = true
+                       alertTitle = "Selection Required"
+                          alertMessage = "Please select a locker before proceeding."
 
                     } else if (isValidSerialNumber(wayBillNo)) {
+                        Log.e("DropOffViewModel", "Drop off clothes in locker $selectedLocker")
                         viewModel.dropoff(wayBillNo, selectedLocker!!)
+                        showAlert = true
+                        alertTitle = "Drop Off Clothes"
+                        alertMessage = "Please drop off clothes in locker $selectedLocker."
                     } else {
-                        Toast.makeText(
-                            context,
-                            "Invalid order number",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showAlert = true
+                        alertTitle = "Invalid Serial Number"
+                        alertMessage = "Please enter a valid serial number."
                     }
 
                 })
@@ -121,6 +152,68 @@ fun SelectLockerView(
 
             Spacer(modifier = Modifier.height(0.05 * screenHeight))
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, onBack)
+
+            if (showAlert) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showAlert = false
+                    },
+                    confirmButton = {
+
+                        TextButton(
+                            onClick = {
+                                showAlert = false
+                            },
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 16.dp)
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                blueGradient,
+                                                secondaryColor,
+                                            ),
+                                        ),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .clickable {
+                                        showAlert = false
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.confirm),
+                                    style = TextStyle(
+                                        color = Color.White,
+                                        fontSize = (screenWidth.value * 0.024f).sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    modifier = Modifier.padding(16.dp)
+
+                                )
+                            }
+                        }
+                    },
+                    title = {
+                        Text(alertTitle, fontSize = (screenWidth.value * 0.04f).sp, color = secondaryColor, fontWeight = FontWeight.Bold)
+                    },
+                    text = {
+                        Text(
+                            text = alertMessage,
+                            style = TextStyle(
+                                fontSize = (screenWidth.value * 0.025f).sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                        )
+
+
+                    }
+                )
+            }
+
         }
     }
 }
@@ -197,6 +290,14 @@ fun LockerItem(
 
         Column(horizontalAlignment = Alignment.Start) {
             Text(
+                text = type,
+                style = TextStyle(
+                    fontSize = (screenWidth.value * 0.032f).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isEnabled) secondaryColor else Color.Gray,
+                )
+            )
+            Text(
                 text = if (isEnabled) stringResource(id = R.string.available
                 )  else stringResource(id = R.string.occupied),
                 style = TextStyle(
@@ -241,7 +342,7 @@ fun LockerList(
             .fillMaxWidth()
             .height(0.45 * screenHeight.value.dp)
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
             modifier = Modifier.padding(horizontal = 32.dp),
             text = stringResource(id = R.string.select_locker),
@@ -252,7 +353,7 @@ fun LockerList(
             ),
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         LazyColumn(
             modifier = Modifier
                 .padding(16.dp)
@@ -333,6 +434,7 @@ fun DropOffSection(
                     hintText = "XXXX-XXXX-XXXX",
                     onValueChange = onWayBillNoChange,
                     hintTextSize = (screenWidth.value * 0.035f).sp,
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     fontSize = (screenWidth.value * 0.035f).sp,
                     cornerRadius = (screenWidth.value * 0.06f),
                     modifier = Modifier.width(0.8 * screenWidth)
@@ -369,7 +471,7 @@ fun ConfirmButton(screenWidth: Dp, screenHeight: Dp, onClick: () -> Unit) {
             .clickable {
 
 
-                    onClick()
+                onClick()
 
             },
         contentAlignment = Alignment.Center

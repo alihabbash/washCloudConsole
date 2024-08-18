@@ -174,14 +174,14 @@ class MainAdActivity : ComponentActivity() {
         })
 
 
-        viewModel.error.observe(this, Observer { errorMessage ->
+      /*  viewModel.error.observe(this, Observer { errorMessage ->
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
             println("Error: $errorMessage")
-        })
+        })*/
 
        /* GlobalScope.launch {
             delay(1000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408140003-1/21222213701A-001"
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408180004-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
 

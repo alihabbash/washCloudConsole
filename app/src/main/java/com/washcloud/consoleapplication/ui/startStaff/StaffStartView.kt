@@ -233,6 +233,8 @@ fun DriverLoginForm(
                             start = 16.dp
                         )
                         .clickable {
+
+                            //
                             showAd2()
                         }
                 ) {

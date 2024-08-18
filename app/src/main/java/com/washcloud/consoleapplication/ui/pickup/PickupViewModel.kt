@@ -14,8 +14,10 @@ import com.washcloud.consoleapplication.hardware.CustomPrinterHelper
 import com.washcloud.consoleapplication.hardware.PrintQR
 import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
+import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
@@ -37,8 +39,8 @@ class PickupViewModel @Inject constructor(
 ) : AndroidViewModel(application)  {
 
     private  val context: Context = getApplication<Application>().applicationContext
-    private val _transactions = MutableStateFlow<List<TransactionDto>>(emptyList())
-    val transactions: StateFlow<List<TransactionDto>> get() = _transactions
+    private val _transactions = MutableStateFlow<List<BoxDto>>(emptyList())
+    val transactions: StateFlow<List<BoxDto>> get() = _transactions
 
     private val _staffPickupResponse = MutableStateFlow<StaffPickupResponse?>(null)
     val staffPickupResponse: StateFlow<StaffPickupResponse?> get() = _staffPickupResponse
@@ -48,6 +50,10 @@ class PickupViewModel @Inject constructor(
 
     private val _isSuccessed = MutableStateFlow<Boolean>(false)
     val isSuccessed: StateFlow<Boolean> get() = _isSuccessed
+
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
 
     private lateinit var customPrinterHelper: PrintQR
     init {
@@ -60,7 +66,7 @@ class PickupViewModel @Inject constructor(
         customPrinterHelper = PrintQR(context)
     }
 
-    fun printTransaction(transaction: TransactionDto) {
+    fun printTransaction(transaction: BoxDto) {
         viewModelScope.launch {
             if (customPrinterHelper.OpenDevice()) {
                 FileLogger.log(context, "PickupViewModel", "Printing transaction: $transaction")
@@ -74,8 +80,11 @@ class PickupViewModel @Inject constructor(
 
     private fun fetchTransactions() {
         viewModelScope.launch(Dispatchers.IO) {
-            val transactionsList = transactionDao.getAllTransactions()
-            _transactions.value = transactionsList
+          /*  val transactionsList = transactionDao.getAllTransactions()
+            _transactions.value = transactionsList*/
+
+            val boxes = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED && it.trnasType == TransactionType.DROP_OFF }
+            _transactions.value = boxes
         }
     }
 
@@ -104,6 +113,7 @@ class PickupViewModel @Inject constructor(
 
         FileLogger.log(context, "PickupViewModel", "Staff Pickup request: $request")
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val response = staffPickupUseCase(request)
                 _staffPickupResponse.value = response
@@ -114,6 +124,9 @@ class PickupViewModel @Inject constructor(
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: ${e.message}")
+
+            } finally {
+                _isLoading.value = false
 
             }
         }
@@ -128,12 +141,12 @@ class PickupViewModel @Inject constructor(
         context.sendBroadcast(intent)
     }
 
-    private fun deleteTransactionsByOrderSerial(order: TransactionDto) {
+    private fun deleteTransactionsByOrderSerial(order: BoxDto) {
         viewModelScope.launch {
-           transactionDao.deleteTransaction(order.id);
+           //transactionDao.deleteTransaction(order.id);
             updateBoxState(order.boxId)
             FileLogger.log(context, "PickupViewModel", "Deleted transactions by id: $order")
-            fetchTransactions()
+
         }
     }
 
@@ -144,8 +157,9 @@ class PickupViewModel @Inject constructor(
 
             val box = boxDao.getBoxById(boxId)
             if (box != null) {
-                val updatedBox = box.copy(boxState = BoxState.AVAILABLE)
+                val updatedBox = box.copy(boxState = BoxState.AVAILABLE, orderSerial = "-1")
                 boxDao.updateBox(updatedBox)
+                fetchTransactions()
                 FileLogger.log(context,  "insertTransaction"   ,"Updated box status to ${updatedBox.boxState} for boxId: $boxId")
                 Log.d("PickupViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId")
             } else {

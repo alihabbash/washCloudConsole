@@ -23,6 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
@@ -64,6 +66,7 @@ import com.washcloud.consoleapplication.utils.hints
 import com.washcloud.consoleapplication.utils.numbersColor
 import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.secondaryColor
+import kotlinx.coroutines.delay
 
 @Composable
 fun PickupView(
@@ -76,8 +79,21 @@ fun PickupView(
     val transactions = viewModel.transactions.collectAsState().value
     val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
     val error by viewModel.error.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     var wayBillNo by remember { mutableStateOf("") }
     val context = LocalContext.current
+
+    /*LaunchedEffect(Unit) {
+       delay(10000L)
+        wayBillNo = "4442408170007-1"
+    }*/
+
+    LaunchedEffect(wayBillNo) {
+        if (isValidSerialNumber(wayBillNo)) {
+            viewModel.staffPickup(wayBillNo)
+        }
+    }
+
     Box {
         Column(
             modifier = Modifier
@@ -184,20 +200,22 @@ fun PickupView(
                             cornerRadius = (screenWidth.value * 0.06f),
                             modifier = Modifier
                                 .width(0.66 * screenWidth)
-                                .onKeyEvent { event ->
+                              /*  .onKeyEvent { event ->
                                     if (event.key.keyCode.toInt() == KeyEvent.KEYCODE_ENTER) {
                                         if (isValidSerialNumber(wayBillNo)) {
                                             viewModel.staffPickup(wayBillNo)
                                             //wayBillNo = ""
                                         } else
-                                            Toast.makeText(
-                                                context,
-                                                "Invalid order number",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            Toast
+                                                .makeText(
+                                                    context,
+                                                    "Invalid order number",
+                                                    Toast.LENGTH_SHORT
+                                                )
+                                                .show()
                                     }
                                     false
-                                }
+                                }*/
                         )
                         Spacer(modifier = Modifier.width(0.04*screenWidth))
                         Box(
@@ -224,13 +242,14 @@ fun PickupView(
                                     if (!URLUtil.isValidUrl(wayBillNo)) {
                                         viewModel.staffPickup(wayBillNo)
                                         wayBillNo = ""
-                                    }
-                                    else
-                                        Toast.makeText(
-                                            context,
-                                            "Invalid order number",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                    } else
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                "Invalid order number",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
 
 
                                 }
@@ -254,8 +273,14 @@ fun PickupView(
                 modifier =
                 Modifier.weight(1f)
             )
+
+
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showStaffStart)
         }
+    }
+
+    if(isLoading){
+        PickupDialog(screenWidth = screenWidth, screenHeight = screenHeight);
     }
 }
 
@@ -263,7 +288,7 @@ fun PickupView(
 fun pickUpItem(
     screenWidth: Dp,
     screenHeight: Dp,
-    transaction: TransactionDto,
+    transaction: BoxDto,
     viewModel: PickupViewModel,
 ) {
     Row(
@@ -300,7 +325,7 @@ fun pickUpItem(
             }
             Column {
                 Text(
-                    text = transaction.orderSerial.toString(),
+                    text = transaction.orderSerial,
                     style = TextStyle(
                         color = numbersColor,
                         fontSize = (screenWidth.value * 0.03f).sp
