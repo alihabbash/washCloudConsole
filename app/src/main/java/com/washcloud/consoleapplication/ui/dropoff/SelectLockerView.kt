@@ -65,7 +65,7 @@ fun SelectLockerView(
     }
    /* LaunchedEffect(Unit) {
     delay(10000L)
-        wayBillNo = "4442408170005-1"
+        wayBillNo = "4442408250004-1"
    }*/
 
     LaunchedEffect(wayBillNo) {
@@ -76,6 +76,7 @@ fun SelectLockerView(
              showAlert = true
                 alertTitle = "Selection Required"
                 alertMessage = "Please select a locker before proceeding."
+             wayBillNo = ""
 
          } else if (isValidSerialNumber(wayBillNo)) {
              showAlert = true
@@ -159,6 +160,7 @@ fun SelectLockerView(
                             showAlert = true
                             alertTitle = "Selection Required"
                             alertMessage = "Please select a locker before proceeding."
+                            wayBillNo = ""
 
                         } else if (isValidSerialNumber(wayBillNo)) {
                             Log.e("DropOffViewModel", "Drop off clothes in locker $selectedLocker")
@@ -450,9 +452,9 @@ fun DropOffSection(
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
+   /* LaunchedEffect(Unit) {
         focusRequester.requestFocus()
-    }
+    }*/
     Box(
         modifier = Modifier
             .padding(24.dp)
@@ -495,7 +497,7 @@ fun DropOffSection(
                     fontSize = (screenWidth.value * 0.035f).sp,
                     cornerRadius = (screenWidth.value * 0.06f),
                     modifier = Modifier.width(0.8 * screenWidth)
-                        .focusRequester(focusRequester)
+//                        .focusRequester(focusRequester)
 
                 )
                 Spacer(modifier = Modifier.height(0.03 * screenWidth))

@@ -9,4 +9,5 @@ const val STAFF_DROP_OFF = PREFIX + "StaffDropOff"
 const val STAFF_PICKUP = "api/LockerIntegration/StaffPickup"
 const val CUSTOMER_DROP_OFF = "api/LockerIntegration/CustomerDropOff"
 const val CUSTOMER_PICKUP = "api/LockerIntegration/CustomerPickup"
+const val STAFF_RECALL = "api/LockerIntegration/StaffRecall"
 

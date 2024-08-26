@@ -104,6 +104,8 @@ class MainAdActivity : ComponentActivity() {
                 val stationId = intent.getStringExtra("stationId")
                 val boxId = intent.getStringExtra("boxId")
 
+                FileLogger.log(context,  "MainActivity onReceive"   ,"stationId: $stationId, boxId: $boxId, isOpen: $isOpen")
+
                 viewModel.handCheckDoorStatusResponse(stationId, boxId, isOpen)
             }
         }
@@ -181,9 +183,14 @@ class MainAdActivity : ComponentActivity() {
 
        /* GlobalScope.launch {
             delay(1000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408180004-1/21222213701A-001"
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250005-1/21222213701A-001"
             FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
             viewModel.fetchDirectly(url)
+
+            delay(30000)
+            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
+            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
+            viewModel.fetchDirectly(url2)
 
         }*/
 
@@ -207,11 +214,23 @@ class MainAdActivity : ComponentActivity() {
 
                     LaunchedEffect(apiData) {
                         apiData?.let {
-                            showDialog = true
+                            if(isDoorOpen) {
+                                showDialog = true
+                                FileLogger.log(context, "MainAdActivity", "Showing dialog for door 0${it.doorNo} and station 02")
+
+                                while (isDoorOpen && apiData != null) {
+                                    delay(3000L)
+                                    viewModel.sendCheckDoorStatusCommand("02", "0${it.doorNo}")
+                                    FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${it.doorNo} and station 02")
+                                }
+
+                            }else{
+                                FileLogger.log(context, "MainAdActivity", "Door is closed for that not showing dialog door 0${it.doorNo} and station 02")
+                            }
                         }
                     }
 
-                    LaunchedEffect(showDialog) {
+                  /*  LaunchedEffect(showDialog) {
                         while (showDialog && isDoorOpen) {
                             delay(3000L)
                             apiData?.let { data ->
@@ -219,7 +238,7 @@ class MainAdActivity : ComponentActivity() {
                                 viewModel.sendCheckDoorStatusCommand("02", "0" + data.doorNo)
                             }
                         }
-                    }
+                    }*/
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -282,6 +301,7 @@ class MainAdActivity : ComponentActivity() {
                                 }
 
                                 if(isDoorOpen){
+                                    FileLogger.log(context, "MainAdActivity", "Door is still open after 60 seconds")
                                     viewModel.insertTransaction(data)
                                     showDialog = false
                                     viewModel.checkOperationType()
