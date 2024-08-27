@@ -88,9 +88,9 @@ fun PickupView(
 
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
+ /*   LaunchedEffect(Unit) {
         focusRequester.requestFocus()
-    }
+    }*/
 
     /*LaunchedEffect(Unit) {
        delay(10000L)
@@ -210,7 +210,7 @@ fun PickupView(
                             cornerRadius = (screenWidth.value * 0.06f),
                             modifier = Modifier
                                 .width(0.66 * screenWidth)
-                                .focusRequester(focusRequester)
+                              //  .focusRequester(focusRequester)
                               /*  .onKeyEvent { event ->
                                     if (event.key.keyCode.toInt() == KeyEvent.KEYCODE_ENTER) {
                                         if (isValidSerialNumber(wayBillNo)) {

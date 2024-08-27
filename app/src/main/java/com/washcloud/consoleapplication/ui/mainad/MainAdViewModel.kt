@@ -126,8 +126,8 @@ class MainAdViewModel @Inject constructor(
     private val _apiResponse = MutableLiveData<ApiResponse>()
     val apiResponse: LiveData<ApiResponse> get() = _apiResponse
 
-    private val _showDialog = MutableLiveData<ApiData>()
-    val showDialog: LiveData<ApiData> get() = _showDialog
+    private val _showDialog = MutableLiveData<ApiData?>()
+    val showDialog: LiveData<ApiData?> get() = _showDialog
 
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
@@ -154,7 +154,7 @@ class MainAdViewModel @Inject constructor(
     fun handCheckDoorStatusResponse(stationId: String?, boxId: String?,  isOpen: Boolean) {
         _isDoorOpen.value = isOpen
         FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
-        Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
+       // Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
         if(!_isDoorOpen.value){
             checkOperationType()
 
@@ -193,6 +193,7 @@ class MainAdViewModel @Inject constructor(
 
                     FileLogger.log(context,  "setCustomerDropOff"   ,"Response: ${response.body()}")
                     insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
+                    _showDialog.value = null
                     response.body()?.let {
                      //TODO
                     }
@@ -225,6 +226,7 @@ class MainAdViewModel @Inject constructor(
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
                     updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE, "-1")
                     FileLogger.log(context,  "setCustomerPickup"   ,"Response: ${response.body()}")
+                    _showDialog.value = null
                     response.body()?.let {
 
                     }

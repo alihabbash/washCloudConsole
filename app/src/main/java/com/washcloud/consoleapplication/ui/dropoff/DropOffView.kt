@@ -47,7 +47,9 @@ fun DropOffView(
     val viewModel: DropOffViewModel = hiltViewModel()
     var selectedIndex by remember { mutableIntStateOf(-1) }
     val transactions by viewModel.transactions.collectAsState()
-
+    var alertTitle by remember { mutableStateOf("Selection Required") }
+    var alertMessage by remember { mutableStateOf("Please select a Order before proceeding.") }
+    var showAlert by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         Log.e("DropOffView", "LaunchedEffect")
         viewModel.fetchTransactions()
@@ -69,9 +71,102 @@ fun DropOffView(
                 }
             }
 
-            BottomButtons(screenWidth, screenHeight, showContinueToDropOff)
+            BottomButtons(screenWidth, screenHeight, showContinueToDropOff) {
+
+                if (selectedIndex == -1) {
+                    showAlert = true
+
+                }else{
+                    val currentTransaction = transactions[selectedIndex]
+                    viewModel.recall(currentTransaction.orderSerial, currentTransaction.boxId.toString())
+                }
+
+
+            }
             Spacer(modifier = Modifier.weight(1f))
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showStaffStart)
+        }
+
+        if (showAlert) {
+
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(screenWidth)
+                    .height(screenHeight)
+                    .background(dimBackground)
+            ) {
+                Box(
+                    modifier =
+                    Modifier
+                        .clip(
+                            RoundedCornerShape(0.02 * screenWidth)
+                        )
+                        .background(color = Color.White)
+                        .width(0.8 * screenWidth)
+                        .height(0.15 * screenHeight)
+                        .padding(start = 16.dp, end = 16.dp),
+
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+
+                        Text(
+                            alertTitle,
+                            fontSize = (screenWidth.value * 0.04f).sp,
+                            color = secondaryColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Text(
+                            text = alertMessage,
+                            style = TextStyle(
+                                fontSize = (screenWidth.value * 0.025f).sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                        )
+
+                        Spacer(modifier = Modifier.height(0.01 * screenHeight))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp)
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(
+                                            blueGradient,
+                                            secondaryColor,
+                                        ),
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable {
+                                    showAlert = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.confirm),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(16.dp)
+
+                            )
+                        }
+
+                    }
+                }
+
+            }
         }
     }
 }
@@ -269,7 +364,7 @@ fun NoTransactionsMessage(screenWidth: Dp) {
 }
 
 @Composable
-fun BottomButtons(screenWidth: Dp, screenHeight: Dp, showContinueToDropOff: () -> Unit){
+fun BottomButtons(screenWidth: Dp, screenHeight: Dp, showContinueToDropOff: () -> Unit, recall: () -> Unit){
     Row(
         modifier = Modifier
             .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp)
@@ -298,6 +393,8 @@ fun BottomButtons(screenWidth: Dp, screenHeight: Dp, showContinueToDropOff: () -
 
         Box(
             modifier = buttonModifier.clickable {
+
+                recall()
 
             },
             contentAlignment = Alignment.Center

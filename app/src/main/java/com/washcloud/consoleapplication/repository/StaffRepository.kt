@@ -3,6 +3,8 @@ package com.washcloud.consoleapplication.repository
 import com.washcloud.consoleapplication.remote.datasource.StaffRemoteDataSource
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffRequest
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffResponse
+import com.washcloud.consoleapplication.remote.model.dropoff.StaffRecallRequest
+import com.washcloud.consoleapplication.remote.model.dropoff.StaffRecallResponse
 import com.washcloud.consoleapplication.remote.model.login.StaffLoginResponse
 import javax.inject.Inject
 
@@ -15,5 +17,9 @@ class StaffRepository @Inject constructor(
 
     override suspend fun staffDropOff(request: StaffDropoffRequest): StaffDropoffResponse {
         return  staffRemoteDataSource.staffDropOff(request)
+    }
+
+    override suspend fun staffRecall(request: StaffRecallRequest): StaffRecallResponse {
+        return staffRemoteDataSource.staffRecall(request)
     }
 }
