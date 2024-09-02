@@ -166,6 +166,17 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val barcode = intent.getStringExtra("barcode")
+        if (barcode != null) {
+            Log.e("MainAdActivity", "Received barcode: $barcode")
+
+                viewModel.handleBarcode(barcode)
+
+        } else {
+            Log.e("MainAdActivity", "No barcode received")
+        }
+
         registerReceiver()
         startPortService()
 

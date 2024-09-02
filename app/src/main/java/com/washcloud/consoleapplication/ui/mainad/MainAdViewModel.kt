@@ -245,10 +245,10 @@ class MainAdViewModel @Inject constructor(
     fun handleBarcode(barcode: String) {
 
 
-        if(isDoorOpen.value){
+       /* if(isDoorOpen.value){
             FileLogger.log(context,  "handleBarcode"   ,"rejected handleBarcode: $barcode")
             return
-        }
+        }*/
 
         FileLogger.log(context,  "handleBarcode"   ,"handleBarcode: $barcode")
         if (URLUtil.isValidUrl(barcode)) {
