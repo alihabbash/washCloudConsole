@@ -55,10 +55,21 @@ class DropOffViewModel @Inject constructor(
     private val _isSuccessed = MutableStateFlow<Boolean>(false)
     val isSuccessed: StateFlow<Boolean> get() = _isSuccessed
 
+
+
+    private val _showAlert = MutableStateFlow(false)
+    val showAlert: StateFlow<Boolean> get() = _showAlert
+
+
     init {
         fetchTransactions()
         fetchLockers()
 
+    }
+
+    fun setShowAlert(show: Boolean = true) {
+
+        _showAlert.value = show
     }
 
      fun fetchLockers() {
@@ -100,6 +111,7 @@ class DropOffViewModel @Inject constructor(
                 Log.e("drop-off", response.status.toString());
                 _staffDropoffResponse.value = response
                 _isSuccessed.value = true
+                setShowAlert()
                 sendCommand("02", "0$boxID")
                 FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
                 updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP)

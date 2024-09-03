@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
+import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.pickup.isValidSerialNumber
@@ -53,17 +54,28 @@ fun SelectLockerView(
     showAd2: () -> Unit,
 ) {
     val viewModel: DropOffViewModel = hiltViewModel()
-    var selectedLocker by remember { mutableStateOf<String?>(null) }
+
     val lockers by viewModel.lockers.collectAsState()
+    val error by viewModel.error.collectAsState()
     val context = LocalContext.current
     var wayBillNo by remember { mutableStateOf("") }
-    var showAlert by remember { mutableStateOf(false) }
+    val showAlert by viewModel.showAlert.collectAsState()
     var alertTitle by remember { mutableStateOf("Selection Required") }
     var alertMessage by remember { mutableStateOf("Please select a locker before proceeding.") }
+    var selectedLocker by remember { mutableStateOf<BoxDto?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.fetchLockers()
     }
-   /* LaunchedEffect(Unit) {
+
+    LaunchedEffect(error) {
+        if (error != null) {
+            alertTitle = "Error"
+            alertMessage = error ?: "An error occurred"
+            viewModel.setShowAlert()
+        }
+    }
+    /*LaunchedEffect(Unit) {
     delay(10000L)
         wayBillNo = "4442408250004-1"
    }*/
@@ -72,17 +84,18 @@ fun SelectLockerView(
      if (isValidSerialNumber(wayBillNo)) {
 
 
+
          if (selectedLocker == null) {
-             showAlert = true
+             viewModel.setShowAlert()
                 alertTitle = "Selection Required"
                 alertMessage = "Please select a locker before proceeding."
              wayBillNo = ""
 
          } else if (isValidSerialNumber(wayBillNo)) {
-             showAlert = true
+             //viewModel.setShowAlert()
              alertTitle = "Drop Off Clothes"
-             alertMessage = "Please drop off clothes in locker $selectedLocker."
-             viewModel.dropoff(wayBillNo, selectedLocker!!)
+             alertMessage = "Please drop off clothes in locker ${selectedLocker?.boxId ?: "None"}."
+             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString())
              wayBillNo = ""
              selectedLocker = null
 
@@ -111,8 +124,9 @@ fun SelectLockerView(
             if (lockers.isEmpty()) {
                 NoLockersMessage(screenWidth)
             } else {
-                LockerList(lockers, screenWidth, screenHeight, selectedLocker) {
-                    selectedLocker = it
+
+                LockerListGrouped(lockers, screenWidth, screenHeight, selectedLocker) { locker ->
+                    selectedLocker = locker
                 }
             }
 
@@ -151,27 +165,28 @@ fun SelectLockerView(
                 DropOffSection(
                     screenWidth = screenWidth,
                     screenHeight = screenHeight,
-                    selectedLocker,
+                    selectedLocker?.boxId.toString() ?: "",
                     wayBillNo = wayBillNo,
                     onWayBillNoChange = { wayBillNo = it },
                     onConfirm = {
 
                         if (selectedLocker == null) {
-                            showAlert = true
+
+                            viewModel.setShowAlert()
                             alertTitle = "Selection Required"
                             alertMessage = "Please select a locker before proceeding."
                             wayBillNo = ""
 
                         } else if (isValidSerialNumber(wayBillNo)) {
-                            Log.e("DropOffViewModel", "Drop off clothes in locker $selectedLocker")
-                            viewModel.dropoff(wayBillNo, selectedLocker!!)
-                            showAlert = true
+                            Log.e("DropOffViewModel", "Drop off clothes in locker ${selectedLocker!!.boxId}.")
+                            viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString())
+
                             alertTitle = "Drop Off Clothes"
-                            alertMessage = "Please drop off clothes in locker $selectedLocker."
+                            alertMessage = "Please drop off clothes in locker ${selectedLocker!!.boxId}."
                             wayBillNo = ""
                             selectedLocker = null
                         } else {
-                            showAlert = true
+                            viewModel.setShowAlert()
                             alertTitle = "Invalid Serial Number"
                             alertMessage = "Please enter a valid serial number."
                         }
@@ -206,7 +221,7 @@ fun SelectLockerView(
                         )
                         .background(color = Color.White)
                         .width(0.8 * screenWidth)
-                        .height(0.15 * screenHeight)
+                        .height(0.2 * screenHeight)
                         .padding(start = 16.dp, end = 16.dp),
 
                     contentAlignment = Alignment.Center,
@@ -248,7 +263,7 @@ fun SelectLockerView(
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .clickable {
-                                    showAlert = false
+                                    viewModel.setShowAlert(false)
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -292,93 +307,17 @@ fun NoLockersMessage(screenWidth: Dp) {
     }
 }
 
-@Composable
-fun LockerItem(
-    boxId: Long,
-    type: String,
-    abbreviation: String,
-    availableNumber: Int,
-    itemWidth: Dp,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    screenWidth: Dp,
-) {
-    val backgroundColor = if (isSelected) secondaryColor.copy(alpha = 0.3F) else Color.White
-    val borderColor = secondaryColor
-    val isEnabled = availableNumber > 0
-
-    Row(
-        modifier = Modifier
-            .padding(8.dp)
-            .width(itemWidth)
-            .clip(RoundedCornerShape(20.dp))
-            .border(2.dp, borderColor, RoundedCornerShape(20.dp))
-            .background(backgroundColor)
-            .clickable(enabled = isEnabled) { onSelect() }
-            .padding(16.dp)
-            .padding(vertical = 32.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(
-                    if (isEnabled) Brush.horizontalGradient(
-                        colors = listOf(blueGradient, secondaryColor)
-                    ) else SolidColor(Color.Gray)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = abbreviation,
-                color = Color.White,
-                style = TextStyle(
-                    fontSize = (screenWidth.value * 0.03f).sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column(horizontalAlignment = Alignment.Start) {
-            Text(
-                text = type,
-                style = TextStyle(
-                    fontSize = (screenWidth.value * 0.032f).sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isEnabled) secondaryColor else Color.Gray,
-                )
-            )
-            Text(
-                text = if (isEnabled) stringResource(id = R.string.available
-                )  else stringResource(id = R.string.occupied),
-                style = TextStyle(
-                    fontSize = (screenWidth.value * 0.03f).sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isEnabled) Color.Black else Color.Gray
-                )
-            )
-            Text(
-                text = "0$boxId",
-                style = TextStyle(
-                    fontSize = (screenWidth.value * 0.03f).sp,
-                    color = if (isEnabled) secondaryColor else Color.Gray,
-                )
-            )
-        }
-    }
-}
 
 @Composable
-fun LockerList(
+fun LockerListGrouped(
     lockers: List<BoxDto>,
     screenWidth: Dp,
     screenHeight: Dp,
-    selectedLocker: String?,
-    onLockerSelect: (String) -> Unit
+    selectedLocker: BoxDto? = null,
+    onLockerSelect: (BoxDto) -> Unit,
+
 ) {
+    val lockersGrouped = lockers.groupBy { it.boxSize }
     val itemWidth = (screenWidth - 144.dp) / 3
 
     Column(
@@ -413,34 +352,96 @@ fun LockerList(
                 .padding(16.dp)
                 .padding(horizontal = 16.dp)
         ) {
-            items(lockers.chunked(3)) { rowItems ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    rowItems.forEach { locker ->
-                        LockerItem(
-                            boxId = locker.boxId,
-                            type = locker.boxSize.name,
-                            abbreviation = locker.boxSize.name.getAbbreviation(),
-                            availableNumber = if (locker.boxState == BoxState.AVAILABLE) 1 else 0,
-                            itemWidth = itemWidth,
-                            isSelected = selectedLocker == locker.boxId.toString(),
-                            onSelect = { onLockerSelect(locker.boxId.toString()) },
-                            screenWidth = screenWidth
-                        )
-
-                    }
-                    repeat(3 - rowItems.size) {
-                        Spacer(modifier = Modifier.width(itemWidth))
-                    }
+            lockersGrouped.forEach { (boxSize, lockers) ->
+                item {
+                    LockerTypeItem(
+                        boxSize = boxSize,
+                        availableNumber = lockers.count { it.boxState == BoxState.AVAILABLE },
+                        itemWidth = itemWidth,
+                        onSelect = {
+                            val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                            if (firstAvailableLocker != null) {
+                                onLockerSelect(firstAvailableLocker)
+                            }
+                        },
+                        screenWidth = screenWidth,
+                        selectedLocker = selectedLocker
+                    )
                 }
             }
         }
-
     }
 }
 
+@Composable
+fun LockerTypeItem(
+    boxSize: BoxSizeType,
+    availableNumber: Int,
+    itemWidth: Dp,
+    onSelect: () -> Unit,
+    screenWidth: Dp,
+    selectedLocker: BoxDto? = null
+
+) {
+    val backgroundColor = if (selectedLocker?.boxSize == boxSize ) secondaryColor.copy(alpha = 0.3F) else Color.White
+    val borderColor = secondaryColor
+
+    Row(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(itemWidth)
+            .clip(RoundedCornerShape(20.dp))
+            .border(2.dp, borderColor, RoundedCornerShape(20.dp))
+            .background(backgroundColor)
+            .clickable(enabled = availableNumber > 0) { onSelect() }
+            .padding(16.dp)
+            .padding(vertical = 32.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(
+                    if (availableNumber > 0) Brush.horizontalGradient(
+                        colors = listOf(blueGradient, secondaryColor)
+                    ) else SolidColor(Color.Gray)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = boxSize.name.getAbbreviation(),
+                color = Color.White,
+                style = TextStyle(
+                    fontSize = (screenWidth.value * 0.03f).sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Column(horizontalAlignment = Alignment.Start) {
+            Text(
+                text = boxSize.name,
+                style = TextStyle(
+                    fontSize = (screenWidth.value * 0.032f).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (availableNumber > 0) secondaryColor else Color.Gray,
+                )
+            )
+            Text(
+                text = if (availableNumber > 0) stringResource(id = R.string.available) + " $availableNumber"
+                else stringResource(id = R.string.occupied),
+                style = TextStyle(
+                    fontSize = (screenWidth.value * 0.03f).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (availableNumber > 0) Color.Black else Color.Gray
+                )
+            )
+        }
+    }
+}
 @Composable
 fun DropOffSection(
     screenWidth: Dp,
@@ -455,6 +456,14 @@ fun DropOffSection(
    /* LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }*/
+
+    var isInputEnabled by remember { mutableStateOf(true) }
+    LaunchedEffect(isInputEnabled) {
+        if (!isInputEnabled) {
+            delay(5000L)
+            isInputEnabled = true
+        }
+    }
     Box(
         modifier = Modifier
             .padding(24.dp)
@@ -491,12 +500,19 @@ fun DropOffSection(
                 OutlinedInputField(
                     value = wayBillNo,
                     hintText = "XXXX-XXXX-XXXX",
-                    onValueChange = onWayBillNoChange,
+                    onValueChange = {
+                        onWayBillNoChange(it)
+                        if (isValidSerialNumber(it)) {
+                            isInputEnabled = false
+                        }
+                    },
                     hintTextSize = (screenWidth.value * 0.035f).sp,
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                    enabled = isInputEnabled,
                     fontSize = (screenWidth.value * 0.035f).sp,
                     cornerRadius = (screenWidth.value * 0.06f),
+
                     modifier = Modifier.width(0.8 * screenWidth)
+
 //                        .focusRequester(focusRequester)
 
                 )

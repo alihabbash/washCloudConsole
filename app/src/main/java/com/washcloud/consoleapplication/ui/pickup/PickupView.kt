@@ -87,7 +87,7 @@ fun PickupView(
     val context = LocalContext.current
 
     val focusRequester = remember { FocusRequester() }
-
+    var isInputEnabled by remember { mutableStateOf(true) }
  /*   LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }*/
@@ -97,6 +97,13 @@ fun PickupView(
         wayBillNo = "4442408170007-1"
     }*/
 
+
+    LaunchedEffect(isInputEnabled) {
+        if (!isInputEnabled) {
+            delay(5000L)
+            isInputEnabled = true
+        }
+    }
     LaunchedEffect(wayBillNo) {
         if (isValidSerialNumber(wayBillNo)) {
             viewModel.staffPickup(wayBillNo)
@@ -201,10 +208,13 @@ fun PickupView(
                         OutlinedInputField(
                             value = wayBillNo,
                             hintText = "XXXX-XXXX-XXXX",
+                            enabled = isInputEnabled,
                             onValueChange = { newValue ->
                                 wayBillNo = newValue
+                                if (isValidSerialNumber(newValue)) {
+                                    isInputEnabled = false
+                                }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             hintTextSize = (screenWidth.value * 0.035f).sp,
                             fontSize = (screenWidth.value * 0.035f).sp,
                             cornerRadius = (screenWidth.value * 0.06f),

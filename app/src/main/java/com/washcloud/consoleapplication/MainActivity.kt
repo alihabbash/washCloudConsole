@@ -7,8 +7,13 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.ContextThemeWrapper
+import android.view.KeyEvent
+import android.webkit.URLUtil
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,6 +40,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -101,7 +108,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
-
+    private val barcodeData = StringBuilder()
 
     companion object {
         public var dLocale: Locale? = null
@@ -128,7 +135,9 @@ class MainActivity : ComponentActivity() {
         setAdminPassword()
 
 
-
+       /* Handler(Looper.getMainLooper()).postDelayed({
+            simulateKeyPressSequence("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250005-1/21222213701A-001")
+        }, 3000)*/
 
 
         setContent {
@@ -139,6 +148,7 @@ class MainActivity : ComponentActivity() {
                 val stack by mainViewModel.stack.collectAsState()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
+
                     color = Color.White
                 ) {
                     Box {
@@ -150,6 +160,41 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+    private fun simulateKeyPressSequence(input: String) {
+        input.forEach { char ->
+            val keyCode = KeyEvent.keyCodeFromString("KEYCODE_${char.uppercaseChar()}")
+            onKeyDown(keyCode, KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+        }
+        onKeyDown(KeyEvent.KEYCODE_ENTER, KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+
+        return if (keyCode == KeyEvent.KEYCODE_ENTER) {
+            Log.e("MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+            FileLogger.log(this, "MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+            val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
+            FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
+            Log.e("MainActivity", "Barcode scanned: $barcode")
+            if (barcode.startsWith("https")) {
+               FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
+                barcodeData.setLength(0)
+                Log.e("MainActivity", "Valid barcode: $barcode")
+
+                val intent = Intent(this, MainAdActivity::class.java).apply {
+                    putExtra("barcode", barcode)
+                }
+                startActivity(intent)
+                Log.e("MainActivity", "finish")
+                finish()
+            }
+            true
+        } else {
+            barcodeData.append(event.unicodeChar.toChar())
+            super.onKeyDown(keyCode, event)
+        }
+    }
 
     @Composable
     fun BackgroundImage() {
@@ -392,6 +437,7 @@ class MainActivity : ComponentActivity() {
             sharedPreferences.edit().putString(ADMIN_PASSWORD, "123321").apply()
         }
     }
+
 
 
 
