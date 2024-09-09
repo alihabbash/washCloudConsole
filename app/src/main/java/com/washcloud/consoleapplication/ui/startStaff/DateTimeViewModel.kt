@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +26,7 @@ class DateTimeViewModel @Inject constructor() : ViewModel() {
 
     private fun startTimeWatcher() {
         val scope = CoroutineScope(Dispatchers.IO)
-
+        val englishLocale = Locale("en", "US")
         scope.launch {
             while (true) {
                 val calendar = Calendar.getInstance()
@@ -34,8 +35,8 @@ class DateTimeViewModel @Inject constructor() : ViewModel() {
                 val day = calendar.get(Calendar.DAY_OF_MONTH)
                 val month = calendar.get(Calendar.MONTH)+1
                 val year = calendar.get(Calendar.YEAR)
-                _hoursText.value ="%02d:%02d".format(hour, minute)
-                _fullDateText.value = "%02d/%02d/%02d".format(day, month, year)
+                _hoursText.value = String.format(englishLocale, "%02d:%02d", hour, minute)
+                _fullDateText.value = String.format(englishLocale, "%02d/%02d/%02d", day, month, year)
                 delay(2000)
             }
         }
