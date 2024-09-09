@@ -4,6 +4,7 @@ import android.os.CountDownTimer
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.Locale
 import javax.inject.Inject
 
 class TimerViewModel @Inject constructor() : ViewModel() {
@@ -24,7 +25,8 @@ class TimerViewModel @Inject constructor() : ViewModel() {
                 val seconds = secondsRemaining % 60
                 // Update a TextView or perform other actions based on remaining seconds
               //  println("$secondsRemaining seconds remaining")
-                _timerText.value ="%02d:%02d".format(minutesRemaining, seconds)
+                _timerText.value = String.format(Locale.US, "%02d:%02d", minutesRemaining, seconds)
+
             }
 
             override fun onFinish() {

@@ -293,7 +293,8 @@ class MainActivity : ComponentActivity() {
                 screenHeight = screenHeight,
                 onSaveLocker = {},
                 onSaveRebootSchedule = {}) {
-                mainViewModel.resetStack()
+
+                mainViewModel.popStack()
             }
 
             is SelectedView.SubAdminSettingsScreen -> SubAdminSettingsScreen(
@@ -301,36 +302,39 @@ class MainActivity : ComponentActivity() {
                 screenHeight = screenHeight,
                 onChangePassword = { mainViewModel.addToStack(SelectedView.ChangePasswordScreen) },
                 onHelpPhoneNumber = {  mainViewModel.addToStack(SelectedView.UpdatePhoneNumberScreen) },
-                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+                showAd2 = {
+
+                    mainViewModel.popStack()
+                }
             )
 
             is SelectedView.ChangePasswordScreen -> ChangePasswordScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onSave = {  },
-                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+                showAd2 = { mainViewModel.popStack() }
             )
 
             is SelectedView.UpdatePhoneNumberScreen -> UpdatePhoneNumberScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onSave = {  },
-                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+                showAd2 = { mainViewModel.popStack() }
             )
 
             is SelectedView.AdsManagementScreen -> AdsManagementScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) },
-                onBack = { mainViewModel.resetStack() }
+                showAd2 = { mainViewModel.popStack() },
+                onBack = { mainViewModel.popStack() }
             )
 
             is SelectedView.AdminLockerScreen -> AdminLockerScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 numberOfLockers = 60,
-                onBack = { mainViewModel.resetStack() },
-                showAd2 = { mainViewModel.addToStack(SelectedView.Ad2Form) }
+                onBack = { mainViewModel.popStack()},
+                showAd2 = { mainViewModel.popStack() }
             )
 
         }

@@ -178,7 +178,7 @@ class MainAdActivity : ComponentActivity() {
         }
 
         registerReceiver()
-        startPortService()
+      //  startPortService()
 
         requestPermissionsIfNeeded()
 
@@ -187,10 +187,11 @@ class MainAdActivity : ComponentActivity() {
         })
 
 
-      /*  viewModel.error.observe(this, Observer { errorMessage ->
+        viewModel.error.observe(this, Observer { errorMessage ->
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+            FileLogger.log(this, "MainAdActivity", "Error: $errorMessage")
             println("Error: $errorMessage")
-        })*/
+        })
 
        /* GlobalScope.launch {
             delay(1000)
