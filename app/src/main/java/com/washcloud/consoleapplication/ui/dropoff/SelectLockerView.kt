@@ -58,9 +58,15 @@ fun SelectLockerView(
     val lockers by viewModel.lockers.collectAsState()
     val error by viewModel.error.collectAsState()
     val context = LocalContext.current
+    val selectionRequiredText = stringResource(id = R.string.selection_required)
+    val selectLockerText = stringResource(id = R.string.select_locker_before_proceeding)
+    val dropOffClothesText = stringResource(id = R.string.drop_off_clothes)
+    val dropOffMessageTemplate = stringResource(id = R.string.drop_off_message_template)
+    val invalid_serial_number = stringResource(id = R.string.invalid_serial_number)
+    val enter_valid_serial_number = stringResource(id = R.string.enter_valid_serial_number)
     var wayBillNo by remember { mutableStateOf("") }
     val showAlert by viewModel.showAlert.collectAsState()
-    var alertTitle by remember { mutableStateOf("Selection Required") }
+    var alertTitle by remember { mutableStateOf(selectionRequiredText) }
     var alertMessage by remember { mutableStateOf("Please select a locker before proceeding.") }
     var selectedLocker by remember { mutableStateOf<BoxDto?>(null) }
 
@@ -87,14 +93,14 @@ fun SelectLockerView(
 
          if (selectedLocker == null) {
              viewModel.setShowAlert()
-                alertTitle = "Selection Required"
-                alertMessage = "Please select a locker before proceeding."
+             alertTitle = selectionRequiredText
+             alertMessage = selectLockerText
              wayBillNo = ""
 
          } else if (isValidSerialNumber(wayBillNo)) {
              //viewModel.setShowAlert()
-             alertTitle = "Drop Off Clothes"
-             alertMessage = "Please drop off clothes in locker ${selectedLocker?.boxId ?: "None"}."
+             alertTitle = dropOffClothesText
+             alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
              viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString())
              wayBillNo = ""
              selectedLocker = null
@@ -173,22 +179,22 @@ fun SelectLockerView(
                         if (selectedLocker == null) {
 
                             viewModel.setShowAlert()
-                            alertTitle = "Selection Required"
-                            alertMessage = "Please select a locker before proceeding."
+                            alertTitle = selectionRequiredText
+                            alertMessage = selectLockerText
                             wayBillNo = ""
 
                         } else if (isValidSerialNumber(wayBillNo)) {
                             Log.e("DropOffViewModel", "Drop off clothes in locker ${selectedLocker!!.boxId}.")
                             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString())
 
-                            alertTitle = "Drop Off Clothes"
-                            alertMessage = "Please drop off clothes in locker ${selectedLocker!!.boxId}."
+                            alertTitle = dropOffClothesText
+                            alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
                             wayBillNo = ""
                             selectedLocker = null
                         } else {
                             viewModel.setShowAlert()
-                            alertTitle = "Invalid Serial Number"
-                            alertMessage = "Please enter a valid serial number."
+                            alertTitle = invalid_serial_number
+                            alertMessage = enter_valid_serial_number
                         }
 
                     })

@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.HeartbeatReceiver
 import com.washcloud.consoleapplication.MainActivity
 import com.washcloud.consoleapplication.R
@@ -67,6 +68,8 @@ import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.API_KEY
+import com.washcloud.consoleapplication.local.preferences.IS_REBOOT_ENABLED_KEY
+import com.washcloud.consoleapplication.local.preferences.REBOOT_TIME_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
@@ -82,6 +85,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tp.xmaihh.serialport.SerialHelper
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 
@@ -92,6 +97,9 @@ class MainAdActivity : ComponentActivity() {
     private val barcodeData = StringBuilder()
 
     private val viewModel: MainAdViewModel by viewModels()
+
+    private lateinit var rebootTime: String
+    private var isRebootEnabled: Boolean = false
 
 
     private val dataReceiver = object : BroadcastReceiver() {
@@ -127,6 +135,7 @@ class MainAdActivity : ComponentActivity() {
         updateConfig(this)
     }
 
+
     private fun updateConfig(wrapper: ContextThemeWrapper) {
         if(dLocale == Locale("") ) // Do nothing if dLocale is null
             return
@@ -142,8 +151,40 @@ class MainAdActivity : ComponentActivity() {
     }
 
 
+    private fun checkRebootStatus() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        rebootTime = sharedPreferences.getString(REBOOT_TIME_KEY, "13:00") ?: "13:00"
+        isRebootEnabled = sharedPreferences.getBoolean(IS_REBOOT_ENABLED_KEY, true)
+        FileLogger.log(this, "MainAdActivity", "Reboot time: $rebootTime, isRebootEnabled: $isRebootEnabled")
+        startRebootWatcher()
+    }
 
+    private fun startRebootWatcher() {
+        // Check every minute if it's time to reboot
+        val scope = CoroutineScope(Dispatchers.Default)
+        scope.launch {
+            while (true) {
+                if (isRebootEnabled) {
+                    val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                    if (currentTime == rebootTime) {
+                        rebootDevice()
+                        break
+                    }
+                }
+                delay(60000L)
+            }
+        }
+    }
+  private  fun rebootDevice() {
 
+        try {
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
+            process.waitFor()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+    }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
 
@@ -178,10 +219,10 @@ class MainAdActivity : ComponentActivity() {
         }
 
         registerReceiver()
-      //  startPortService()
+        startPortService()
 
         requestPermissionsIfNeeded()
-
+        checkRebootStatus()
         viewModel.apiResponse.observe(this, Observer { response ->
             handleApiResponse(response)
         })

@@ -1,26 +1,16 @@
 package com.washcloud.consoleapplication
 
-import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.KeyEvent
-import android.webkit.URLUtil
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,11 +27,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -54,21 +44,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.hilt.work.HiltWorkerFactory
 import androidx.preference.PreferenceManager
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
-import com.washcloud.consoleapplication.di.DatabaseModule
-import com.washcloud.consoleapplication.hardware.SerialPortService
-import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.ADMIN_PASSWORD
-import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.DELAY_MILLIS
-import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+import com.washcloud.consoleapplication.local.preferences.PHONE_NUMBER
 import com.washcloud.consoleapplication.local.preferences.language
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
 import com.washcloud.consoleapplication.ui.admin.ads.AdsManagementScreen
@@ -85,8 +65,6 @@ import com.washcloud.consoleapplication.ui.dropoff.DropOffView
 import com.washcloud.consoleapplication.ui.dropoff.SelectLockerView
 import com.washcloud.consoleapplication.ui.help.HelpForm
 import com.washcloud.consoleapplication.ui.login.LoginForm
-import com.washcloud.consoleapplication.ui.mainad.HeartbeatViewModel
-import com.washcloud.consoleapplication.ui.mainad.HeartbeatWorker
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.pickup.PickupView
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
@@ -95,13 +73,9 @@ import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import java.io.DataOutputStream
 import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -109,6 +83,7 @@ class MainActivity : ComponentActivity() {
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
     private val barcodeData = StringBuilder()
+    private var phoneNumber by mutableStateOf("")
 
     companion object {
         public var dLocale: Locale? = null
@@ -133,7 +108,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setAdminPassword()
+        loadPhoneNumber()
 
+       /* val p = Runtime.getRuntime().exec("su")
+        val os = DataOutputStream(p.outputStream)
+
+       // os.writeBytes("yourCommand\n")
+
+        //os.writeBytes("exit\n")
+
+        os.flush()
+        os.close()
+        try {
+            p.waitFor()
+        } catch (e: InterruptedException) {
+        }*/
 
        /* Handler(Looper.getMainLooper()).postDelayed({
             simulateKeyPressSequence("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250005-1/21222213701A-001")
@@ -142,7 +131,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ConsoleApplicationTheme {
-                screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+                screenHeight = LocalConfiguration.current.screenHeightDp.dp + 90.dp
                 screenWidth = LocalConfiguration.current.screenWidthDp.dp
                 val mainViewModel: MainViewModel = hiltViewModel()
                 val stack by mainViewModel.stack.collectAsState()
@@ -153,7 +143,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Box {
                         BackgroundImage()
-                        CurrentView(stack.last(), screenWidth, screenHeight, mainViewModel)
+                        CurrentView(stack.last(), screenWidth, screenHeight, mainViewModel, phoneNumber)
                     }
                 }
             }
@@ -161,12 +151,10 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private fun simulateKeyPressSequence(input: String) {
-        input.forEach { char ->
-            val keyCode = KeyEvent.keyCodeFromString("KEYCODE_${char.uppercaseChar()}")
-            onKeyDown(keyCode, KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
-        }
-        onKeyDown(KeyEvent.KEYCODE_ENTER, KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+
+    private fun loadPhoneNumber() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        phoneNumber = sharedPreferences.getString(PHONE_NUMBER, "") ?: ""
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -211,7 +199,8 @@ class MainActivity : ComponentActivity() {
         selectedView: SelectedView,
         screenWidth: Dp,
         screenHeight: Dp,
-        mainViewModel: MainViewModel
+        mainViewModel: MainViewModel,
+        phoneNumber: String
     ) {
         when (selectedView) {
             is SelectedView.Ad2Form -> {
@@ -224,7 +213,8 @@ class MainActivity : ComponentActivity() {
                     { mainViewModel.resetStack() },
                     { mainViewModel.addToStack(SelectedView.LoginForm) },
                     { mainViewModel.addToStack(SelectedView.AdminLogInView) },
-                    { mainViewModel.addToStack(SelectedView.HelpForm) }
+                    { mainViewModel.addToStack(SelectedView.HelpForm) },
+                    phoneNumber =  phoneNumber,
                 )
             }
             is SelectedView.LoginForm -> LoginForm(
@@ -242,6 +232,7 @@ class MainActivity : ComponentActivity() {
                 HelpForm(
                     screenWidth = screenWidth,
                     screenHeight = screenHeight,
+                    phoneNumber = phoneNumber,
                     { changeLanguage() },
                     { mainViewModel.resetStack() }
                 )
@@ -290,9 +281,7 @@ class MainActivity : ComponentActivity() {
 
             is SelectedView.PCSettingsScreen -> PCSettingsScreen(
                 screenWidth = screenWidth,
-                screenHeight = screenHeight,
-                onSaveLocker = {},
-                onSaveRebootSchedule = {}) {
+                screenHeight = screenHeight) {
 
                 mainViewModel.popStack()
             }
@@ -318,7 +307,9 @@ class MainActivity : ComponentActivity() {
             is SelectedView.UpdatePhoneNumberScreen -> UpdatePhoneNumberScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                onSave = {  },
+                onSave = {
+                    loadPhoneNumber()
+                },
                 showAd2 = { mainViewModel.popStack() }
             )
 
@@ -345,6 +336,7 @@ class MainActivity : ComponentActivity() {
         showStaffLogin: () -> Unit,
         showAdminLogin: () -> Unit,
         showHelpForm: () -> Unit,
+        phoneNumber: String,
     ) {
 
         Column(
@@ -429,7 +421,7 @@ class MainActivity : ComponentActivity() {
 
             BottomNavigation(screenWidth, screenHeight, {
                 changeLanguage()
-            }, showAd2, showHelpForm, false)
+            }, showAd2, showHelpForm, false,  phoneNumber)
 
         }
     }

@@ -64,10 +64,23 @@
     <string name="no_lockers_available">No Lockers available</string>
     <string name="available">Available</string>
     <string name="occupied">Occupied</string>
-
-
-
-
-
-
+    <string name="locker_sn">Locker S/N</string>
+    <string name="api_key">API Key</string>
+    <string name="terminal_sn">Terminal S/N</string>
+    <string name="branch_id">Branch ID</string>
+    <string name="delay_millis">Delay Millis</string>
+    <string name="reset_database_instruction">To reset the database, click on the button below</string>
+    <string name="reset_database">Reset Database</string>
+    <string name="daily_reboot_schedule">Daily Reboot Schedule</string>
+    <string name="choose_server">Choose the Server</string>
+    <string name="development">Development</string>
+    <string name="production">Production</string>
+    <string name="other">Other</string>
+    <string name="enter_custom_server">Enter Custom Server</string>
+    <string name="selection_required">Selection Required</string>
+    <string name="select_order_before_proceeding">Please select an order before proceeding.</string>
+    <string name="select_locker_before_proceeding">Please select a locker before proceeding.</string>
+    <string name="drop_off_message_template">Please drop off clothes in locker %1$s.</string>
+    <string name="invalid_serial_number">Invalid Serial Number</string>
+    <string name="enter_valid_serial_number">Please enter a valid serial number.</string>
 </resources>

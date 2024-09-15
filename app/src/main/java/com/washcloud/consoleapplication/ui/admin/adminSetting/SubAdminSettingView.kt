@@ -10,9 +10,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -37,6 +40,7 @@ fun SubAdminSettingsScreen(
     onHelpPhoneNumber: () -> Unit,
     showAd2: () -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -46,7 +50,7 @@ fun SubAdminSettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Sub-Admin Setting",
+            text = stringResource(id = R.string.sub_admin_setting),
             style = TextStyle(
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
@@ -94,6 +98,9 @@ fun MenuItem(
     screenWidth: Dp,
     screenHeight: Dp
 ) {
+    val configuration = LocalConfiguration.current
+    val isRtl by rememberUpdatedState(newValue = configuration.layoutDirection == android.util.LayoutDirection.RTL)
+
     Row(
         modifier = Modifier
             .padding(8.dp)
@@ -129,6 +136,7 @@ fun MenuItem(
             painter = painterResource(id = R.drawable.left_arrow),
             contentDescription = null,
             modifier = Modifier.size(0.05 * screenWidth)
+                .rotate(if (isRtl) 180f else 0f)
         )
     }
 }

@@ -7,6 +7,12 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.REBOOT" tools:ignore="MissingPermission"/>
+    <uses-permission android:name="android.permission.SHUTDOWN" tools:ignore="MissingPermission"/>
+    <uses-permission android:name="android.permission.DEVICE_POWER" tools:ignore="MissingPermission"/>
+
 
     <application
         android:allowBackup="true"
@@ -18,12 +24,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ConsoleAppliaction"
         android:name=".App"
+        android:installLocation="internalOnly"
          >
 <!--        tools:targetApi="31"-->
         <service
             android:name=".hardware.SerialPortService" />
         <receiver android:name=".HeartbeatReceiver" />
 
+
+        <receiver
+            android:name=".hardware.BootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".ui.mainad.MainAdActivity"
@@ -36,6 +55,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <action android:name="com.washcloud.consoleapplication.USB_PERMISSION" />
             </intent-filter>
             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter2" />
