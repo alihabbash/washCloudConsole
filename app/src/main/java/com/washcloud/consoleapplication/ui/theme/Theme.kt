@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.washcloud.consoleapplication.utils.primaryDark
+import com.washcloud.consoleapplication.utils.secondaryColor
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -22,8 +24,8 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
+    primary = primaryDark,
+    secondary = secondaryColor,
     tertiary = Pink40
 
     /* Other default colors to override

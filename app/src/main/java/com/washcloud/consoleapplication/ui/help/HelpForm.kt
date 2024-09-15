@@ -17,13 +17,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -41,14 +46,21 @@ import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.lightGreen
 import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.secondaryColor
+import java.util.Locale
 
 @Composable
 fun HelpForm(
     screenWidth: Dp,
     screenHeight: Dp,
+    phoneNumber: String,
     changeLanguage: () -> Unit,
     showAd2: () -> Unit
 ) {
+
+
+    val configuration = LocalConfiguration.current
+    val isRtl by rememberUpdatedState(newValue = configuration.layoutDirection == android.util.LayoutDirection.RTL)
+
 
     Column(
         modifier = Modifier
@@ -80,6 +92,7 @@ fun HelpForm(
                             .clickable {
                                 showAd2()
                             }
+                            .rotate(if (isRtl) 180f else 0f)
                     )
                 }
                 Box(
@@ -291,7 +304,7 @@ fun HelpForm(
                 modifier =
                 Modifier.weight(1f)
             )
-            BottomNavigation(screenWidth, screenHeight, changeLanguage, showAd2, {}, true)
+            BottomNavigation(screenWidth, screenHeight, changeLanguage, showAd2, {}, true, phoneNumber)
         }
 
 

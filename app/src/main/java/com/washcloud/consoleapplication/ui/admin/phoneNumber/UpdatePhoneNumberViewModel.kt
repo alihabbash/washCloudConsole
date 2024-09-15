@@ -38,7 +38,7 @@ class UpdatePhoneNumberViewModel @Inject constructor(
 
     private fun loadCurrentPhoneNumber() {
 
-        _currentPhoneNumber.value = sharedPreferences.getString(PHONE_NUMBER, "") ?: ""
+        _currentPhoneNumber.value = sharedPreferences.getString(PHONE_NUMBER, "920031915") ?: "920031915"
     }
 
     fun onNewPhoneNumberChange(phoneNumber: String) {

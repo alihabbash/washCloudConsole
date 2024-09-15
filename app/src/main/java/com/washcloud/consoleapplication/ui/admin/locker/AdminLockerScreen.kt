@@ -141,14 +141,14 @@ fun AdminLockerScreen(
                 Row( modifier = Modifier.width(0.25 * screenWidth),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start,){
-                    Text(text = "Locker #", style = TextStyle(fontSize = 32.sp))
+                    Text(text = "Locker #", style = TextStyle(fontSize =   (screenWidth.value * 0.032f).sp,))
                     Spacer(modifier = Modifier.width(8.dp))
                     OutlinedInputField(
                         value = selectedLocker,
                         hintText = "00",
                         onValueChange = { selectedLocker = it },
                         enabled = true,
-                        fontSize = 42.sp,
+                        fontSize = (screenWidth.value * 0.032f).sp,
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                     )
                 }

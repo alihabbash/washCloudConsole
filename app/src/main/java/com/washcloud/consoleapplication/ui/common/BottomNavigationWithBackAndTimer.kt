@@ -14,11 +14,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -37,6 +41,9 @@ fun BottomNavigationWithBackAndTimer(
     showAd2: () -> Unit,
     onBack: () -> Unit,
 ){
+    val configuration = LocalConfiguration.current
+    val isRtl by rememberUpdatedState(newValue = configuration.layoutDirection == android.util.LayoutDirection.RTL)
+
     Box(
         modifier = Modifier
             .width(screenWidth)
@@ -84,6 +91,7 @@ fun BottomNavigationWithBackAndTimer(
                         modifier = Modifier
                             .width(40.dp)
                             .height(40.dp)
+                            .rotate(if (isRtl) 180f else 0f)
                     )
                     Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                     Text(

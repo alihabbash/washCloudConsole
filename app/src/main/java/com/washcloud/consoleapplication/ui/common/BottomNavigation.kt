@@ -40,7 +40,8 @@ fun BottomNavigation(
     changeLanguage: () -> Unit,
     showAd2: () -> Unit,
     showHelpForm: () -> Unit,
-    isHelpFormShown: Boolean
+    isHelpFormShown: Boolean,
+    phoneNumber: String,
 ) {
     Box(
         modifier = Modifier
@@ -123,7 +124,7 @@ fun BottomNavigation(
                         )
                         Spacer(modifier = Modifier.width(0.01 * screenWidth))
                         Text(
-                            text = "920031915",
+                            text = phoneNumber,
                             style = TextStyle(
                                 color = Color.White,
                                 fontSize = (screenWidth.value * 0.03f).sp

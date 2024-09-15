@@ -65,5 +65,23 @@
     <string name="no_lockers_available">لا توجد صناديق متاحة</string>
     <string name="available">متاح</string>
     <string name="occupied">محجوز</string>
-
+    <string name="locker_sn">الرقم التسلسلي للخزانة</string>
+    <string name="api_key">مفتاح API</string>
+    <string name="terminal_sn">الرقم التسلسلي للجهاز</string>
+    <string name="branch_id">معرف الفرع</string>
+    <string name="delay_millis">التأخير بالميلي ثانية</string>
+    <string name="reset_database_instruction">لإعادة تعيين قاعدة البيانات ، انقر على الزر أدناه</string>
+    <string name="reset_database">إعادة تعيين قاعدة البيانات</string>
+    <string name="daily_reboot_schedule">جدول إعادة التشغيل اليومي</string>
+    <string name="choose_server">اختر الخادم</string>
+    <string name="development">تطوير</string>
+    <string name="production">الإنتاج</string>
+    <string name="other">آخر</string>
+    <string name="enter_custom_server">أدخل خادم مخصص</string>
+    <string name="selection_required">مطلوب التحديد</string>
+    <string name="select_order_before_proceeding">يرجى اختيار طلب قبل المتابعة.</string>
+    <string name="select_locker_before_proceeding">يرجى اختيار خزانة قبل المتابعة.</string>
+    <string name="drop_off_message_template">يرجى وضع الملابس في الخزانة %1$s.</string>
+    <string name="invalid_serial_number">رقم تسلسلي غير صالح</string>
+    <string name="enter_valid_serial_number">يرجى إدخال رقم تسلسلي صالح.</string>
 </resources>

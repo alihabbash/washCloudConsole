@@ -67,7 +67,7 @@ fun AdminMenuView(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Footer(screenWidth)
+       // Footer(screenWidth)
 
         BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
     }
@@ -111,20 +111,20 @@ fun MenuGrid(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             title1 = stringResource(id = R.string.pc_setting),
-            icon1 = R.drawable.drop_off,
+            icon1 = R.drawable.admin_pc_setting,
             action1 = showSetting,
             title2 = stringResource(id = R.string.admin_setting),
-            icon2 = R.drawable.pickup,
+            icon2 = R.drawable.admin_setting,
             action2 = showAdminSetting
         )
         MenuRow(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             title1 = stringResource(id = R.string.ads_management),
-            icon1 = R.drawable.drop_off,
+            icon1 = R.drawable.admin_ads,
             action1 = showAdsSetting,
             title2 = stringResource(id = R.string.locket_management),
-            icon2 = R.drawable.pickup,
+            icon2 = R.drawable.admin_lockers,
             action2 = showLockerManagement
         )
     }

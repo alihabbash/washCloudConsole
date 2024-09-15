@@ -47,8 +47,11 @@ fun DropOffView(
     val viewModel: DropOffViewModel = hiltViewModel()
     var selectedIndex by remember { mutableIntStateOf(-1) }
     val transactions by viewModel.transactions.collectAsState()
-    var alertTitle by remember { mutableStateOf("Selection Required") }
-    var alertMessage by remember { mutableStateOf("Please select a Order before proceeding.") }
+    val selectionRequiredText = stringResource(id = R.string.selection_required)
+    val selectOrderBeforeProceedingText = stringResource(id = R.string.select_order_before_proceeding)
+
+    var alertTitle by remember { mutableStateOf(selectionRequiredText) }
+    var alertMessage by remember { mutableStateOf(selectOrderBeforeProceedingText) }
     var showAlert by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         Log.e("DropOffView", "LaunchedEffect")
