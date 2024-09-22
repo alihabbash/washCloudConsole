@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.common.dateAndTimeView
 import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.*
@@ -45,10 +48,20 @@ fun AdminMenuView(
     showAd2: () -> Unit,
 ) {
 
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
 
     Column(
         modifier = Modifier
             .width(screenWidth)
+            .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         TitleText(stringResource(id = R.string.admin_menu), screenWidth)
@@ -69,7 +82,7 @@ fun AdminMenuView(
 
        // Footer(screenWidth)
 
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
+        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel, showAd2, showAd2)
     }
 }
 

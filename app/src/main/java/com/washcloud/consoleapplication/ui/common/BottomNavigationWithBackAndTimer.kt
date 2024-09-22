@@ -3,6 +3,7 @@ package com.washcloud.consoleapplication.ui.common
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.secondaryColor
@@ -38,11 +41,14 @@ import com.washcloud.consoleapplication.utils.secondaryColor
 fun BottomNavigationWithBackAndTimer(
     screenWidth: Dp,
     screenHeight: Dp,
+    timerViewModel: TimerViewModel? = null,
     showAd2: () -> Unit,
     onBack: () -> Unit,
 ){
     val configuration = LocalConfiguration.current
     val isRtl by rememberUpdatedState(newValue = configuration.layoutDirection == android.util.LayoutDirection.RTL)
+
+
 
     Box(
         modifier = Modifier
@@ -108,7 +114,7 @@ fun BottomNavigationWithBackAndTimer(
                 modifier =
                 Modifier.weight(1f)
             )
-            timerView(screenWidth, showAd2)
+            timerView(screenWidth,timerViewModel!! ,showAd2)
         }
     }
 }

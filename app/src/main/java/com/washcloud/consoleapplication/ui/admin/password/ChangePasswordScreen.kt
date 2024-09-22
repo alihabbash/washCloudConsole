@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +38,7 @@ import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.secondaryColor
 import androidx.compose.ui.platform.LocalContext
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 
 @Composable
 fun ChangePasswordScreen(
@@ -52,6 +55,15 @@ fun ChangePasswordScreen(
     val passwordHasChanged by viewModel.passwordHasChanged.collectAsState()
     val context = LocalContext.current
 
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
 
         if(passwordHasChanged) {
             LaunchedEffect(passwordHasChanged) {
@@ -63,6 +75,7 @@ fun ChangePasswordScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
@@ -221,7 +234,7 @@ fun ChangePasswordScreen(
                  }
              }
          }
-         BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
+         BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel, showAd2, showAd2)
      }
     }
 }

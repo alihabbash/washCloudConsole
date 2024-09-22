@@ -128,7 +128,7 @@ class MainAdActivity : ComponentActivity() {
 
 
     companion object {
-        public var dLocale: Locale? = null
+        public var dLocale: Locale? = Locale("ar")
     }
 
     init {
@@ -137,9 +137,7 @@ class MainAdActivity : ComponentActivity() {
 
 
     private fun updateConfig(wrapper: ContextThemeWrapper) {
-        if(dLocale == Locale("") ) // Do nothing if dLocale is null
-            return
-
+        dLocale = Locale("ar")
         Locale.setDefault(dLocale)
         val configuration = Configuration()
         configuration.setLocale(dLocale)
@@ -234,18 +232,18 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-       /* GlobalScope.launch {
-            delay(1000)
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250005-1/21222213701A-001"
-            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-            viewModel.fetchDirectly(url)
-
-            delay(30000)
-            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
-            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
-            viewModel.fetchDirectly(url2)
-
-        }*/
+//        GlobalScope.launch {
+//            delay(1000)
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442409210001-1/21222213701A-001"
+//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+//            viewModel.fetchDirectly(url)
+//
+////            delay(30000)
+////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
+////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
+////            viewModel.fetchDirectly(url2)
+//
+//        }
 
        scheduleHeartbeat(this)
 
@@ -309,24 +307,24 @@ class MainAdActivity : ComponentActivity() {
                                 )
                             }
                     ) {
-                        Image(
-                            painterResource(R.drawable.empty_image),
-                            "ad_1",
-                            modifier = Modifier
-                                .width(screenWidth * 0.3f)
-                                .height(screenWidth * 0.3f)
-                        )
-                        Text(
-                            text = stringResource(id = R.string.ad1),
-                            style = TextStyle(
-                                fontSize = (screenWidth.value * 0.07f).sp,
-                                fontWeight = FontWeight.Medium,
-                                color = lightGrey
-                            ),
-                            textAlign = TextAlign.Center,
-                        )
+//                        Image(
+//                            painterResource(R.drawable.empty_image),
+//                            "ad_1",
+//                            modifier = Modifier
+//                                .width(screenWidth * 0.3f)
+//                                .height(screenWidth * 0.3f)
+//                        )
+//                        Text(
+//                            text = stringResource(id = R.string.ad1),
+//                            style = TextStyle(
+//                                fontSize = (screenWidth.value * 0.07f).sp,
+//                                fontWeight = FontWeight.Medium,
+//                                color = lightGrey
+//                            ),
+//                            textAlign = TextAlign.Center,
+//                        )
 
-                      //  VideoPlayer(context, Modifier.fillMaxSize())
+                        VideoPlayer(context, Modifier.fillMaxSize())
                     }
 
 

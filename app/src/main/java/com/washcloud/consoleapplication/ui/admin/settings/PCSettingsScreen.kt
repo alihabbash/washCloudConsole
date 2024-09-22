@@ -39,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.remote.config.BASE_URL_DEV
 import com.washcloud.consoleapplication.remote.config.BASE_URL_PROD
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 
 @Composable
 fun PCSettingsScreen(
@@ -50,11 +51,22 @@ fun PCSettingsScreen(
     val context = LocalContext.current
     val viewModel: PCSettingsViewModel = hiltViewModel()
 
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
     Column(
         modifier = Modifier
             .height(screenHeight)
             .width(screenWidth)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .then(interactionModifier)
+        ,
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -377,7 +389,7 @@ fun PCSettingsScreen(
 
 
             }
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel, showAd2, showAd2)
         }
     }
 

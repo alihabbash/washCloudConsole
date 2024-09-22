@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.common.dateAndTimeView
 import com.washcloud.consoleapplication.ui.common.timerView
 import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
@@ -50,6 +54,7 @@ import com.washcloud.consoleapplication.utils.hints
 import com.washcloud.consoleapplication.utils.numbersBackground
 import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.secondaryColor
+import kotlinx.coroutines.delay
 
 //staff login form
 @Composable
@@ -65,7 +70,15 @@ fun LoginForm(
     var passwordSelectedLoginForm by remember { mutableStateOf(false) }
     val accountLoginForm by viewModel.accountText.collectAsState()
     val passwordLoginForm by viewModel.passwordText.collectAsState()
+    val timerViewModel: TimerViewModel = hiltViewModel()
+    var timerValue by remember { mutableStateOf(10) }
 
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
 
     val clearSelectedField = {
         if (passwordSelectedLoginForm) {
@@ -99,11 +112,25 @@ fun LoginForm(
         viewModel.resetLoadingToInitial()
 
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.resetLoadingToInitial()
+    }
+
+    LaunchedEffect(screenState is LoginState.Error) {
+        while (timerValue > 0) {
+            delay(1000L)
+            timerValue -= 1
+        }
+        viewModel.resetLoadingToInitial()
+    }
+
     Box {
 
         Column(
             modifier = Modifier
                 .width(screenWidth)
+                .then(interactionModifier)
 //                .clickable {
 //                    viewModel.resetLoadingToInitial()
 //                }
@@ -588,13 +615,13 @@ fun LoginForm(
                     modifier =
                     Modifier.weight(1f)
                 )
-                BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
+                BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel,showAd2, showAd2)
             }
 
 
         }
 
-        if (isLoading)
+        if (isLoading || screenState is LoginState.Error)
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -626,10 +653,10 @@ fun LoginForm(
                         )
                         Spacer(modifier = Modifier.height(0.02 * screenHeight))
                         Text(
-                            text = stringResource(id = R.string.verify_wait),
+                            text = if (screenState is LoginState.Error) stringResource(id = R.string.wrong_credentials)  else stringResource(id = R.string.verify_wait) ,
                             style = TextStyle(
                                 fontSize = (screenWidth.value * 0.04f).sp,
-                                color = hints
+                                color = if (screenState is LoginState.Error) Color.Red else hints
                             )
                         )
                     }

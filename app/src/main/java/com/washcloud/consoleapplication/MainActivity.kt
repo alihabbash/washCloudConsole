@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.KeyEvent
@@ -66,6 +67,7 @@ import com.washcloud.consoleapplication.ui.dropoff.SelectLockerView
 import com.washcloud.consoleapplication.ui.help.HelpForm
 import com.washcloud.consoleapplication.ui.login.LoginForm
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
+import com.washcloud.consoleapplication.ui.mainad.MainAdActivity.Companion
 import com.washcloud.consoleapplication.ui.pickup.PickupView
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
@@ -86,7 +88,7 @@ class MainActivity : ComponentActivity() {
     private var phoneNumber by mutableStateOf("")
 
     companion object {
-        public var dLocale: Locale? = null
+         var dLocale: Locale? = null
     }
 
     init {
@@ -94,14 +96,15 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun updateConfig(wrapper: ContextThemeWrapper) {
-        if (dLocale == Locale("")) // Do nothing if dLocale is null
-            return
 
+        if(dLocale == null) {
+            dLocale = Locale("ar")
+        }
         Locale.setDefault(dLocale)
-
         val configuration = Configuration()
         configuration.setLocale(dLocale)
         wrapper.applyOverrideConfiguration(configuration)
+
     }
 
 
@@ -132,8 +135,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             ConsoleApplicationTheme {
 
-                screenHeight = LocalConfiguration.current.screenHeightDp.dp + 90.dp
-                screenWidth = LocalConfiguration.current.screenWidthDp.dp
+                screenHeight =  getRealScreenHeight().dp
+                    //LocalConfiguration.current.screenHeightDp.dp
+                screenWidth = getRealScreenWidth().dp
+
+                //LocalConfiguration.current.screenWidthDp.dp
                 val mainViewModel: MainViewModel = hiltViewModel()
                 val stack by mainViewModel.stack.collectAsState()
                 Surface(
@@ -154,9 +160,28 @@ class MainActivity : ComponentActivity() {
 
     private fun loadPhoneNumber() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        phoneNumber = sharedPreferences.getString(PHONE_NUMBER, "") ?: ""
+        phoneNumber = sharedPreferences.getString(PHONE_NUMBER, "920031915") ?: "920031915"
     }
 
+    fun getRealScreenHeight(): Int {
+        val metrics = DisplayMetrics()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            windowManager.defaultDisplay.getRealMetrics(metrics)
+        } else {
+            windowManager.defaultDisplay.getMetrics(metrics)
+        }
+        return metrics.heightPixels
+    }
+
+    fun getRealScreenWidth(): Int {
+        val metrics = DisplayMetrics()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            windowManager.defaultDisplay.getRealMetrics(metrics)
+        } else {
+            windowManager.defaultDisplay.getMetrics(metrics)
+        }
+        return metrics.widthPixels
+    }
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
 
         return if (keyCode == KeyEvent.KEYCODE_ENTER) {
@@ -441,22 +466,17 @@ class MainActivity : ComponentActivity() {
 
 
     private fun changeLanguage() {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        var lang = sharedPreferences.getString(language, "")
-        lang = if (lang == "ar") "en" else "ar"
-
-        sharedPreferences.edit().putString(language, lang).apply()
-        dLocale = Locale(lang)
-        MainAdActivity.dLocale = Locale(lang)
+        val currentLang = dLocale?.language ?: Locale.getDefault().language
+        val newLang = if (currentLang == "ar") "en" else "ar"
+        dLocale = Locale(newLang)
         val config = resources.configuration
         Locale.setDefault(dLocale)
         config.setLocale(dLocale)
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             createConfigurationContext(config)
 
         resources.updateConfiguration(config, resources.displayMetrics)
+
         recreate()
     }
 

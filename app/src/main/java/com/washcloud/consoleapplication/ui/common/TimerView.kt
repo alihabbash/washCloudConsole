@@ -24,8 +24,8 @@ import com.washcloud.consoleapplication.utils.secondaryColor
 
 
 @Composable
-fun timerView(screenWidth: Dp, back: () -> Unit){
-    val timerViewModel: TimerViewModel = hiltViewModel()
+fun timerView(screenWidth: Dp,timerViewModel: TimerViewModel  ,back: () -> Unit){
+
     val timerText by timerViewModel.timerText.collectAsState()
     if(timerText == "0"){
         timerViewModel.resetTimer()

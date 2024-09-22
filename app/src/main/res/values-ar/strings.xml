@@ -84,4 +84,5 @@
     <string name="drop_off_message_template">يرجى وضع الملابس في الخزانة %1$s.</string>
     <string name="invalid_serial_number">رقم تسلسلي غير صالح</string>
     <string name="enter_valid_serial_number">يرجى إدخال رقم تسلسلي صالح.</string>
+    <string name="wrong_credentials">بيانات الاعتماد خاطئة</string>
 </resources>

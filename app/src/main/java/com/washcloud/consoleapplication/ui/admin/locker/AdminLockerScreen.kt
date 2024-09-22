@@ -4,6 +4,7 @@ package com.washcloud.consoleapplication.ui.admin.locker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,9 +31,11 @@ import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.secondaryColor
 import kotlin.random.Random
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.times
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 
 @Composable
@@ -50,12 +53,21 @@ fun AdminLockerScreen(
 
     val lockers by viewModel.lockers.collectAsState(initial = emptyList())
 
+    val timerViewModel: TimerViewModel = hiltViewModel()
 
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
 
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
@@ -179,9 +191,9 @@ fun AdminLockerScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                TextButton("Open All Empty", secondaryColor) { /* Handle Open All Empty */ }
-                TextButton("Open All Occupied", secondaryColor) { /* Handle Open All Occupied */ }
-                TextButton("Check Locker", secondaryColor) { /* Handle Check Locker */ }
+                TextButton("Open All Empty", secondaryColor) { viewModel.openAllEmptyLockers() }
+                TextButton("Open All Occupied", Color.Red) {  viewModel.openAllOccupiedLockers()}
+                TextButton("Check Locker", secondaryColor) {  }
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn {
@@ -203,7 +215,7 @@ fun AdminLockerScreen(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, onBack)
+        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel, showAd2, onBack)
     }
 }
 
@@ -212,7 +224,7 @@ fun LockerGridItem(
     lockerNumber: Int,
     isOccupied: Boolean,
 ) {
-    val backgroundColor = if (isOccupied) secondaryColor else Color(0xFFEDEDEF)
+    val backgroundColor = if (isOccupied) Color.Red else Color(0xFFEDEDEF)
     val textColor = if (isOccupied) Color.White else secondaryColor
 
     Box(

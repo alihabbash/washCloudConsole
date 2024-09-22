@@ -21,8 +21,8 @@ class UpdatePhoneNumberViewModel @Inject constructor(
     private val _currentPhoneNumber = MutableStateFlow("")
     val currentPhoneNumber: StateFlow<String> = _currentPhoneNumber
 
-    private val _newPhoneNumber = MutableStateFlow("")
-    val newPhoneNumber: StateFlow<String> = _newPhoneNumber
+//    private val _newPhoneNumber = MutableStateFlow("")
+//    val newPhoneNumber: StateFlow<String> = _newPhoneNumber
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
@@ -42,19 +42,19 @@ class UpdatePhoneNumberViewModel @Inject constructor(
     }
 
     fun onNewPhoneNumberChange(phoneNumber: String) {
-        _newPhoneNumber.value = phoneNumber
+        _currentPhoneNumber.value = phoneNumber
     }
 
     fun updatePhoneNumber() {
         viewModelScope.launch {
 
 
-            if (_newPhoneNumber.value.isBlank()) {
+            if (_currentPhoneNumber.value.isBlank()) {
                 _errorMessage.value = "New phone number cannot be empty"
                 return@launch
             }
 
-            sharedPreferences.edit().putString(PHONE_NUMBER, _newPhoneNumber.value).apply()
+            sharedPreferences.edit().putString(PHONE_NUMBER, _currentPhoneNumber.value).apply()
             _errorMessage.value = null
             _phoneNumberHasChanged.value = true
         }
