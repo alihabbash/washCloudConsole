@@ -83,4 +83,5 @@
     <string name="drop_off_message_template">Please drop off clothes in locker %1$s.</string>
     <string name="invalid_serial_number">Invalid Serial Number</string>
     <string name="enter_valid_serial_number">Please enter a valid serial number.</string>
+    <string name="wrong_credentials">Wrong Credentials</string>
 </resources>

@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -33,6 +35,7 @@ import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.utils.*
 import java.util.Date
 
@@ -53,6 +56,17 @@ fun DropOffView(
     var alertTitle by remember { mutableStateOf(selectionRequiredText) }
     var alertMessage by remember { mutableStateOf(selectOrderBeforeProceedingText) }
     var showAlert by remember { mutableStateOf(false) }
+
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
+
     LaunchedEffect(Unit) {
         Log.e("DropOffView", "LaunchedEffect")
         viewModel.fetchTransactions()
@@ -61,7 +75,7 @@ fun DropOffView(
         Column(
             modifier = Modifier
                 .height(screenHeight)
-                .width(screenWidth),
+                .width(screenWidth).then(interactionModifier),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -87,7 +101,7 @@ fun DropOffView(
 
             }
             Spacer(modifier = Modifier.weight(1f))
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showStaffStart)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel ,showAd2, showStaffStart)
         }
 
         if (showAlert) {

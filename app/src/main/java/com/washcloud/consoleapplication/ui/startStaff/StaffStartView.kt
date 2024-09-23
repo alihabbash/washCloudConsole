@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -36,6 +38,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.common.timerView
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.hints
@@ -54,9 +58,20 @@ fun DriverLoginForm(
     val viewModel: DateTimeViewModel = hiltViewModel()
     val hoursText by viewModel.hoursText.collectAsState()
     val fullDateText by viewModel.fullDateText.collectAsState()
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
     Column(
         modifier = Modifier
             .width(screenWidth)
+            .height(screenHeight)
+            .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
@@ -161,7 +176,7 @@ fun DriverLoginForm(
                         )
                         .padding(24.dp)
                         .clickable {
-                                   showPickUp()
+                            showPickUp()
                         },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -196,72 +211,9 @@ fun DriverLoginForm(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .width(screenWidth)
-                .height(0.1 * screenHeight)
-                .background(
-                    color = Color.White,
-                    shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 0.06 * screenWidth, end = 0.06 * screenWidth),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(
-                            RoundedCornerShape(12.dp)
-                        )
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    blueGradient,
-                                    secondaryColor,
-                                ),
-                            )
-                        )
-                        .padding(
-                            top = (screenHeight.value * 0.01f).dp,
-                            end = 16.dp,
-                            bottom = (screenHeight.value * 0.01f).dp,
-                            start = 16.dp
-                        )
-                        .clickable {
+       BottomNavigationWithBackAndTimer(screenWidth = screenWidth, screenHeight = screenHeight , timerViewModel, showAd2 = showAd2) {
+            showAd2()
 
-                            //
-                            showAd2()
-                        }
-                ) {
-                    Row {
-                        Image(
-                            painterResource(R.drawable.arrow_back),
-                            "arrow_back",
-                            modifier = Modifier
-                                .width(40.dp)
-                                .height(40.dp)
-                        )
-                        Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
-                        Text(
-                            text = stringResource(id = R.string.back),
-                            style = TextStyle(
-                                color = Color.White,
-                                fontSize = (screenWidth.value * 0.03f).sp
-                            )
-                        )
-                        Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
-                    }
-                }
-                Box(
-                    modifier = Modifier.weight(1f)
-                )
-                timerView(screenWidth, showAd2)
-            }
-        }
+      }
     }
 }

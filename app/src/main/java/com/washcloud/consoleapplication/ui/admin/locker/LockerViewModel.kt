@@ -21,6 +21,7 @@ import tp.xmaihh.serialport.SerialHelper
 import tp.xmaihh.serialport.bean.ComBean
 import tp.xmaihh.serialport.utils.ByteUtil
 import android_serialport_api.SerialPortFinder
+import com.washcloud.consoleapplication.local.database.utils.BoxState
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
@@ -47,15 +48,6 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
         }
     }
 
-
-    private fun handleBroadcastData(stationId: String?, boxId: String?, isOpen: Boolean, dataReceive: String?) {
-        val status = if (isOpen) "Open" else "Close"
-        val message = "Tx4:<==$dataReceive $stationId $boxId $status"
-        viewModelScope.launch(Dispatchers.Main) {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     fun sendCommand(action: String, stationId: String, boxId: String) {
         val intent = Intent(action).apply {
             putExtra("stationId", stationId)
@@ -64,6 +56,21 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
         context.sendBroadcast(intent)
     }
 
+    fun openAllEmptyLockers() {
+        viewModelScope.launch {
+            lockers.value.filter { it.boxState == BoxState.AVAILABLE }.forEach { locker ->
+                sendCommand("com.washcloud.open_door", locker.stationId.toString(), locker.boxId.toString())
+            }
+        }
+    }
+
+    fun openAllOccupiedLockers() {
+        viewModelScope.launch {
+            lockers.value.filter { it.boxState == BoxState.OCCUPIED }.forEach { locker ->
+                sendCommand("com.washcloud.open_door", locker.stationId.toString(), locker.boxId.toString())
+            }
+        }
+    }
 
 
 

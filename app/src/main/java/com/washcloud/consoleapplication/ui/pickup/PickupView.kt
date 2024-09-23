@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ import androidx.compose.ui.input.key.key
 
 
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -60,6 +62,7 @@ import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
@@ -86,8 +89,18 @@ fun PickupView(
     var wayBillNo by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    val focusRequester = remember { FocusRequester() }
-    var isInputEnabled by remember { mutableStateOf(true) }
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
+
+    //val focusRequester = remember { FocusRequester() }
+  //  var isInputEnabled by remember { mutableStateOf(true) }
  /*   LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }*/
@@ -98,12 +111,12 @@ fun PickupView(
     }*/
 
 
-    LaunchedEffect(isInputEnabled) {
-        if (!isInputEnabled) {
-            delay(5000L)
-            isInputEnabled = true
-        }
-    }
+//    LaunchedEffect(isInputEnabled) {
+//        if (!isInputEnabled) {
+//            delay(5000L)
+//            isInputEnabled = true
+//        }
+//    }
     LaunchedEffect(wayBillNo) {
         if (isValidSerialNumber(wayBillNo)) {
             viewModel.staffPickup(wayBillNo)
@@ -114,8 +127,10 @@ fun PickupView(
     Box {
         Column(
             modifier = Modifier
-                .height(screenHeight)
-                .width(screenWidth),
+                .width(screenWidth)
+                .then(interactionModifier)
+
+            ,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -145,7 +160,7 @@ fun PickupView(
                         shape = RoundedCornerShape(24.dp)
                     )
                     .fillMaxWidth()
-                    .height(0.7 * screenHeight)
+                    .height(0.65 * screenHeight)
             ) {
                 LazyColumn(
                     modifier = Modifier.padding(top = 0.006 * screenHeight)
@@ -208,12 +223,13 @@ fun PickupView(
                         OutlinedInputField(
                             value = wayBillNo,
                             hintText = "XXXX-XXXX-XXXX",
-                            enabled = isInputEnabled,
                             onValueChange = { newValue ->
-                                wayBillNo = newValue
-                                if (isValidSerialNumber(newValue)) {
-                                    isInputEnabled = false
+                                if (isLoading){
+                                    wayBillNo = ""
+                                }else{
+                                    wayBillNo = newValue
                                 }
+
                             },
                             hintTextSize = (screenWidth.value * 0.035f).sp,
                             fontSize = (screenWidth.value * 0.035f).sp,
@@ -296,7 +312,7 @@ fun PickupView(
             )
 
 
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showStaffStart)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,timerViewModel ,showAd2, showStaffStart)
         }
     }
 

@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +41,7 @@ import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.secondaryColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 
 
 @Composable
@@ -51,10 +54,19 @@ fun UpdatePhoneNumberScreen(
     val context = LocalContext.current
     val viewModel: UpdatePhoneNumberViewModel = hiltViewModel()
     val currentPhoneNumber by viewModel.currentPhoneNumber.collectAsState()
-    val newPhoneNumber by viewModel.newPhoneNumber.collectAsState()
+   // val newPhoneNumber by viewModel.newPhoneNumber.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val phoneNumberHasChanged by viewModel.phoneNumberHasChanged.collectAsState()
 
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
 
        if(phoneNumberHasChanged) {
            LaunchedEffect(phoneNumberHasChanged) {
@@ -68,6 +80,7 @@ fun UpdatePhoneNumberScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
@@ -129,42 +142,40 @@ fun UpdatePhoneNumberScreen(
                     OutlinedInputField(
                         value = currentPhoneNumber,
                         hintText = stringResource(id = R.string.current_phone_number),
-                        onValueChange = {  },
                         hintTextSize = (screenWidth.value * 0.035f).sp,
                         fontSize = (screenWidth.value * 0.025f).sp,
                         cornerRadius = (screenWidth.value * 0.06f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        enabled = false,
-
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .padding(bottom = 32.dp)
-                    )
-
-                    Text(
-                        text = stringResource(id = R.string.new_phone_number),
-                        style = TextStyle(
-                            fontSize = (screenWidth.value * 0.025f).sp,
-                            color = primaryDark
-                        ),
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(start = 16.dp)
-                    )
-                    OutlinedInputField(
-                        value = newPhoneNumber,
-                        hintText = stringResource(id = R.string.new_phone_number),
                         onValueChange = { viewModel.onNewPhoneNumberChange(it)},
-                        hintTextSize = (screenWidth.value * 0.035f).sp,
-                        fontSize = (screenWidth.value * 0.025f).sp,
-                        cornerRadius = (screenWidth.value * 0.06f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
                             .padding(bottom = 32.dp)
                     )
+
+//                    Text(
+//                        text = stringResource(id = R.string.new_phone_number),
+//                        style = TextStyle(
+//                            fontSize = (screenWidth.value * 0.025f).sp,
+//                            color = primaryDark
+//                        ),
+//                        textAlign = TextAlign.Start,
+//                        modifier = Modifier.fillMaxWidth()
+//                            .padding(start = 16.dp)
+//                    )
+//                    OutlinedInputField(
+//                        value = newPhoneNumber,
+//                        hintText = stringResource(id = R.string.new_phone_number),
+//                        onValueChange = { viewModel.onNewPhoneNumberChange(it)},
+//                        hintTextSize = (screenWidth.value * 0.035f).sp,
+//                        fontSize = (screenWidth.value * 0.025f).sp,
+//                        cornerRadius = (screenWidth.value * 0.06f),
+//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(16.dp)
+//                            .padding(bottom = 32.dp)
+//                    )
 
 
                     Box(
@@ -208,7 +219,7 @@ fun UpdatePhoneNumberScreen(
                     }
                 }
             }
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel,showAd2, showAd2)
         }
     }
 }

@@ -5,6 +5,7 @@ package com.washcloud.consoleapplication.ui.admin.login
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -44,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.SelectedView
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.common.dateAndTimeView
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
@@ -71,12 +74,24 @@ fun AdminLogInView(
     val passwordLoginForm by viewModel.passwordText.collectAsState()
     val passwordSelectedLoginForm by remember { mutableStateOf(true) }
 
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
 
     LaunchedEffect(isPasswordCorrect) {
         if (isPasswordCorrect) {
             showAdminScreens()
             viewModel.resetPasswordCorrectState()
         }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.resetPasswordCorrectState()
     }
 
     val clearSelectedField = {
@@ -97,6 +112,7 @@ fun AdminLogInView(
         Column(
             modifier = Modifier
                 .width(screenWidth)
+                .then(interactionModifier),
         ) {
 
 
@@ -542,7 +558,7 @@ fun AdminLogInView(
                     modifier =
                     Modifier.weight(1f)
                 )
-                BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, showAd2)
+                BottomNavigationWithBackAndTimer(screenWidth, screenHeight,timerViewModel ,showAd2, showAd2)
             }
 
 

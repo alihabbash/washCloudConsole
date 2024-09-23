@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 //import coil.compose.rememberImagePainter
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
+import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.common.dateAndTimeView
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.blueGradient
@@ -59,9 +62,20 @@ fun AdsManagementScreen(
         }
     }
 
+    val timerViewModel: TimerViewModel = hiltViewModel()
+
+
+    val interactionModifier = Modifier.pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            timerViewModel.pauseTimer()
+            timerViewModel.resumeTimerAfterDelay(1000)
+        })
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
@@ -205,7 +219,7 @@ fun AdsManagementScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, showAd2, onBack)
+        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel,showAd2, onBack)
     }
 }
 
