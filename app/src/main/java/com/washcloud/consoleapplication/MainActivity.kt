@@ -113,6 +113,16 @@ class MainActivity : ComponentActivity() {
         setAdminPassword()
         loadPhoneNumber()
 
+        if(dLocale == null) {
+            dLocale = Locale("ar")
+        }
+        val config = resources.configuration
+        Locale.setDefault(dLocale)
+        config.setLocale(dLocale)
+
+        resources.updateConfiguration(config, resources.displayMetrics)
+
+
        /* val p = Runtime.getRuntime().exec("su")
         val os = DataOutputStream(p.outputStream)
 
@@ -472,6 +482,7 @@ class MainActivity : ComponentActivity() {
         val config = resources.configuration
         Locale.setDefault(dLocale)
         config.setLocale(dLocale)
+        MainAdActivity.dLocale = dLocale
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             createConfigurationContext(config)
 
