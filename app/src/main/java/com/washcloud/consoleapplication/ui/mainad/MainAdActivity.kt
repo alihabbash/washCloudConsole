@@ -141,8 +141,12 @@ class MainAdActivity : ComponentActivity() {
         Locale.setDefault(dLocale)
         val configuration = Configuration()
         configuration.setLocale(dLocale)
+        MainActivity.dLocale = dLocale
         wrapper.applyOverrideConfiguration(configuration)
     }
+
+
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -299,6 +303,7 @@ class MainAdActivity : ComponentActivity() {
                                 detectTapGestures(
                                     onDoubleTap = {
                                        // finish()
+                                        MainActivity.dLocale = Locale("ar")
                                         val intent = Intent(context, MainActivity::class.java)
                                         context.startActivity(intent)
 

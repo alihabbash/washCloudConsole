@@ -26,6 +26,12 @@ android {
             schemaDirectory("$projectDir/schemas")
         }
     }
+    bundle {
+        language {
+
+            enableSplit = false
+        }
+    }
 
     buildTypes {
         release {
