@@ -211,7 +211,7 @@ fun DriverLoginForm(
             }
         }
 
-       BottomNavigationWithBackAndTimer(screenWidth = screenWidth, screenHeight = screenHeight , timerViewModel, showAd2 = showAd2) {
+       BottomNavigationWithBackAndTimer(screenWidth = screenWidth, screenHeight = screenHeight ,  isAdmin = false, timerViewModel, showAd2 = showAd2) {
             showAd2()
 
       }

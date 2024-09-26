@@ -240,7 +240,7 @@ fun SelectLockerView(
             Spacer(modifier = Modifier.height(0.05 * screenHeight))
 
 
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel, showAd2, onBack)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
 
 
 

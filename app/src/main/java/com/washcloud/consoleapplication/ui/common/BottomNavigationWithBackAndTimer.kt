@@ -41,6 +41,7 @@ import com.washcloud.consoleapplication.utils.secondaryColor
 fun BottomNavigationWithBackAndTimer(
     screenWidth: Dp,
     screenHeight: Dp,
+    isAdmin : Boolean = false,
     timerViewModel: TimerViewModel? = null,
     showAd2: () -> Unit,
     onBack: () -> Unit,
@@ -101,7 +102,7 @@ fun BottomNavigationWithBackAndTimer(
                     )
                     Spacer(modifier = Modifier.width((screenWidth.value * 0.02f).dp))
                     Text(
-                        text = stringResource(id = R.string.back),
+                        text = if (isAdmin) stringResource(id = R.string.exit) else stringResource(id = R.string.back),
                         style = TextStyle(
                             color = Color.White,
                             fontSize = (screenWidth.value * 0.03f).sp

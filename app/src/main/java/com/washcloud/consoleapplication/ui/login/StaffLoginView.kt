@@ -615,7 +615,7 @@ fun LoginForm(
                     modifier =
                     Modifier.weight(1f)
                 )
-                BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel,showAd2, showAd2)
+                BottomNavigationWithBackAndTimer(screenWidth, screenHeight,   isAdmin = false, timerViewModel,showAd2, showAd2)
             }
 
 
