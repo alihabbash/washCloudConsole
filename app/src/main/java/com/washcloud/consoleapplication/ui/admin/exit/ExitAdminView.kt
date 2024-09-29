@@ -1,4 +1,6 @@
-package com.washcloud.consoleapplication.ui.admin.menu
+package com.washcloud.consoleapplication.ui.admin.exit
+
+
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -38,13 +40,13 @@ import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.*
 
 @Composable
-fun AdminMenuView(
+fun ExitAdminView(
     screenWidth: Dp,
     screenHeight: Dp,
-    showSetting: () -> Unit,
-    showAdminSetting: () -> Unit,
-    showAdsSetting: () -> Unit,
-    showLockerManagement: () -> Unit,
+    exitToAndroid: () -> Unit,
+    rebootAndroid: () -> Unit,
+    shutdown: () -> Unit,
+    logoutAdmin: () -> Unit,
     showAd2: () -> Unit,
 ) {
 
@@ -64,7 +66,7 @@ fun AdminMenuView(
             .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
-        TitleText(stringResource(id = R.string.admin_menu), screenWidth)
+        TitleText(stringResource(id = R.string.exit), screenWidth)
         Spacer(modifier = Modifier.height(24.dp))
 
         dateAndTimeView(screenWidth = screenWidth)
@@ -72,17 +74,17 @@ fun AdminMenuView(
         MenuGrid(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            showSetting = showSetting,
-            showAdminSetting = showAdminSetting,
-            showAdsSetting = showAdsSetting,
-            showLockerManagement = showLockerManagement
+            exitToAndroid = exitToAndroid,
+            rebootAndroid = rebootAndroid,
+            shutdown = shutdown,
+            logoutAdmin = logoutAdmin
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
-       // Footer(screenWidth)
+        // Footer(screenWidth)
 
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = true, timerViewModel, showAd2, showAd2)
+        BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, showAd2)
     }
 }
 
@@ -100,16 +102,14 @@ fun TitleText(text: String, screenWidth: Dp) {
     )
 }
 
-
-
 @Composable
 fun MenuGrid(
     screenWidth: Dp,
     screenHeight: Dp,
-    showSetting: () -> Unit,
-    showAdminSetting: () -> Unit,
-    showAdsSetting: () -> Unit,
-    showLockerManagement: () -> Unit
+    exitToAndroid: () -> Unit,
+    rebootAndroid: () -> Unit,
+    shutdown: () -> Unit,
+    logoutAdmin: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -123,22 +123,22 @@ fun MenuGrid(
         MenuRow(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            title1 = stringResource(id = R.string.pc_setting),
-            icon1 = R.drawable.admin_pc_setting,
-            action1 = showSetting,
-            title2 = stringResource(id = R.string.admin_setting),
-            icon2 = R.drawable.admin_setting,
-            action2 = showAdminSetting
+            title1 = stringResource(id = R.string.exit_to_android),
+            icon1 = R.drawable.exit_android,
+            action1 = exitToAndroid,
+            title2 = stringResource(id = R.string.reboot),
+            icon2 = R.drawable.reboot,
+            action2 = rebootAndroid
         )
         MenuRow(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            title1 = stringResource(id = R.string.ads_management),
-            icon1 = R.drawable.admin_ads,
-            action1 = showAdsSetting,
-            title2 = stringResource(id = R.string.locket_management),
-            icon2 = R.drawable.admin_lockers,
-            action2 = showLockerManagement
+            title1 = stringResource(id = R.string.shutdown),
+            icon1 = R.drawable.shutdown,
+            action1 = shutdown,
+            title2 = stringResource(id = R.string.exit_admin),
+            icon2 = R.drawable.logout,
+            action2 = logoutAdmin
         )
     }
 }
@@ -226,28 +226,3 @@ fun MenuItem(
     }
 }
 
-@Composable
-fun Footer(screenWidth: Dp) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "SN:12433455333",
-            style = TextStyle(
-                color = Color.White,
-                fontSize = (screenWidth.value * 0.025f).sp
-            )
-        )
-        Text(
-            text = "WD1.04.202345325333",
-            style = TextStyle(
-                color = Color.White,
-                fontSize = (screenWidth.value * 0.025f).sp
-            )
-        )
-    }
-}

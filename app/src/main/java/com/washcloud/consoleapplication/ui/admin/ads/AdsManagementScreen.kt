@@ -219,7 +219,7 @@ fun AdsManagementScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel,showAd2, onBack)
+        BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel,showAd2, onBack)
     }
 }
 

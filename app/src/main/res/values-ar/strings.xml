@@ -85,4 +85,9 @@
     <string name="invalid_serial_number">رقم تسلسلي غير صالح</string>
     <string name="enter_valid_serial_number">يرجى إدخال رقم تسلسلي صالح.</string>
     <string name="wrong_credentials">بيانات الاعتماد خاطئة</string>
+    <string name="exit">الخروج</string>
+    <string name="exit_to_android">الخروج إلى Android</string>
+    <string name="reboot">إعادة تشغيل</string>
+    <string name="shutdown">إيقاف تشغيل</string>
+    <string name="exit_admin">الخروج من الإدارة</string>
 </resources>

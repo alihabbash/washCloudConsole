@@ -101,7 +101,7 @@ fun DropOffView(
 
             }
             Spacer(modifier = Modifier.weight(1f))
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel ,showAd2, showStaffStart)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel ,showAd2, showStaffStart)
         }
 
         if (showAlert) {

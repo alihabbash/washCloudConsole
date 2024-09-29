@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -50,9 +49,9 @@ import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.local.preferences.ADMIN_PASSWORD
 import com.washcloud.consoleapplication.local.preferences.DELAY_MILLIS
 import com.washcloud.consoleapplication.local.preferences.PHONE_NUMBER
-import com.washcloud.consoleapplication.local.preferences.language
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
 import com.washcloud.consoleapplication.ui.admin.ads.AdsManagementScreen
+import com.washcloud.consoleapplication.ui.admin.exit.ExitAdminView
 import com.washcloud.consoleapplication.ui.admin.locker.AdminLockerScreen
 import com.washcloud.consoleapplication.ui.admin.login.AdminLogInView
 import com.washcloud.consoleapplication.ui.admin.menu.AdminMenuView
@@ -67,7 +66,6 @@ import com.washcloud.consoleapplication.ui.dropoff.SelectLockerView
 import com.washcloud.consoleapplication.ui.help.HelpForm
 import com.washcloud.consoleapplication.ui.login.LoginForm
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
-import com.washcloud.consoleapplication.ui.mainad.MainAdActivity.Companion
 import com.washcloud.consoleapplication.ui.pickup.PickupView
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
@@ -76,7 +74,6 @@ import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import java.io.DataOutputStream
 import java.util.Locale
 
 
@@ -311,7 +308,7 @@ class MainActivity : ComponentActivity() {
                 showAdminSetting = { mainViewModel.addToStack(SelectedView.SubAdminSettingsScreen) },
                 showAdsSetting = { mainViewModel.addToStack(SelectedView.AdsManagementScreen) },
                 showLockerManagement = { mainViewModel.addToStack(SelectedView.AdminLockerScreen) }) {
-                mainViewModel.resetStack()
+                mainViewModel.addToStack(SelectedView.ExitAdminView)
             }
 
             is SelectedView.PCSettingsScreen -> PCSettingsScreen(
@@ -362,6 +359,37 @@ class MainActivity : ComponentActivity() {
                 onBack = { mainViewModel.popStack()},
                 showAd2 = { mainViewModel.popStack() }
             )
+
+            is  SelectedView.ExitAdminView ->
+                ExitAdminView(
+                    screenWidth = screenWidth,
+                    screenHeight = screenHeight,
+                    exitToAndroid = {
+                        finishAffinity();
+                        System.exit(0)
+                    },
+                    rebootAndroid = {
+                        try {
+                            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
+                            process.waitFor()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    },
+                    shutdown = {
+                        try {
+
+                            val process =
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot -p"))
+                            process.waitFor()
+                        } catch (e: java.lang.Exception) {
+                            e.printStackTrace()
+                        }
+                    },
+                    logoutAdmin = { mainViewModel.resetStack() },
+                    showAd2 = {  mainViewModel.popStack() }
+                )
+
 
         }
     }

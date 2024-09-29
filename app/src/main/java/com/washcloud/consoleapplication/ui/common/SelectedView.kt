@@ -16,6 +16,7 @@ sealed class SelectedView{
     object UpdatePhoneNumberScreen: SelectedView()
     object AdsManagementScreen: SelectedView()
     object AdminLockerScreen: SelectedView()
+    object ExitAdminView: SelectedView()
     fun copy(): SelectedView{
         return this
     }

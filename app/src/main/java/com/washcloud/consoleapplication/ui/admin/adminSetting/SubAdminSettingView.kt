@@ -101,7 +101,7 @@ fun SubAdminSettingsScreen(
              )
          }
 
-          BottomNavigationWithBackAndTimer(screenWidth, screenHeight, timerViewModel ,showAd2, showAd2)
+          BottomNavigationWithBackAndTimer(screenWidth, screenHeight , isAdmin = false, timerViewModel ,showAd2, showAd2)
       }
     }
 }

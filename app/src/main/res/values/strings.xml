@@ -84,4 +84,9 @@
     <string name="invalid_serial_number">Invalid Serial Number</string>
     <string name="enter_valid_serial_number">Please enter a valid serial number.</string>
     <string name="wrong_credentials">Wrong Credentials</string>
+    <string name="exit">Exit</string>
+    <string name="exit_to_android">Exit to Android</string>
+    <string name="reboot">Reboot</string>
+    <string name="shutdown">Shutdown</string>
+    <string name="exit_admin">Exit Admin</string>
 </resources>

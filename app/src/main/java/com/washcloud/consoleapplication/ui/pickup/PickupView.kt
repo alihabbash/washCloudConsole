@@ -312,7 +312,7 @@ fun PickupView(
             )
 
 
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,timerViewModel ,showAd2, showStaffStart)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel ,showAd2, showStaffStart)
         }
     }
 
