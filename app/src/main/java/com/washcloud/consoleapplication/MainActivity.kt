@@ -52,6 +52,7 @@ import com.washcloud.consoleapplication.local.preferences.PHONE_NUMBER
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
 import com.washcloud.consoleapplication.ui.admin.ads.AdsManagementScreen
 import com.washcloud.consoleapplication.ui.admin.exit.ExitAdminView
+import com.washcloud.consoleapplication.ui.admin.locker.AddLockerScreen
 import com.washcloud.consoleapplication.ui.admin.locker.AdminLockerScreen
 import com.washcloud.consoleapplication.ui.admin.login.AdminLogInView
 import com.washcloud.consoleapplication.ui.admin.menu.AdminMenuView
@@ -355,7 +356,9 @@ class MainActivity : ComponentActivity() {
             is SelectedView.AdminLockerScreen -> AdminLockerScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                numberOfLockers = 60,
+                onAddLockerClick = {
+                    mainViewModel.addToStack(SelectedView.AddLockerScreen)
+                },
                 onBack = { mainViewModel.popStack()},
                 showAd2 = { mainViewModel.popStack() }
             )
@@ -389,6 +392,12 @@ class MainActivity : ComponentActivity() {
                     logoutAdmin = { mainViewModel.resetStack() },
                     showAd2 = {  mainViewModel.popStack() }
                 )
+            is SelectedView.AddLockerScreen -> AddLockerScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onBack = { mainViewModel.popStack() },
+                showAd2 = { mainViewModel.popStack() }
+            )
 
 
         }

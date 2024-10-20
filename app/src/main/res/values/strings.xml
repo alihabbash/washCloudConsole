@@ -89,4 +89,22 @@
     <string name="reboot">Reboot</string>
     <string name="shutdown">Shutdown</string>
     <string name="exit_admin">Exit Admin</string>
+    <string name="add_more_lokers">Add More Lockers</string>
+    <string name="add_locker">Add Locker</string>
+    <string name="box_id">Box ID</string>
+    <string name="station_id">Station ID</string>
+    <string name="port_id">Port ID</string>
+    <string name="select_box_size">Select Box Size</string>
+    <string name="select_box_type">Select Box Type</string>
+    <string name="success_locker_added">Locker added successfully!</string>
+    <string name="error_fill_all_fields">Please fill in all fields.</string>
+     <string name="reset">Reset</string>
+    <string name="locker">Locker</string>
+    <string name="open_all_empty_lockers">Open All Empty</string>
+    <string name="open_all_accuity_lockers">Open All Occupied</string>
+    <string name="check_locker_status">Check  Status</string>
+    <string name="locker_deleted_success">Locker deleted successfully!</string>
+    <string name="locker_deleted_failed">Locker deletion failed! in order to delete locker, status should be available </string>
+    <string name="are_you_sure_delete">Are you sure you want to delete this locker?</string>
+    <string name="add_via_file">Add via File</string>
 </resources>

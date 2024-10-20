@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,8 +22,18 @@ import tp.xmaihh.serialport.SerialHelper
 import tp.xmaihh.serialport.bean.ComBean
 import tp.xmaihh.serialport.utils.ByteUtil
 import android_serialport_api.SerialPortFinder
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.BoxType
+import com.washcloud.consoleapplication.local.database.utils.TransactionType
+import com.washcloud.consoleapplication.utils.FileLogger
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +46,11 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
     private val _lockers = MutableStateFlow<List<BoxDto>>(emptyList())
     val lockers: StateFlow<List<BoxDto>> = _lockers.asStateFlow()
 
+    private val _boxesToInsert = MutableLiveData<List<BoxDto>>()
+    val boxesToInsert: LiveData<List<BoxDto>> = _boxesToInsert
+
+    private val _errorMessage = MutableLiveData<String>()
+    val errorMessage: LiveData<String> = _errorMessage
 
 
     init {
@@ -48,6 +64,137 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
         }
     }
 
+    fun addLocker(
+        boxId: Long,
+        branchId: Long,
+        stationId: Long,
+        portId: String,
+        boxSize: BoxSizeType,
+        boxType: BoxType
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val locker = BoxDto(
+                orderSerial = "",
+                orderId = 0L,
+                boxId = boxId,
+                trnasDate = Date(),
+                branchId = branchId,
+                trnasType = TransactionType.DROP_OFF,
+                boxSize = boxSize,
+                boxType = boxType,
+                boxState = BoxState.AVAILABLE,
+                stationId = stationId,
+                portId = portId
+            )
+            boxDao.insertBox(locker)
+            fetchLockers()
+        }
+
+    }
+
+    fun deleteLocker(lockerNumber: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val box = boxDao.getBoxById(lockerNumber.toLong())
+            if (box?.boxState == BoxState.AVAILABLE) {
+                boxDao.deleteBox(lockerNumber.toLong())
+                fetchLockers()
+            } else {
+            }
+        }
+    }
+//
+//    fun loadCsvFile(uri: Uri) {
+//        try {
+//            val inputStream = context.contentResolver.openInputStream(uri)
+//            val reader = BufferedReader(InputStreamReader(inputStream))
+//
+//            val boxes = mutableListOf<BoxDto>()
+//            reader.forEachLine { line ->
+//                val fields = line.split(",")
+//                if (fields.size == 6) {
+//                    val boxDto = BoxDto(
+//                        orderSerial = "",
+//                        orderId = 0,
+//                        boxId =  fields[0].toLong(),
+//                        trnasDate = Date(),
+//                        branchId = 1L,
+//                        trnasType = TransactionType.DROP_OFF,
+//                        boxSize = BoxSizeType.valueOf(fields[4]),
+//                        boxType = BoxType.valueOf(fields[3]),
+//                        boxState = BoxState.valueOf(fields[5]),
+//                        stationId = fields[1].toLong(),
+//                        portId = fields[2],
+//                    )
+//                    boxes.add(boxDto)
+//                } else {
+//                    _errorMessage.value = "Invalid CSV format."
+//
+//                }
+//            }
+//
+//            _boxesToInsert.value = boxes
+//        } catch (e: Exception) {
+//            _errorMessage.value = "Error loading CSV: ${e.message}"
+//        }
+//    }
+
+
+    fun loadCsvFile(context: Context, fileUri: Uri) {
+        val boxes = mutableListOf<BoxDto>()
+
+        try {
+            val inputStream = context.contentResolver.openInputStream(fileUri)
+            val bufferedReader = inputStream?.bufferedReader()
+            bufferedReader?.useLines { lines ->
+                lines.drop(1)
+                    .forEach { line ->
+                        val columns = line.split(";")
+                        if (columns.size == 12) {
+                            val box = BoxDto(
+                                orderSerial = "",
+                                orderId = 0L,
+                                boxId = columns[3].toLong(),
+                                trnasDate = Date(),
+                                branchId = columns[5].toLong(),
+                                trnasType = TransactionType.valueOf(columns[6]),
+                                boxSize = BoxSizeType.valueOf(columns[7]),
+                                boxType = BoxType.valueOf(columns[8]),
+                                boxState = BoxState.valueOf(columns[9]),
+                                stationId = columns[10].toLong(),
+                                portId = columns[11]
+                            )
+                            boxes.add(box)
+                        }else{
+                            _errorMessage.value = "Invalid CSV format."
+                            FileLogger.log(context, "Invalid CSV format.", "LockerViewModel")
+                        }
+                    }
+            }
+        } catch (e: Exception) {
+            _errorMessage.value = "Invalid CSV format."
+            FileLogger.log(context, "Error loading CSV: ${e.message}", "LockerViewModel")
+            e.printStackTrace()
+        }
+
+        if (boxes.isEmpty()) {
+            _errorMessage.value = "No boxes found in the CSV file."
+            FileLogger.log(context, "No boxes found in the CSV file.", "LockerViewModel")
+        }else{
+            FileLogger.log(context, "Boxes found in the CSV file: ${boxes.size}", "LockerViewModel")
+            _boxesToInsert.value = boxes
+        }
+    }
+
+
+
+    fun insertBoxes(boxes: List<BoxDto>) {
+        viewModelScope.launch(Dispatchers.IO) {
+
+            boxes.forEach { box ->
+                boxDao.insertBox(box)
+            }
+        }
+    }
     fun sendCommand(action: String, stationId: String, boxId: String) {
         val intent = Intent(action).apply {
             putExtra("stationId", stationId)

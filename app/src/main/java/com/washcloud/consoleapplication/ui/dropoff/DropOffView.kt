@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -220,7 +221,7 @@ fun DropOffList(screenWidth: Dp, screenHeight: Dp, transactions: List<BoxDto>,se
             .fillMaxWidth()
             .height(0.7 * screenHeight.value.dp)
     ) {
-        LazyColumn(modifier = Modifier.padding(top = 0.006 * screenHeight.value.dp)) {
+        LazyRow(modifier = Modifier.padding(top = 0.006 * screenHeight.value.dp)) {
             items(transactions.size) { index ->
                 Column {
                     DropOffItem(
