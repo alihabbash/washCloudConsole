@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication.ui.login
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -117,12 +118,17 @@ fun LoginForm(
         viewModel.resetLoadingToInitial()
     }
 
-    LaunchedEffect(screenState is LoginState.Error) {
-        while (timerValue > 0) {
-            delay(1000L)
-            timerValue -= 1
+    LaunchedEffect(screenState is LoginState.Error ) {
+        Log.d("Login", "Error  $screenState")
+
+        if(screenState != null){
+            while (timerValue > 0) {
+                delay(1000L)
+                timerValue -= 1
+            }
+            viewModel.resetLoadingToInitial()
         }
-        viewModel.resetLoadingToInitial()
+
     }
 
     Box {

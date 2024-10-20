@@ -45,7 +45,7 @@
     <string name="pc_setting">إعدادات الجهاز</string>
     <string name="admin_setting">إعدادات المسؤول</string>
     <string name="ads_management">إدارة الإعلانات</string>
-    <string name="locket_management">إدارة الصناديق</string>
+    <string name="locket_management">إدارة الخزن</string>
     <string name="incorrect_password">كلمة السر غير صحيحة</string>
     <string name="incorrect_password_msg">الرقم السري الذي أدخلته غير صحيح. الرجاء المحاولة مرة أخرى.</string>
     <string name="ok">موافق</string>
@@ -90,4 +90,23 @@
     <string name="reboot">إعادة تشغيل</string>
     <string name="shutdown">إيقاف تشغيل</string>
     <string name="exit_admin">الخروج من الإدارة</string>
+    <string name="add_more_lokers">إضافة المزيد من الخزن</string>
+    <string name="add_locker">إضافة خزنة</string>
+    <string name="box_id">معرف الخزنة</string>
+    <string name="station_id">معرف المحطة</string>
+    <string name="port_id">معرف المنفذ</string>
+    <string name="select_box_size">اختر حجم الخزنة</string>
+    <string name="select_box_type">اختر نوع الخزنة</string>
+    <string name="success_locker_added">تمت إضافة المحتوى بنجاح!</string>
+    <string name="error_fill_all_fields">يرجى ملء جميع الحقول.</string>
+    <string name="reset">إعادة تعيين</string>
+    <string name="locker">خزنة</string>
+    <string name="open_all_empty_lockers">فتح جميع الخزن الفارغة</string>
+    <string name="open_all_accuity_lockers">فتح جميع الخزن المحجوزة</string>
+    <string name="check_locker_status">فحص الحالة</string>
+    <string name="locker_deleted_success">تم حذف الخزنة بنجاح!</string>
+    <string name="locker_deleted_failed">فشل حذف الخزنة! لحذف الخزنة ، يجب أن يكون الحالة متاحة</string>
+    <string name="are_you_sure_delete">هل أنت متأكد أنك تريد حذف هذا الخزنة؟</string>
+    <string name="add_via_file">إضافة عبر الملف</string>
+
 </resources>

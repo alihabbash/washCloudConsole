@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -75,6 +78,7 @@ fun SelectLockerView(
 
     var showTimer by remember { mutableStateOf(false) }
     var timerValue by remember { mutableStateOf(30) }
+
 
 
     val timerViewModel: TimerViewModel = hiltViewModel()
@@ -507,6 +511,9 @@ fun DropOffSection(
     onConfirm: () -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var isKeyboardVisible by remember { mutableStateOf(false) }
+
 
    /* LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -562,13 +569,31 @@ fun DropOffSection(
                         }
                     },
                     hintTextSize = (screenWidth.value * 0.035f).sp,
-                    enabled = isInputEnabled,
+                    enabled = isInputEnabled && isKeyboardVisible,
                     fontSize = (screenWidth.value * 0.035f).sp,
                     cornerRadius = (screenWidth.value * 0.06f),
+                    trailingIcon = {
+                        val iconRes = if (isKeyboardVisible) R.drawable.keyboard_hide else R.drawable.keyboard_show
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = "Toggle Keyboard",
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clickable {
+                                    isKeyboardVisible = !isKeyboardVisible
+                                    if (isKeyboardVisible) {
+                                        keyboardController?.show()
+                                        focusRequester.requestFocus()
+                                    } else {
+                                        keyboardController?.hide()
+                                    }
+                                }
+                        )
+                    },
 
                     modifier = Modifier.width(0.8 * screenWidth)
 
-//                        .focusRequester(focusRequester)
+                       .focusRequester(focusRequester)
 
                 )
                 Spacer(modifier = Modifier.height(0.03 * screenWidth))

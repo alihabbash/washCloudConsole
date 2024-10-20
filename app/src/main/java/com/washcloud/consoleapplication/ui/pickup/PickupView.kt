@@ -16,11 +16,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -44,6 +46,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -99,7 +102,9 @@ fun PickupView(
         })
     }
 
-    //val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var isKeyboardVisible by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
   //  var isInputEnabled by remember { mutableStateOf(true) }
  /*   LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -221,6 +226,7 @@ fun PickupView(
                     ){
                         Spacer(modifier = Modifier.height(0.01 * screenHeight))
                         OutlinedInputField(
+
                             value = wayBillNo,
                             hintText = "XXXX-XXXX-XXXX",
                             onValueChange = { newValue ->
@@ -234,8 +240,28 @@ fun PickupView(
                             hintTextSize = (screenWidth.value * 0.035f).sp,
                             fontSize = (screenWidth.value * 0.035f).sp,
                             cornerRadius = (screenWidth.value * 0.06f),
+                            enabled = isKeyboardVisible,
                             modifier = Modifier
                                 .width(0.66 * screenWidth)
+                                .focusRequester(focusRequester),
+                            trailingIcon = {
+                                val iconRes = if (isKeyboardVisible) R.drawable.keyboard_hide else R.drawable.keyboard_show
+                                Icon(
+                                    painter = painterResource(id = iconRes),
+                                    contentDescription = "Toggle Keyboard",
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clickable {
+                                            isKeyboardVisible = !isKeyboardVisible
+                                            if (isKeyboardVisible) {
+                                                keyboardController?.show()
+                                                focusRequester.requestFocus()
+                                            } else {
+                                                keyboardController?.hide()
+                                            }
+                                        }
+                                )
+                            },
                               //  .focusRequester(focusRequester)
                               /*  .onKeyEvent { event ->
                                     if (event.key.keyCode.toInt() == KeyEvent.KEYCODE_ENTER) {

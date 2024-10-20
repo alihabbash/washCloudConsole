@@ -17,6 +17,7 @@ sealed class SelectedView{
     object AdsManagementScreen: SelectedView()
     object AdminLockerScreen: SelectedView()
     object ExitAdminView: SelectedView()
+    object AddLockerScreen: SelectedView()
     fun copy(): SelectedView{
         return this
     }
