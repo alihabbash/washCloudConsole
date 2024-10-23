@@ -98,6 +98,11 @@ fun AddLockerScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        showAlert = false
+        operationDoneSuccessfully = false
+
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

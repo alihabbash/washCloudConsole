@@ -251,7 +251,7 @@ class MainAdActivity : ComponentActivity() {
 
        scheduleHeartbeat(this)
 
-        insertBoxes()
+     //   insertBoxes()
 
         setContent {
             ConsoleApplicationTheme {
@@ -392,7 +392,7 @@ class MainAdActivity : ComponentActivity() {
                                         ) {
 
                                             Text(
-                                                text = if (data.operationType == "PickUp")  "Pick Up Clothes" else "Drop Off Clothes",
+                                                text = if (data.operationType == "PickUp")    stringResource(id = R.string.pickup_clothes)  else    stringResource(id = R.string.dropoff_clothes),
                                                 style = TextStyle(
                                                     fontSize = (screenWidth.value * 0.033f).sp,
                                                     fontWeight = FontWeight.Bold,
@@ -403,7 +403,7 @@ class MainAdActivity : ComponentActivity() {
 
 
                                             Text(
-                                                text = if (data.operationType == "PickUp") "Locker Number: ${data.doorNo}\nPlease pick up your clothes from the locker." else "Locker Number: ${data.doorNo}\nPlease drop off your clothes in the locker." ,
+                                                text = if (data.operationType == "PickUp")  stringResource(id = R.string.locker_pickup_message, data.doorNo) else  stringResource(id = R.string.locker_dropoff_message, data.doorNo) ,
                                                 style = TextStyle(
                                                     fontSize = (screenWidth.value * 0.025f).sp,
                                                     fontWeight = FontWeight.Bold
@@ -450,14 +450,14 @@ class MainAdActivity : ComponentActivity() {
     }
 
 
-    private  fun insertBoxes() {
+    /*private  fun insertBoxes() {
 
         val database = DatabaseModule.provideConsoleDatabase(this)
         val boxDao = database.getBoxDao()
         CoroutineScope(Dispatchers.IO).launch {
             BoxSeeder.seed(boxDao)
         }
-    }
+    }*/
 
     private fun startPortService() {
         try {

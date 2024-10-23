@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication.ui.pickup
 
+import android.util.Log
 import android.view.KeyEvent
 import android.webkit.URLUtil
 import android.widget.Toast
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -43,6 +45,7 @@ import androidx.compose.ui.input.key.key
 
 
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -66,6 +69,7 @@ import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
+import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
@@ -95,12 +99,12 @@ fun PickupView(
     val timerViewModel: TimerViewModel = hiltViewModel()
 
 
-    val interactionModifier = Modifier.pointerInput(Unit) {
-        detectTapGestures(onTap = {
-            timerViewModel.pauseTimer()
-            timerViewModel.resumeTimerAfterDelay(1000)
-        })
-    }
+//    val interactionModifier = Modifier.pointerInput(Unit) {
+//        detectTapGestures(onTap = {
+//            timerViewModel.pauseTimer()
+//            timerViewModel.resumeTimerAfterDelay(1000)
+//        })
+//    }
 
     val keyboardController = LocalSoftwareKeyboardController.current
     var isKeyboardVisible by remember { mutableStateOf(false) }
@@ -129,6 +133,39 @@ fun PickupView(
         }
     }
 
+    var barcodeData by remember { mutableStateOf("") } // Temporary storage for barcode
+    val serialPattern = Regex("^\\d{13}-\\d{1}\$") // Regex pattern for valid barcode
+
+    val interactionModifier = Modifier
+        .fillMaxSize()
+        .onKeyEvent { event ->
+
+
+            FileLogger.log(context, "PickupView", "onKeyEvent: ${event.nativeKeyEvent.keyCode}")
+            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+                val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
+
+                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+                    Log.e("PickupView", "Barcode data: $barcodeData")
+
+                    FileLogger.log(context, "PickupView", "Barcode data: $barcodeData")
+
+
+                    if (serialPattern.matches(barcodeData)) {
+                        viewModel.staffPickup(barcodeData)
+                        barcodeData = ""
+                    } else {
+                        FileLogger.log(context, "PickupView", "Invalid barcode: $barcodeData")
+                    }
+                    true
+                } else {
+                    barcodeData += unicodeChar
+                    false
+                }
+            } else {
+                false
+            }
+        }
     Box {
         Column(
             modifier = Modifier
@@ -240,7 +277,7 @@ fun PickupView(
                             hintTextSize = (screenWidth.value * 0.035f).sp,
                             fontSize = (screenWidth.value * 0.035f).sp,
                             cornerRadius = (screenWidth.value * 0.06f),
-                            enabled = isKeyboardVisible,
+                           enabled = isKeyboardVisible,
                             modifier = Modifier
                                 .width(0.66 * screenWidth)
                                 .focusRequester(focusRequester),
@@ -332,10 +369,13 @@ fun PickupView(
 
 
 
+
             Box(
                 modifier =
                 Modifier.weight(1f)
             )
+
+
 
 
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel ,showAd2, showStaffStart)
@@ -440,6 +480,61 @@ fun pickUpItem(
         Box(modifier = Modifier.width(24.dp))
     }
 }
+//
+//@Composable
+//fun BarcodeScannerView(
+//    onBarcodeScanned: (String) -> Unit
+//) {
+//    var barcodeData by remember { mutableStateOf("") }
+//
+//
+//    val serialPattern = Regex("^\\d{13}-\\d{1}\$")
+//
+//    val focusRequester = remember { FocusRequester() }
+//    val context = LocalContext.current
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .focusRequester(focusRequester)
+//            .onKeyEvent { event ->
+//                if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+//                    val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
+//                    Log.e("unicodeChar", unicodeChar.toString())
+//
+//                    if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+//                        FileLogger.log(context, "BarcodeScannerView barcodeData", "barcodeData: $barcodeData")
+//                        val barcode = "4442408120002-1"
+//                            //barcodeData
+//                           // .trim()
+//
+//
+//                        FileLogger.log(context, "BarcodeScannerView barcode", "barcode: $barcodeData")
+//
+//                        Log.e("barcode", barcode)
+//
+//                        if (serialPattern.matches(barcode)) {
+//
+//                            onBarcodeScanned(barcode)
+//                        }
+//                        barcodeData = ""
+//                    } else {
+//                        barcodeData += unicodeChar
+//                    }
+//                    true
+//                } else {
+//                    false
+//                }
+//            }
+//    ) {
+//
+//    }
+//
+//    LaunchedEffect(Unit) {
+//        focusRequester.requestFocus()
+//    }
+//}
+
 
 @Composable
 fun PickUpListDivider(
@@ -463,3 +558,4 @@ fun isValidSerialNumber(serial: String): Boolean {
     val serialPattern = Regex("^\\d{13}-\\d{1}\$")
     return serial.matches(serialPattern)
 }
+
