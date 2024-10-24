@@ -107,4 +107,8 @@
     <string name="locker_deleted_failed">Locker deletion failed! in order to delete locker, status should be available </string>
     <string name="are_you_sure_delete">Are you sure you want to delete this locker?</string>
     <string name="add_via_file">Add via File</string>
+    <string name="pickup_clothes">Pick Up Clothes</string>
+    <string name="dropoff_clothes">Drop Off Clothes</string>
+    <string name="locker_pickup_message">Locker Number: %1$s\nPlease pick up your clothes from the locker.</string>
+    <string name="locker_dropoff_message">Locker Number: %1$s\nPlease drop off your clothes in the locker.</string>
 </resources>

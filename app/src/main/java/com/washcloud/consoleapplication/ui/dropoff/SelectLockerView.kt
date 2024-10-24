@@ -2,6 +2,7 @@ package com.washcloud.consoleapplication.ui.dropoff
 
 import android.content.Context
 import android.util.Log
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +28,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -84,12 +86,68 @@ fun SelectLockerView(
     val timerViewModel: TimerViewModel = hiltViewModel()
 
 
-    val interactionModifier = Modifier.pointerInput(Unit) {
-        detectTapGestures(onTap = {
-            timerViewModel.pauseTimer()
-            timerViewModel.resumeTimerAfterDelay(1000)
-        })
-    }
+//    val interactionModifier = Modifier.pointerInput(Unit) {
+//        detectTapGestures(onTap = {
+//            timerViewModel.pauseTimer()
+//            timerViewModel.resumeTimerAfterDelay(1000)
+//        })
+//    }
+
+    var barcodeData by remember { mutableStateOf("") }
+
+
+    val interactionModifier = Modifier
+        .fillMaxSize()
+        .onKeyEvent { event ->
+
+
+            FileLogger.log(context, "DropOffView", "onKeyEvent: ${event.nativeKeyEvent.keyCode}")
+            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+                val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
+
+                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+                    Log.e("DropOffView", "Barcode data: $barcodeData")
+
+                    FileLogger.log(context, "DropOffView", "Barcode data: $barcodeData")
+
+
+                        if (isValidSerialNumber(barcodeData)) {
+
+                            if (selectedLocker == null) {
+                                viewModel.setShowAlert()
+                                showTimer = true
+                                timerValue = 30
+                                alertTitle = selectionRequiredText
+                                alertMessage = selectLockerText
+                                wayBillNo = ""
+
+                            } else if (isValidSerialNumber(barcodeData)) {
+                                //viewModel.setShowAlert()
+                                alertTitle = dropOffClothesText
+                                alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
+                                viewModel.dropoff(barcodeData, selectedLocker!!.boxId.toString())
+                                wayBillNo = ""
+                                selectedLocker = null
+
+                            }
+
+
+
+
+                        barcodeData = ""
+                    } else {
+                        FileLogger.log(context, "DropOffView", "Invalid barcode: $barcodeData")
+                    }
+                    true
+                } else {
+                    barcodeData += unicodeChar
+                    false
+                }
+            } else {
+                false
+            }
+        }
+
 
     LaunchedEffect(Unit) {
         viewModel.fetchLockers()
@@ -513,6 +571,7 @@ fun DropOffSection(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     var isKeyboardVisible by remember { mutableStateOf(false) }
+
 
 
    /* LaunchedEffect(Unit) {

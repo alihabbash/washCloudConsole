@@ -58,7 +58,7 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
 
     }
 
-    private fun fetchLockers() {
+     fun fetchLockers() {
         viewModelScope.launch {
             _lockers.value = boxDao.getAllBoxes()
         }

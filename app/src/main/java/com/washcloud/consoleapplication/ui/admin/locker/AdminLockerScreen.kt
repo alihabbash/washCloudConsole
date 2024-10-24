@@ -86,6 +86,11 @@ fun AdminLockerScreen(
         showAlert = true
     }
 
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchLockers()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -319,13 +324,13 @@ fun AdminLockerScreen(
                             .fillMaxWidth()
                             .clickable {
 
-                               if(lockerToDelete != null){
+                                if (lockerToDelete != null) {
                                     viewModel.deleteLocker(lockerToDelete!!)
                                     lockerToDelete = null
                                     alertMessage = locker_deleted_success
                                     showAlert = true
-                                }else{
-                                 showAlert = false
+                                } else {
+                                    showAlert = false
                                 }
 
 

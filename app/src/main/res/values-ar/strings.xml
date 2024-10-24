@@ -108,5 +108,8 @@
     <string name="locker_deleted_failed">فشل حذف الخزنة! لحذف الخزنة ، يجب أن يكون الحالة متاحة</string>
     <string name="are_you_sure_delete">هل أنت متأكد أنك تريد حذف هذا الخزنة؟</string>
     <string name="add_via_file">إضافة عبر الملف</string>
-
+    <string name="pickup_clothes">استلام الملابس</string>
+    <string name="dropoff_clothes">إيداع الملابس</string>
+    <string name="locker_pickup_message">رقم الخزانة: %1$s\nيرجى استلام ملابسك من الخزانة.</string>
+    <string name="locker_dropoff_message">رقم الخزانة: %1$s\nيرجى إيداع ملابسك في الخزانة.</string>
 </resources>
