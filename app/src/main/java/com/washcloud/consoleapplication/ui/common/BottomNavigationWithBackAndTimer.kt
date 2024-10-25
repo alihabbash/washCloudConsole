@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication.ui.common
 
+import android.view.KeyEvent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -58,7 +60,8 @@ fun BottomNavigationWithBackAndTimer(
             .background(
                 color = Color.White,
                 shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
-            ),
+            )
+        ,
         contentAlignment = Alignment.Center
     ) {
         Row(

@@ -22,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -73,11 +74,12 @@ fun SelectLockerView(
     val invalid_serial_number = stringResource(id = R.string.invalid_serial_number)
     val enter_valid_serial_number = stringResource(id = R.string.enter_valid_serial_number)
     var wayBillNo by remember { mutableStateOf("") }
+    var wayBillNoHidden by remember { mutableStateOf("") }
     val showAlert by viewModel.showAlert.collectAsState()
     var alertTitle by remember { mutableStateOf(selectionRequiredText) }
     var alertMessage by remember { mutableStateOf("Please select a locker before proceeding.") }
     var selectedLocker by remember { mutableStateOf<BoxDto?>(null) }
-
+    val focusRequester = remember { FocusRequester() }
     var showTimer by remember { mutableStateOf(false) }
     var timerValue by remember { mutableStateOf(30) }
 
@@ -95,6 +97,7 @@ fun SelectLockerView(
 
     var barcodeData by remember { mutableStateOf("") }
 
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val interactionModifier = Modifier
         .fillMaxSize()
@@ -102,42 +105,16 @@ fun SelectLockerView(
 
 
             FileLogger.log(context, "DropOffView", "onKeyEvent: ${event.nativeKeyEvent.keyCode}")
-            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN || event.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
                 val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
 
                 if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
                     Log.e("DropOffView", "Barcode data: $barcodeData")
 
-                    FileLogger.log(context, "DropOffView", "Barcode data: $barcodeData")
+                    FileLogger.log(context, "DropOffView", "Barcode data: ${barcodeData.trim()}")
 
-
-                        if (isValidSerialNumber(barcodeData)) {
-
-                            if (selectedLocker == null) {
-                                viewModel.setShowAlert()
-                                showTimer = true
-                                timerValue = 30
-                                alertTitle = selectionRequiredText
-                                alertMessage = selectLockerText
-                                wayBillNo = ""
-
-                            } else if (isValidSerialNumber(barcodeData)) {
-                                //viewModel.setShowAlert()
-                                alertTitle = dropOffClothesText
-                                alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
-                                viewModel.dropoff(barcodeData, selectedLocker!!.boxId.toString())
-                                wayBillNo = ""
-                                selectedLocker = null
-
-                            }
-
-
-
-
-                        barcodeData = ""
-                    } else {
-                        FileLogger.log(context, "DropOffView", "Invalid barcode: $barcodeData")
-                    }
+                    wayBillNoHidden = barcodeData.trim()
+                    barcodeData = ""
                     true
                 } else {
                     barcodeData += unicodeChar
@@ -178,7 +155,7 @@ fun SelectLockerView(
              alertMessage = selectLockerText
              wayBillNo = ""
 
-         } else if (isValidSerialNumber(wayBillNo)) {
+         } else  {
              //viewModel.setShowAlert()
              alertTitle = dropOffClothesText
              alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
@@ -193,6 +170,33 @@ fun SelectLockerView(
      }
     }
 
+    LaunchedEffect(wayBillNoHidden) {
+        if (isValidSerialNumber(wayBillNoHidden)) {
+
+        if (selectedLocker == null) {
+            alertTitle = selectionRequiredText
+            alertMessage = selectLockerText
+            viewModel.setShowAlert()
+            wayBillNoHidden = ""
+            showTimer = true
+            timerValue = 30
+        } else {
+            alertTitle = dropOffClothesText
+            alertMessage = dropOffMessageTemplate.format(selectedLocker!!.boxId)
+            viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString())
+            wayBillNoHidden = ""
+            selectedLocker = null
+        }
+
+            }
+
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        delay(10L)
+        keyboardController?.hide();
+    }
 
     LaunchedEffect(showTimer) {
         while (timerValue > 0) {
@@ -218,7 +222,7 @@ fun SelectLockerView(
 
             Header(screenWidth)
             if (lockers.isEmpty()) {
-                NoLockersMessage(screenWidth)
+                NoLockersMessage(screenWidth, screenHeight)
             } else {
 
                 LockerListGrouped(lockers, screenWidth, screenHeight, selectedLocker) { locker ->
@@ -298,6 +302,27 @@ fun SelectLockerView(
 
                     })
             }
+
+            OutlinedInputField(
+
+                value = wayBillNoHidden,
+                hintText = "XXXX-XXXX-XXXX",
+                onValueChange = { newValue ->
+                    wayBillNoHidden = newValue
+
+
+                },
+                hintTextSize = (screenWidth.value * 0.035f).sp,
+                fontSize = (screenWidth.value * 0.035f).sp,
+                cornerRadius = (screenWidth.value * 0.06f),
+                enabled = true,
+                modifier = Modifier
+                    .width(0.66 * screenWidth)
+                    .height(1.dp)
+                    .alpha(0f)
+                    .focusRequester(focusRequester)
+
+            )
 
             Spacer(modifier = Modifier.height(0.05 * screenHeight))
 
@@ -405,10 +430,11 @@ fun SelectLockerView(
 }
 
 @Composable
-fun NoLockersMessage(screenWidth: Dp) {
+fun NoLockersMessage(screenWidth: Dp, screenHeight: Dp) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(0.47 * screenHeight)
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -568,7 +594,6 @@ fun DropOffSection(
     onWayBillNoChange: (String) -> Unit,
     onConfirm: () -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     var isKeyboardVisible by remember { mutableStateOf(false) }
 
@@ -642,7 +667,6 @@ fun DropOffSection(
                                     isKeyboardVisible = !isKeyboardVisible
                                     if (isKeyboardVisible) {
                                         keyboardController?.show()
-                                        focusRequester.requestFocus()
                                     } else {
                                         keyboardController?.hide()
                                     }
@@ -652,7 +676,7 @@ fun DropOffSection(
 
                     modifier = Modifier.width(0.8 * screenWidth)
 
-                       .focusRequester(focusRequester)
+
 
                 )
                 Spacer(modifier = Modifier.height(0.03 * screenWidth))

@@ -36,11 +36,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
 
 
@@ -94,6 +97,7 @@ fun PickupView(
     val error by viewModel.error.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var wayBillNo by remember { mutableStateOf("") }
+    var wayBillNoHidden by remember { mutableStateOf("") }
     val context = LocalContext.current
 
     val timerViewModel: TimerViewModel = hiltViewModel()
@@ -110,9 +114,11 @@ fun PickupView(
     var isKeyboardVisible by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
   //  var isInputEnabled by remember { mutableStateOf(true) }
- /*   LaunchedEffect(Unit) {
+     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
-    }*/
+         delay(10L)
+         keyboardController?.hide();
+    }
 
     /*LaunchedEffect(Unit) {
        delay(10000L)
@@ -133,16 +139,24 @@ fun PickupView(
         }
     }
 
-    var barcodeData by remember { mutableStateOf("") } // Temporary storage for barcode
-    val serialPattern = Regex("^\\d{13}-\\d{1}\$") // Regex pattern for valid barcode
+    LaunchedEffect(wayBillNoHidden) {
+        if (isValidSerialNumber(wayBillNoHidden)) {
+            viewModel.staffPickup(wayBillNoHidden)
+            wayBillNoHidden = ""
+        }
+    }
+
+    var barcodeData by remember { mutableStateOf("") }
+
 
     val interactionModifier = Modifier
         .fillMaxSize()
         .onKeyEvent { event ->
 
 
-            FileLogger.log(context, "PickupView", "onKeyEvent: ${event.nativeKeyEvent.keyCode}")
-            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+
+            FileLogger.log(context, "PickupView", "onKeyEvent: ${event.nativeKeyEvent.action} ${event.nativeKeyEvent.keyCode} ${event.nativeKeyEvent.unicodeChar.toChar()}");
+            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN || event.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
                 val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
 
                 if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
@@ -150,13 +164,9 @@ fun PickupView(
 
                     FileLogger.log(context, "PickupView", "Barcode data: $barcodeData")
 
+                    wayBillNoHidden =  barcodeData.trim()
 
-                    if (serialPattern.matches(barcodeData)) {
-                        viewModel.staffPickup(barcodeData)
-                        barcodeData = ""
-                    } else {
-                        FileLogger.log(context, "PickupView", "Invalid barcode: $barcodeData")
-                    }
+                    barcodeData = ""
                     true
                 } else {
                     barcodeData += unicodeChar
@@ -277,10 +287,11 @@ fun PickupView(
                             hintTextSize = (screenWidth.value * 0.035f).sp,
                             fontSize = (screenWidth.value * 0.035f).sp,
                             cornerRadius = (screenWidth.value * 0.06f),
-                           enabled = isKeyboardVisible,
+                           enabled = true,
                             modifier = Modifier
                                 .width(0.66 * screenWidth)
-                                .focusRequester(focusRequester),
+
+                            ,
                             trailingIcon = {
                                 val iconRes = if (isKeyboardVisible) R.drawable.keyboard_hide else R.drawable.keyboard_show
                                 Icon(
@@ -317,6 +328,10 @@ fun PickupView(
                                     false
                                 }*/
                         )
+
+
+
+
                         Spacer(modifier = Modifier.width(0.04*screenWidth))
                         Box(
                             modifier = Modifier
@@ -364,7 +379,33 @@ fun PickupView(
                         }
                     }
 
+                    OutlinedInputField(
+
+                        value = wayBillNoHidden,
+                        hintText = "XXXX-XXXX-XXXX",
+                        onValueChange = { newValue ->
+                            if (isLoading){
+                                wayBillNoHidden = ""
+                            }else{
+                                wayBillNoHidden = newValue
+                            }
+
+                        },
+                        hintTextSize = (screenWidth.value * 0.035f).sp,
+                        fontSize = (screenWidth.value * 0.035f).sp,
+                        cornerRadius = (screenWidth.value * 0.06f),
+                        enabled = true,
+                        modifier = Modifier
+                            .width(0.66 * screenWidth)
+                            .height(5.dp)
+                            .alpha(0f)
+                            .focusRequester(focusRequester)
+
+                    )
+
                 }
+
+
             }
 
 
