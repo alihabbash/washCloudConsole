@@ -72,24 +72,39 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
         boxSize: BoxSizeType,
         boxType: BoxType
     ) {
+
+        val existingLocker = _lockers.value.find { it.boxId == boxId }
+
         viewModelScope.launch(Dispatchers.IO) {
-            val locker = BoxDto(
-                orderSerial = "",
-                orderId = 0L,
-                boxId = boxId,
-                trnasDate = Date(),
-                branchId = branchId,
-                trnasType = TransactionType.DROP_OFF,
-                boxSize = boxSize,
-                boxType = boxType,
-                boxState = BoxState.AVAILABLE,
-                stationId = stationId,
-                portId = portId
-            )
-            boxDao.insertBox(locker)
-            fetchLockers()
+
+            if (existingLocker == null) {
+                val locker = BoxDto(
+                    orderSerial = "",
+                    orderId = 0L,
+                    boxId = boxId,
+                    trnasDate = Date(),
+                    branchId = branchId,
+                    trnasType = TransactionType.DROP_OFF,
+                    boxSize = boxSize,
+                    boxType = boxType,
+                    boxState = BoxState.AVAILABLE,
+                    stationId = stationId,
+                    portId = portId
+                )
+                boxDao.insertBox(locker)
+                fetchLockers()
+
+            }else{
+                _errorMessage.value = " تم الإضافة مسبقاً"
+                FileLogger.log(context, "Locker with box ID $boxId already exists. Ignoring insertion.", "LockerViewModel")
+            }
+
         }
 
+    }
+
+    fun resetInsertBoxes() {
+        _boxesToInsert.value = emptyList()
     }
 
     fun deleteLocker(lockerNumber: Int) {
@@ -142,7 +157,9 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
     fun loadCsvFile(context: Context, fileUri: Uri) {
         val boxes = mutableListOf<BoxDto>()
 
+
         try {
+            val existingBoxIds = _lockers.value.map { it.boxId }.toSet()
             val inputStream = context.contentResolver.openInputStream(fileUri)
             val bufferedReader = inputStream?.bufferedReader()
             bufferedReader?.useLines { lines ->
@@ -150,20 +167,26 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
                     .forEach { line ->
                         val columns = line.split(";")
                         if (columns.size == 12) {
-                            val box = BoxDto(
-                                orderSerial = "",
-                                orderId = 0L,
-                                boxId = columns[3].toLong(),
-                                trnasDate = Date(),
-                                branchId = columns[5].toLong(),
-                                trnasType = TransactionType.valueOf(columns[6]),
-                                boxSize = BoxSizeType.valueOf(columns[7]),
-                                boxType = BoxType.valueOf(columns[8]),
-                                boxState = BoxState.valueOf(columns[9]),
-                                stationId = columns[10].toLong(),
-                                portId = columns[11]
-                            )
-                            boxes.add(box)
+                            val boxId = columns[3].toLong()
+
+                            if (boxId !in existingBoxIds) {
+                                val box = BoxDto(
+                                    orderSerial = "",
+                                    orderId = 0L,
+                                    boxId = boxId,
+                                    trnasDate = Date(),
+                                    branchId = columns[5].toLong(),
+                                    trnasType = TransactionType.valueOf(columns[6]),
+                                    boxSize = BoxSizeType.valueOf(columns[7]),
+                                    boxType = BoxType.valueOf(columns[8]),
+                                    boxState = BoxState.valueOf(columns[9]),
+                                    stationId = columns[10].toLong(),
+                                    portId = columns[11]
+                                )
+                                boxes.add(box)
+                            } else {
+                                FileLogger.log(context, "Duplicate box ID $boxId found. Ignoring.", "LockerViewModel")
+                            }
                         }else{
                             _errorMessage.value = "Invalid CSV format."
                             FileLogger.log(context, "Invalid CSV format.", "LockerViewModel")
@@ -177,7 +200,7 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
         }
 
         if (boxes.isEmpty()) {
-            _errorMessage.value = "No boxes found in the CSV file."
+            _errorMessage.value = "لم يتم العثور على صناديق في ملف CSV او تم الإضافة مسبقاً"
             FileLogger.log(context, "No boxes found in the CSV file.", "LockerViewModel")
         }else{
             FileLogger.log(context, "Boxes found in the CSV file: ${boxes.size}", "LockerViewModel")

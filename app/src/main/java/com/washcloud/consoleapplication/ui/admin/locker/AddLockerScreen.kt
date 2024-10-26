@@ -99,8 +99,10 @@ fun AddLockerScreen(
     }
 
     LaunchedEffect(Unit) {
+        viewModel.resetInsertBoxes()
         showAlert = false
         operationDoneSuccessfully = false
+
 
     }
     Column(
@@ -360,6 +362,7 @@ fun AddLockerScreen(
                 viewModel.insertBoxes(boxes)
                 alertMessage = successMessage + " " + boxes.size + " " + LockerStr
                 showAlert = true
+
             }
 
 
@@ -445,6 +448,7 @@ fun AddLockerScreen(
                                 .clickable {
 
                                     if (operationDoneSuccessfully) {
+                                        viewModel.resetInsertBoxes()
                                         onBack()
                                     }
                                     showAlert = false
