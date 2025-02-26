@@ -60,7 +60,7 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
 
      fun fetchLockers() {
         viewModelScope.launch {
-            _lockers.value = boxDao.getAllBoxes().filter { it.boxType == BoxType.BOX }
+            _lockers.value = boxDao.getAllBoxes()
         }
     }
 
@@ -240,6 +240,31 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
                 sendCommand("com.washcloud.open_door", locker.stationId.toString(), locker.boxId.toString())
             }
         }
+    }
+
+
+     fun openConveyor(boxID: String) {
+     FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+        val intent = Intent("com.washcloud.conveyor_open").apply {
+            putExtra("conveyorNumber","0${boxID}");
+        }
+
+        context.sendBroadcast(intent)
+    }
+
+    fun openConveyorDoor() {
+       FileLogger.log(context, "LockerViewModel", "Sending command to open conveyor")
+        val intent = Intent("com.washcloud.conveyor_open_door").apply {
+        }
+
+        context.sendBroadcast(intent)
+    }
+
+    fun closeConveyorDoor() {
+        FileLogger.log(context, "LockerViewModel", "Sending command to close conveyor")
+        val intent = Intent("com.washcloud.conveyor_close").apply {
+        }
+        context.sendBroadcast(intent)
     }
 
 

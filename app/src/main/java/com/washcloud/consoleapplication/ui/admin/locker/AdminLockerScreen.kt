@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.times
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
@@ -149,15 +150,15 @@ fun AdminLockerScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    TextButton(stringResource(id = R.string.open_door)) { /* Handle Close Door */ }
+                    TextButton(stringResource(id = R.string.open_door)) { viewModel.openConveyorDoor() }
                     Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(stringResource(id = R.string.run)) { /* Handle Clear Status */ }
+                    TextButton(stringResource(id = R.string.run)) { viewModel.openConveyor(selectedConveyor) }
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    TextButton(stringResource(id = R.string.close_door)) { /* Handle Close Door */ }
+                    TextButton(stringResource(id = R.string.close_door)) { viewModel.closeConveyorDoor() }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(stringResource(id = R.string.clear_status)) { /* Handle Clear Status */ }
                 }
@@ -237,6 +238,7 @@ fun AdminLockerScreen(
                         rowItems.forEachIndexed { index, box ->
                             LockerGridItem(
                                 lockerNumber = box.boxId.toInt(),
+                                boxType = box.boxType.name,
                                 isOccupied = box.boxState == BoxState.OCCUPIED,
                                 onDeleteClick = { lockerNumber ->
                                     showConfirmationDialog(  sure_to_delete + " #$lockerNumber?", lockerNumber)
@@ -389,6 +391,7 @@ fun AdminLockerScreen(
 @Composable
 fun LockerGridItem(
     lockerNumber: Int,
+    boxType: String,
     isOccupied: Boolean,
     onDeleteClick: (Int) -> Unit,
     showErrorMessage: () -> Unit
@@ -427,7 +430,7 @@ fun LockerGridItem(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = lockerNumber.toString().padStart(2, '0'),
+                text = if(boxType == BoxType.BOX.name) lockerNumber.toString().padStart(2, '0') else  "C"+lockerNumber.toString().padStart(2, '0') ,
                 color = textColor,
                 style = TextStyle(fontSize = 28.sp)
             )
