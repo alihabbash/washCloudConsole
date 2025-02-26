@@ -17,6 +17,7 @@ import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
@@ -144,18 +145,18 @@ class PickupViewModel @Inject constructor(
     private fun deleteTransactionsByOrderSerial(order: BoxDto) {
         viewModelScope.launch {
            //transactionDao.deleteTransaction(order.id);
-            updateBoxState(order.boxId)
+            updateBoxState(order.boxId, order.boxType.name)
             FileLogger.log(context, "PickupViewModel", "Deleted transactions by id: $order")
 
         }
     }
 
-    private fun updateBoxState(boxId: Long) {
+    private fun updateBoxState(boxId: Long, boxType: String) {
 
         viewModelScope.launch(Dispatchers.IO) {
 
 
-            val box = boxDao.getBoxById(boxId)
+            val box = boxDao.getBoxById(boxId, boxType = boxType)
             if (box != null) {
                 val updatedBox = box.copy(boxState = BoxState.AVAILABLE, orderSerial = "-1")
                 boxDao.updateBox(updatedBox)

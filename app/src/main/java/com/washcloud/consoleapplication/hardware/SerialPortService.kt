@@ -6,6 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
+import com.washcloud.consoleapplication.hardware.CRC16Modbus.compute
+import com.washcloud.consoleapplication.hardware.CRC16Modbus.hexStringToByteArray
+import com.washcloud.consoleapplication.hardware.CRC16Modbus.toHex
 import com.washcloud.consoleapplication.utils.FileLogger
 import tp.xmaihh.serialport.SerialHelper
 import tp.xmaihh.serialport.bean.ComBean
@@ -16,6 +19,10 @@ import java.io.IOException
 
 class SerialPortService : Service() {
     private lateinit var serialHelper: SerialHelper
+    private lateinit var serialHelperConveyor: SerialHelper
+    private  lateinit var serialHelperConveyorDoor: SerialHelper
+    private  var position: Int = 0
+    private  val holeNumber: Int = 67
     private val buffer = StringBuilder()
 
     private val dataReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -29,6 +36,16 @@ class SerialPortService : Service() {
                 val stationId = intent.getStringExtra("stationId")
                 val boxId = intent.getStringExtra("boxId")
                 checkBox(boxId!!, stationId!!)
+            }else if (intent.action == "com.washcloud.conveyor_open") {
+
+              FileLogger.log(context, "SerialPortService", "Opening conveyor requested" )
+                val conveyorNumber = intent.getStringExtra("conveyorNumber")
+                openConveyor(conveyorNumber!!.toInt());
+
+            }else if (intent.action == "com.washcloud.conveyor_close") {
+                closeConveyorDoor()
+            } else if (intent.action == "com.washcloud.conveyor_open_door") {
+                 openConveyorDoor()
             }
         }
     }
@@ -38,6 +55,9 @@ class SerialPortService : Service() {
         val filter = IntentFilter()
         filter.addAction("com.washcloud.open_door")
         filter.addAction("com.washcloud.check_door")
+        filter.addAction("com.washcloud.conveyor_open")
+        filter.addAction("com.washcloud.conveyor_close")
+        filter.addAction("com.washcloud.conveyor_open_door")
 
        registerReceiver(dataReceiver, filter)
     }
@@ -93,8 +113,149 @@ class SerialPortService : Service() {
             e.printStackTrace()
             stopSelf(startId)
         }
+        serialHelperConveyorDoor = object : SerialHelper("dev/ttyS0", 9600) {
+            public override fun onDataReceived(comBean: ComBean) {
+                val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
+                val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
+                if (dataReceive == "FEFA8E0701050000000101B675") {
+                    FileLogger.log(applicationContext, "SerialPortService", "Conveyor door opened")
+                    broadcastIntent.putExtra("status", "open")
+                    sendBroadcast(broadcastIntent)
+                    openConveyorDoor()
+                } else if (dataReceive == "FEFA8E030205012F0B") {
+                    FileLogger.log(applicationContext, "SerialPortService", "Conveyor door closed")
+                    broadcastIntent.putExtra("status", "close")
+                    sendBroadcast(broadcastIntent)
+                    closeConveyorDoor()
+                }
+            }
+        }
+        serialHelper.setDataBits(8)
+        serialHelper.setStopBits(1)
+        serialHelper.setParity(0)
+        try {
+            serialHelper.open()
+        } catch (e: IOException) {
+        }
+
+        serialHelperConveyor = object : SerialHelper("dev/ttyS3", 19200) {
+            public override fun onDataReceived(comBean: ComBean) {
+                val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
+                val broadcastIntent = Intent("com.washcloud.conveyor_move")
+                if (dataReceive == "0110620100020FB0") {
+                    serialHelper.sendHex("01066002001037C6")
+                } else if (dataReceive == "01066002001037C6") {
+                    broadcastIntent.putExtra("status", "open")
+                    sendBroadcast(broadcastIntent)
+                } else if (dataReceive == "01066002002037D2") {
+                    position = 0
+                    broadcastIntent.putExtra("status", "close")
+                    sendBroadcast(broadcastIntent)
+                }
+            }
+        }
+        serialHelperConveyor.setDataBits(8)
+        serialHelperConveyor.setStopBits(1)
+        serialHelperConveyor.setParity(0)
+        try {
+            serialHelperConveyor.open()
+        } catch (e: IOException) {
+        } finally {
+            moveConveyorToZero()
+        }
 
         return START_STICKY
+    }
+
+    private fun openConveyorDoor() {
+        if (!serialHelperConveyorDoor.isOpen) {
+            try {
+                serialHelperConveyorDoor.open()
+            } catch (e: IOException) {
+            } finally {
+                serialHelperConveyorDoor.sendHex("FEFA040A01000105F4012003000068A2")
+            }
+        } else {
+            serialHelperConveyorDoor.sendHex("FEFA040A01000105F4012003000068A2")
+        }
+    }
+
+    private fun closeConveyorDoor() {
+        if (!serialHelperConveyorDoor.isOpen) {
+            try {
+                serialHelperConveyorDoor.open()
+            } catch (e: IOException) {
+            } finally {
+                serialHelperConveyorDoor.sendHex("FEFA040602000105E803E639")
+            }
+        } else {
+            serialHelperConveyorDoor.sendHex("FEFA040A01000105F4012003000068A2")
+        }
+    }
+
+    private fun openConveyor(conveyorNumber: Int) {
+
+        FileLogger.log(applicationContext, "SerialPortService", "Trying to open conveyor door $conveyorNumber")
+        if (!serialHelperConveyor.isOpen) {
+            try {
+                serialHelperConveyor.open()
+          FileLogger.log(applicationContext, "SerialPortService", "Opening conveyor door $conveyorNumber")
+            } catch (e: IOException) {
+            FileLogger.log(applicationContext, "SerialPortService", "Error opening conveyor door $conveyorNumber")
+            }
+            moveConveyor(conveyorNumber)
+        } else {
+            moveConveyor(conveyorNumber)
+        }
+    }
+
+    private fun moveConveyor(targetPoint: Int) {
+        FileLogger.log(applicationContext, "SerialPortService", "Moving conveyor to point $targetPoint")
+        val prefix = "01106201000204" + calculatePulseNumber(targetPoint * 3 - 1)
+        val data: ByteArray = hexStringToByteArray(prefix)
+        val crc: Int = compute(data)
+        serialHelperConveyor.sendHex(prefix + toHex(crc))
+    }
+
+    private fun calculatePulseNumber(targetPoint: Int): String {
+        FileLogger.log(applicationContext, "SerialPortService", "Calculating pulse number for point $targetPoint")
+        val pulsePerPoint = 20000
+
+        val pulseNumber = if (determineMovementDirection(targetPoint)) {
+            // Forward direction
+            pulsePerPoint * targetPoint
+        } else {
+            // Reverse direction with compensation offset
+            pulsePerPoint * targetPoint - 3000
+        }
+
+        FileLogger.log(applicationContext, "SerialPortService", "Pulse number for point $targetPoint is $pulseNumber")
+
+        return String.format("%08X", pulseNumber)
+    }
+
+    private fun moveConveyorToZero() {
+
+        FileLogger.log(applicationContext, "SerialPortService", "Moving conveyor to point 0")
+        if (!serialHelperConveyor.isOpen) {
+            try {
+                serialHelperConveyor.open()
+            } catch (e: IOException) {
+            }
+            serialHelperConveyor.sendHex("01066203025866E8")
+            serialHelperConveyor.sendHex("01066002002037D2")
+        } else {
+            serialHelperConveyor.sendHex("01066002002037D2")
+        }
+    }
+
+    private fun determineMovementDirection(targetPoint: Int): Boolean {
+            FileLogger.log(applicationContext, "SerialPortService", "Determining movement direction to point $targetPoint")
+        val forwardSteps = (targetPoint - position + holeNumber) % holeNumber
+        val reverseSteps = (position - targetPoint + holeNumber) % holeNumber
+
+        FileLogger.log(applicationContext, "SerialPortService", "Forward steps: $forwardSteps, Reverse steps: $reverseSteps determineMovementDirection  ${forwardSteps <= reverseSteps}")
+        return forwardSteps <= reverseSteps
     }
 
     private fun openBox(boxId: String, stationId: String) {

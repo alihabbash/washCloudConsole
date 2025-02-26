@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.times
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
@@ -112,56 +113,58 @@ fun AdminLockerScreen(
         dateAndTimeView(screenWidth = screenWidth)
         Spacer(modifier = Modifier.height(24.dp))
 
-//        Row(
-//            modifier = Modifier
-//                .padding(16.dp)
-//                .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-//                .background(Color.White, RoundedCornerShape(16.dp))
-//                .shadow(4.dp, RoundedCornerShape(16.dp))
-//                .padding(16.dp)
-//                .fillMaxWidth(),
-//            horizontalArrangement = Arrangement.SpaceBetween,
-//            verticalAlignment = Alignment.CenterVertically,
-//
-//        ) {
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement =  Arrangement.Center,
-//
-//            ) {
-//                Text(text = "Conveyor #", style = TextStyle(fontSize = 32.sp))
-//                Spacer(modifier = Modifier.width(8.dp))
-//                OutlinedInputField(
-//                    value = selectedConveyor,
-//                    hintText = "00",
-//                    onValueChange = { selectedConveyor = it },
-//                    enabled = true
-//                )
-//                Spacer(modifier = Modifier.width(16.dp))
-//
-//            }
-//            Spacer(modifier = Modifier.height(8.dp))
-//
-//            Column {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.Center,
-//                ) {
-//                    TextButton("Close Door") { /* Handle Close Door */ }
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    TextButton("Clear Status") { /* Handle Clear Status */ }
-//                }
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.Center,
-//                ) {
-//                    TextButton("Close Door") { /* Handle Close Door */ }
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    TextButton("Clear Status") { /* Handle Clear Status */ }
-//                }
-//            }
-//
-//        }
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+                .background(Color.White, RoundedCornerShape(16.dp))
+                .shadow(4.dp, RoundedCornerShape(16.dp))
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement =  Arrangement.Center,
+
+            ) {
+                Text(text = stringResource(id = R.string.conveyor), style = TextStyle(fontSize = 32.sp))
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedInputField(
+                    value = selectedConveyor,
+                    hintText = "00",
+                    onValueChange = { selectedConveyor = it },
+                    enabled = true,
+                    fontSize = (screenWidth.value * 0.032f).sp,
+                    hintTextSize = (screenWidth.value * 0.032f).sp,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TextButton(stringResource(id = R.string.open_door)) { viewModel.openConveyorDoor() }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(stringResource(id = R.string.run)) { viewModel.openConveyor(selectedConveyor) }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TextButton(stringResource(id = R.string.close_door)) { viewModel.closeConveyorDoor() }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(stringResource(id = R.string.clear_status)) { /* Handle Clear Status */ }
+                }
+            }
+
+        }
 
         Column(
             modifier = Modifier
@@ -226,7 +229,7 @@ fun AdminLockerScreen(
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn( modifier = Modifier
                 .fillMaxWidth()
-                .height(0.5 * screenHeight)) {
+                .height(0.45 * screenHeight)) {
                 items(lockers.chunked(10)) { rowItems ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -235,6 +238,7 @@ fun AdminLockerScreen(
                         rowItems.forEachIndexed { index, box ->
                             LockerGridItem(
                                 lockerNumber = box.boxId.toInt(),
+                                boxType = box.boxType.name,
                                 isOccupied = box.boxState == BoxState.OCCUPIED,
                                 onDeleteClick = { lockerNumber ->
                                     showConfirmationDialog(  sure_to_delete + " #$lockerNumber?", lockerNumber)
@@ -387,6 +391,7 @@ fun AdminLockerScreen(
 @Composable
 fun LockerGridItem(
     lockerNumber: Int,
+    boxType: String,
     isOccupied: Boolean,
     onDeleteClick: (Int) -> Unit,
     showErrorMessage: () -> Unit
@@ -425,7 +430,7 @@ fun LockerGridItem(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = lockerNumber.toString().padStart(2, '0'),
+                text = if(boxType == BoxType.BOX.name) lockerNumber.toString().padStart(2, '0') else  "C"+lockerNumber.toString().padStart(2, '0') ,
                 color = textColor,
                 style = TextStyle(fontSize = 28.sp)
             )

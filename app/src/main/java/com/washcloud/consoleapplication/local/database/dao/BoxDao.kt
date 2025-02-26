@@ -31,7 +31,9 @@ interface BoxDao {
     @Query("UPDATE boxes SET box_state = :newState WHERE box_id = :boxId")
     suspend fun updateBoxState(boxId: Long, newState: BoxState)
 
-    @Query("SELECT * FROM boxes WHERE box_id = :boxId LIMIT 1")
-    suspend fun getBoxById(boxId: Long): BoxDto?
+    @Query("SELECT * FROM boxes WHERE box_id = :boxId AND box_type = :boxType LIMIT 1")
+    suspend fun getBoxById(boxId: Long, boxType: String): BoxDto?
+
+
 
 }

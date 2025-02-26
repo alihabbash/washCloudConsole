@@ -10,6 +10,7 @@ import android.os.Looper
 import android.util.Log
 import android.webkit.URLUtil
 import android.widget.Toast
+import androidx.compose.ui.text.capitalize
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,6 +24,7 @@ import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.BRANCH_ID
@@ -47,6 +49,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Url
 import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -151,7 +154,7 @@ class MainAdViewModel @Inject constructor(
 
 
 
-    fun handCheckDoorStatusResponse(stationId: String?, boxId: String?,  isOpen: Boolean) {
+    fun handCheckDoorStatusResponse(stationId: String? = "", boxId: String? = "",  isOpen: Boolean) {
         _isDoorOpen.value = isOpen
         FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
        // Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
@@ -166,7 +169,11 @@ class MainAdViewModel @Inject constructor(
     fun checkOperationType() {
         setCloseDoor()
         if (_apiResponse.value?.data?.firstOrNull()?.operationType == "PickUp") {
-            requestCustomerPickup()
+            requestCustomerPickup(_apiResponse.value?.data?.firstOrNull()?.type?.replaceFirstChar {
+                if (it.isLowerCase())
+                    it.titlecase(Locale.getDefault())
+                else it.toString()
+            } ?: BoxType.BOX.name)
         } else {
 
             requestCustomerDropOff()
@@ -210,7 +217,7 @@ class MainAdViewModel @Inject constructor(
     }
 
 
-    private fun requestCustomerPickup() {
+    private fun requestCustomerPickup(boxType: String) {
         viewModelScope.launch {
             try {
                 FileLogger.log(context,  "setCustomerPickup"   ,"Fetching data from ${CUSTOMER_PICKUP}")
@@ -224,7 +231,7 @@ class MainAdViewModel @Inject constructor(
 
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
-                    updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE, "-1")
+                    updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE, "-1", boxType)
                     FileLogger.log(context,  "setCustomerPickup"   ,"Response: ${response.body()}")
                     _showDialog.value = null
                     response.body()?.let {
@@ -267,7 +274,16 @@ class MainAdViewModel @Inject constructor(
                             _apiResponse.value = it
                             _showDialog.value = it.data?.firstOrNull()
                             _isDoorOpen.value = true
-                            sendCommand("02", "0"+it.data?.firstOrNull()?.doorNo)
+                            if(it.data?.firstOrNull()?.type?.replaceFirstChar {
+                                    if (it.isLowerCase())
+                                        it.titlecase(Locale.getDefault())
+                                    else it.toString()
+                                } == BoxType.CONVEYOR.name){
+                                openConveyor(("0"+it.data?.firstOrNull()?.doorNo));
+                            }else{
+                                sendCommand("02", "0"+it.data?.firstOrNull()?.doorNo)
+                            }
+
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
@@ -338,15 +354,15 @@ class MainAdViewModel @Inject constructor(
 
 
             val boxId = data.doorNo.toLong()
-            updateBoxStats(boxId, BoxState.OCCUPIED, data.wayBillNo)
+            updateBoxStats(boxId, BoxState.OCCUPIED, data.wayBillNo, boxType = BoxType.BOX.name)
 
         }
     }
 
 
-    private fun  updateBoxStats(boxId: Long, state: BoxState, order_serial: String) {
+    private fun  updateBoxStats(boxId: Long, state: BoxState, order_serial: String, boxType: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val box = boxDao.getBoxById(boxId)
+            val box = boxDao.getBoxById(boxId, boxType)
             if (box != null) {
                 val updatedBox = box.copy(boxState = state, orderSerial = order_serial, trnasType = TransactionType.DROP_OFF)
                 boxDao.updateBox(updatedBox)
@@ -374,6 +390,14 @@ class MainAdViewModel @Inject constructor(
 
         }
 
+    }
+    private fun openConveyor(boxID: String) {
+      FileLogger.log(context,  "openConveyor"   ,"Sending command to open conveyor")
+        val intent = Intent("com.washcloud.conveyor_open").apply {
+            putExtra("conveyorNumber", boxID)
+        }
+
+        context.sendBroadcast(intent)
     }
 
 

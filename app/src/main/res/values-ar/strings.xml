@@ -112,4 +112,9 @@
     <string name="dropoff_clothes">إيداع الملابس</string>
     <string name="locker_pickup_message">رقم الخزانة: %1$s\nيرجى استلام ملابسك من الخزانة.</string>
     <string name="locker_dropoff_message">رقم الخزانة: %1$s\nيرجى إيداع ملابسك في الخزانة.</string>
+    <string name="close_door">أغلاق الباب</string>
+    <string name="open_door">افتح الباب</string>
+    <string name="run">تشغيل</string>
+    <string name="clear_status">إزالة الحالة</string>
+    <string name="conveyor">كونفاير</string>
 </resources>

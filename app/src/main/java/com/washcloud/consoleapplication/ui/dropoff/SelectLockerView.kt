@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +50,7 @@ import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.pickup.isValidSerialNumber
@@ -159,7 +161,7 @@ fun SelectLockerView(
              //viewModel.setShowAlert()
              alertTitle = dropOffClothesText
              alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
-             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString())
+             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name)
              wayBillNo = ""
              selectedLocker = null
 
@@ -183,7 +185,7 @@ fun SelectLockerView(
         } else {
             alertTitle = dropOffClothesText
             alertMessage = dropOffMessageTemplate.format(selectedLocker!!.boxId)
-            viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString())
+            viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name)
             wayBillNoHidden = ""
             selectedLocker = null
         }
@@ -284,7 +286,7 @@ fun SelectLockerView(
 
                         } else if (isValidSerialNumber(wayBillNo)) {
                             Log.e("DropOffViewModel", "Drop off clothes in locker ${selectedLocker!!.boxId}.")
-                            viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString())
+                            viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name)
 
                             alertTitle = dropOffClothesText
                             alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
@@ -460,7 +462,7 @@ fun LockerListGrouped(
     onLockerSelect: (BoxDto) -> Unit,
 
 ) {
-    val lockersGrouped = lockers.groupBy { it.boxSize }
+    val lockersGrouped = lockers.groupBy { it.boxSize to it.boxType}
     val itemWidth = (screenWidth - 144.dp) / 3
 
     Column(
@@ -490,15 +492,18 @@ fun LockerListGrouped(
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn(
+        LazyRow(
             modifier = Modifier
                 .padding(16.dp)
                 .padding(horizontal = 16.dp)
         ) {
-            lockersGrouped.forEach { (boxSize, lockers) ->
+            lockersGrouped.forEach { (key, lockers) ->
+
+                val (boxSize, boxType) = key
                 item {
                     LockerTypeItem(
                         boxSize = boxSize,
+                        boxType = boxType,
                         availableNumber = lockers.count { it.boxState == BoxState.AVAILABLE },
                         itemWidth = itemWidth,
                         onSelect = {
@@ -519,6 +524,7 @@ fun LockerListGrouped(
 @Composable
 fun LockerTypeItem(
     boxSize: BoxSizeType,
+    boxType: BoxType,
     availableNumber: Int,
     itemWidth: Dp,
     onSelect: () -> Unit,
@@ -526,7 +532,7 @@ fun LockerTypeItem(
     selectedLocker: BoxDto? = null
 
 ) {
-    val backgroundColor = if (selectedLocker?.boxSize == boxSize ) secondaryColor.copy(alpha = 0.3F) else Color.White
+    val backgroundColor = if (selectedLocker?.boxSize == boxSize && selectedLocker?.boxType == boxType ) secondaryColor.copy(alpha = 0.3F) else Color.White
     val borderColor = secondaryColor
 
     Row(
@@ -553,7 +559,7 @@ fun LockerTypeItem(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = boxSize.name.getAbbreviation(),
+                text = if (boxType == BoxType.BOX) boxSize.name.getAbbreviation() else boxType.name.getAbbreviation(),
                 color = Color.White,
                 style = TextStyle(
                     fontSize = (screenWidth.value * 0.03f).sp,
@@ -566,7 +572,7 @@ fun LockerTypeItem(
 
         Column(horizontalAlignment = Alignment.Start) {
             Text(
-                text = boxSize.name,
+                text = if(boxType == BoxType.BOX) boxSize.name else boxType.name,
                 style = TextStyle(
                     fontSize = (screenWidth.value * 0.032f).sp,
                     fontWeight = FontWeight.Bold,

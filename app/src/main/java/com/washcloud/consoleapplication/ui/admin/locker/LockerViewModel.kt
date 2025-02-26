@@ -109,8 +109,8 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
 
     fun deleteLocker(lockerNumber: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val box = boxDao.getBoxById(lockerNumber.toLong())
-            if (box?.boxState == BoxState.AVAILABLE) {
+            val box = boxDao.getBoxById(lockerNumber.toLong(), boxType = BoxType.BOX.toString())
+            if (box?.boxState == BoxState.AVAILABLE && box.boxType == BoxType.BOX) {
                 boxDao.deleteBox(lockerNumber.toLong())
                 fetchLockers()
             } else {
@@ -228,7 +228,7 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
 
     fun openAllEmptyLockers() {
         viewModelScope.launch {
-            lockers.value.filter { it.boxState == BoxState.AVAILABLE }.forEach { locker ->
+            lockers.value.filter { it.boxState == BoxState.AVAILABLE && it.boxType == BoxType.BOX}.forEach { locker ->
                 sendCommand("com.washcloud.open_door", locker.stationId.toString(), locker.boxId.toString())
             }
         }
@@ -236,10 +236,35 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
 
     fun openAllOccupiedLockers() {
         viewModelScope.launch {
-            lockers.value.filter { it.boxState == BoxState.OCCUPIED }.forEach { locker ->
+            lockers.value.filter { it.boxState == BoxState.OCCUPIED && it.boxType == BoxType.BOX }.forEach { locker ->
                 sendCommand("com.washcloud.open_door", locker.stationId.toString(), locker.boxId.toString())
             }
         }
+    }
+
+
+     fun openConveyor(boxID: String) {
+     FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+        val intent = Intent("com.washcloud.conveyor_open").apply {
+            putExtra("conveyorNumber","0${boxID}");
+        }
+
+        context.sendBroadcast(intent)
+    }
+
+    fun openConveyorDoor() {
+       FileLogger.log(context, "LockerViewModel", "Sending command to open conveyor")
+        val intent = Intent("com.washcloud.conveyor_open_door").apply {
+        }
+
+        context.sendBroadcast(intent)
+    }
+
+    fun closeConveyorDoor() {
+        FileLogger.log(context, "LockerViewModel", "Sending command to close conveyor")
+        val intent = Intent("com.washcloud.conveyor_close").apply {
+        }
+        context.sendBroadcast(intent)
     }
 
 
