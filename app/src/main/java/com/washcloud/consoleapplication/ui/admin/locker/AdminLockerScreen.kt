@@ -112,56 +112,58 @@ fun AdminLockerScreen(
         dateAndTimeView(screenWidth = screenWidth)
         Spacer(modifier = Modifier.height(24.dp))
 
-//        Row(
-//            modifier = Modifier
-//                .padding(16.dp)
-//                .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-//                .background(Color.White, RoundedCornerShape(16.dp))
-//                .shadow(4.dp, RoundedCornerShape(16.dp))
-//                .padding(16.dp)
-//                .fillMaxWidth(),
-//            horizontalArrangement = Arrangement.SpaceBetween,
-//            verticalAlignment = Alignment.CenterVertically,
-//
-//        ) {
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement =  Arrangement.Center,
-//
-//            ) {
-//                Text(text = "Conveyor #", style = TextStyle(fontSize = 32.sp))
-//                Spacer(modifier = Modifier.width(8.dp))
-//                OutlinedInputField(
-//                    value = selectedConveyor,
-//                    hintText = "00",
-//                    onValueChange = { selectedConveyor = it },
-//                    enabled = true
-//                )
-//                Spacer(modifier = Modifier.width(16.dp))
-//
-//            }
-//            Spacer(modifier = Modifier.height(8.dp))
-//
-//            Column {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.Center,
-//                ) {
-//                    TextButton("Close Door") { /* Handle Close Door */ }
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    TextButton("Clear Status") { /* Handle Clear Status */ }
-//                }
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.Center,
-//                ) {
-//                    TextButton("Close Door") { /* Handle Close Door */ }
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    TextButton("Clear Status") { /* Handle Clear Status */ }
-//                }
-//            }
-//
-//        }
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+                .background(Color.White, RoundedCornerShape(16.dp))
+                .shadow(4.dp, RoundedCornerShape(16.dp))
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement =  Arrangement.Center,
+
+            ) {
+                Text(text = stringResource(id = R.string.conveyor), style = TextStyle(fontSize = 32.sp))
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedInputField(
+                    value = selectedConveyor,
+                    hintText = "00",
+                    onValueChange = { selectedConveyor = it },
+                    enabled = true,
+                    fontSize = (screenWidth.value * 0.032f).sp,
+                    hintTextSize = (screenWidth.value * 0.032f).sp,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TextButton(stringResource(id = R.string.open_door)) { /* Handle Close Door */ }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(stringResource(id = R.string.run)) { /* Handle Clear Status */ }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TextButton(stringResource(id = R.string.close_door)) { /* Handle Close Door */ }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(stringResource(id = R.string.clear_status)) { /* Handle Clear Status */ }
+                }
+            }
+
+        }
 
         Column(
             modifier = Modifier
@@ -226,7 +228,7 @@ fun AdminLockerScreen(
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn( modifier = Modifier
                 .fillMaxWidth()
-                .height(0.5 * screenHeight)) {
+                .height(0.45 * screenHeight)) {
                 items(lockers.chunked(10)) { rowItems ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),

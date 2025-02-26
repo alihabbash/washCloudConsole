@@ -120,10 +120,10 @@ fun PickupView(
          keyboardController?.hide();
     }
 
-    /*LaunchedEffect(Unit) {
-       delay(10000L)
-        wayBillNo = "4442408170007-1"
-    }*/
+//    LaunchedEffect(Unit) {
+//       delay(10000L)
+//        wayBillNo = "4442502250004-1"
+//    }
 
 
 //    LaunchedEffect(isInputEnabled) {

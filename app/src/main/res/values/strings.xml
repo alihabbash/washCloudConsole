@@ -111,4 +111,9 @@
     <string name="dropoff_clothes">Drop Off Clothes</string>
     <string name="locker_pickup_message">Locker Number: %1$s\nPlease pick up your clothes from the locker.</string>
     <string name="locker_dropoff_message">Locker Number: %1$s\nPlease drop off your clothes in the locker.</string>
+    <string name="close_door">Close Door</string>
+    <string name="open_door">Open Door</string>
+    <string name="run">Run</string>
+    <string name="clear_status">Clear Status</string>
+    <string name="conveyor">Conveyor</string>
 </resources>

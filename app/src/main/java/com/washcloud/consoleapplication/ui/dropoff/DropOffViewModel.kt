@@ -12,6 +12,7 @@ import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxState
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
@@ -86,7 +87,7 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
-    fun dropoff(orderSerial: String, boxID: String){
+    fun dropoff(orderSerial: String, boxID: String, boxType: String){
 
         println("orderSerial: $orderSerial")
         FileLogger.log(context, "DropOffViewModel", "confirm Staff Drop-off button clicked: $orderSerial")
@@ -112,9 +113,16 @@ class DropOffViewModel @Inject constructor(
                 _staffDropoffResponse.value = response
                 _isSuccessed.value = true
                 setShowAlert()
-                sendCommand("02", "0$boxID")
+
+                if(boxType == BoxType.BOX.name){
+                    sendCommand("02", "0$boxID")
+                }else{
+                    openConveyor(boxID)
+                }
+
+
                 FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
-                updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP)
+                updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType)
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "DropOffViewModel", "Error in Staff Dropoff: ${e.message}")
@@ -123,7 +131,7 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
-    fun recall(orderSerial: String, boxID: String){
+    fun recall(orderSerial: String, boxID: String, boxType: String){
         println("orderSerial: $orderSerial")
         FileLogger.log(context, "DropOffViewModel", "confirm Staff Recall button clicked: $orderSerial")
         FileLogger.log(context, "DropOffViewModel", "doorNo: $boxID")
@@ -144,7 +152,7 @@ class DropOffViewModel @Inject constructor(
                 _isSuccessed.value = true
                 sendCommand("02", "0$boxID")
                 FileLogger.log(context, "DropOffViewModel", "Staff Recall successful: $response")
-                updateBoxState(boxID, orderSerial, BoxState.AVAILABLE, TransactionType.DROP_OFF)
+                updateBoxState(boxID, orderSerial, BoxState.AVAILABLE, TransactionType.DROP_OFF, boxType)
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "DropOffViewModel", "Error in Staff Recall: ${e.message}")
@@ -162,13 +170,22 @@ class DropOffViewModel @Inject constructor(
         context.sendBroadcast(intent)
     }
 
+    private fun openConveyor(boxID: String) {
+     FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+        val intent = Intent("com.washcloud.conveyor_open").apply {
+            putExtra("conveyorNumber","0${boxID}");
+        }
 
-    private fun updateBoxState(boxId: String, orderSerial: String, boxState: BoxState, trnasType: TransactionType) {
+        context.sendBroadcast(intent)
+    }
+
+
+    private fun updateBoxState(boxId: String, orderSerial: String, boxState: BoxState, trnasType: TransactionType, boxType: String) {
 
         viewModelScope.launch(Dispatchers.IO) {
 
 
-            val box = boxDao.getBoxById(boxId.toLong())
+            val box = boxDao.getBoxById(boxId.toLong(), boxType)
             Log.e("box before updated ", box.toString());
             if (box != null) {
                 val updatedBox = box.copy(boxState = boxState, trnasType = trnasType, orderSerial = orderSerial)

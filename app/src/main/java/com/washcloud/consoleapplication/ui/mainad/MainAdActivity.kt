@@ -119,6 +119,27 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
+    private  val converyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            FileLogger.log(context,  "onReceive"   ,"onReceive intent: ${intent.action}")
+            Log.e("MainAdViewModel", "onReceive intent: ${intent.action}")
+            if (intent.action == "com.washcloud.conveyor_door_status") {
+
+                val status = intent.getStringExtra("status")
+                FileLogger.log(context,  "MainActivity onReceive com.washcloud.conveyor_door_status"   ,"status: $status");
+                val isOpen = status == "open"
+                viewModel.handCheckDoorStatusResponse(isOpen = isOpen);
+            }
+        }
+    }
+
+    private  fun registerConveyorReceiver() {
+        println("registerReceiver com.washcloud.conveyor_door_status")
+        val filter = IntentFilter("com.washcloud.conveyor_door_status")
+        FileLogger.log(this,  "registerReceiver"   ,"registerReceiver com.washcloud.conveyor_door_status")
+        registerReceiver(converyReceiver, filter)
+    }
+
     private fun registerReceiver() {
         println("registerReceiver com.washcloud.door_status")
         val filter = IntentFilter("com.washcloud.door_status")
@@ -220,6 +241,7 @@ class MainAdActivity : ComponentActivity() {
             Log.e("MainAdActivity", "No barcode received")
         }
 
+        registerConveyorReceiver()
         registerReceiver()
         startPortService()
 
@@ -238,7 +260,7 @@ class MainAdActivity : ComponentActivity() {
 
 //        GlobalScope.launch {
 //            delay(1000)
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442409210001-1/21222213701A-001"
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442502250005-1/21222213701A-001"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.fetchDirectly(url)
 //
