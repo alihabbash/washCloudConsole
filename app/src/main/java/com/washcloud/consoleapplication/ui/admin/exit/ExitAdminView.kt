@@ -10,10 +10,14 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,6 +26,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -178,6 +183,8 @@ fun MenuRow(
     }
 }
 
+
+
 @Composable
 fun MenuItem(
     screenWidth: Dp,
@@ -186,13 +193,25 @@ fun MenuItem(
     icon: Int,
     action: () -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        CustomAlertDialog(
+            showDialog = showDialog,
+            onConfirm = {
+                action() // Execute your action
+                showDialog = false
+            },
+            onDismiss = { showDialog = false }
+        )
+    }
     Column(
         modifier = Modifier
             .width(0.4 * screenWidth)
             .height(0.23 * screenHeight)
             .border(1.dp, secondaryColor, RoundedCornerShape(24.dp))
             .padding(top = 24.dp, bottom = 24.dp)
-            .clickable { action() },
+            .clickable { showDialog = true },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -222,6 +241,99 @@ fun MenuItem(
                 fontSize = (screenWidth.value * 0.035f).sp
             ),
             textAlign = TextAlign.Center
+        )
+    }
+
+
+}
+
+@Composable
+fun CustomAlertDialog(
+    showDialog: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        val configuration = LocalConfiguration.current
+        val screenWidth = configuration.screenWidthDp.dp
+        val screenHeight = configuration.screenHeightDp.dp
+
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            title = {
+                Text(
+                    text = stringResource(id = R.string.confirmation),
+                    style = TextStyle(
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryDark
+                    )
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.confirmation_message),
+                        style = TextStyle(
+                            fontSize = 32.sp,
+                            color = primaryDark
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Custom Confirm & Cancel Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(secondaryColor)
+                                .clickable { onConfirm() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.yes),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Gray)
+                                .clickable { onDismiss() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.no),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {}, // Remove default confirm button
+            dismissButton = {} // Remove default dismiss button
         )
     }
 }

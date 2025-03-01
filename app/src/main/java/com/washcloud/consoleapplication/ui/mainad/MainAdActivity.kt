@@ -67,10 +67,11 @@ import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
-import com.washcloud.consoleapplication.local.preferences.API_KEY
+
 import com.washcloud.consoleapplication.local.preferences.IS_REBOOT_ENABLED_KEY
+import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.local.preferences.REBOOT_TIME_KEY
-import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.blueGradient
@@ -181,6 +182,9 @@ class MainAdActivity : ComponentActivity() {
         FileLogger.log(this, "MainAdActivity", "Reboot time: $rebootTime, isRebootEnabled: $isRebootEnabled")
         startRebootWatcher()
     }
+
+
+
 
     private fun startRebootWatcher() {
         // Check every minute if it's time to reboot
@@ -452,7 +456,8 @@ class MainAdActivity : ComponentActivity() {
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
-                                                    text = "Time remaining: $timer seconds",
+                                                    text = stringResource(id = R.string.time_remaining) + ": " + timer + " " + stringResource(
+                                                        id = R.string.seconds),
                                                     style = TextStyle(
                                                         color = Color.White,
                                                         fontSize = (screenWidth.value * 0.024f).sp,
@@ -534,8 +539,8 @@ class MainAdActivity : ComponentActivity() {
 
     private fun scheduleHeartbeat(context: Context) {
         val intent = Intent(context, HeartbeatReceiver::class.java).apply {
-            putExtra("API_KEY", API_KEY)
-            putExtra("TERMINAL_SN", TERMINAL_SN)
+            putExtra("API_KEY", PrefsManager.getApiKey(context))
+            putExtra("TERMINAL_SN", PrefsManager.getTerminalSN(context))
         }
 
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)

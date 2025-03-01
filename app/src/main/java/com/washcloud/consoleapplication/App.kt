@@ -10,8 +10,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 import androidx.work.*
-import com.washcloud.consoleapplication.local.preferences.API_KEY
-import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+
 
 import java.util.concurrent.TimeUnit
 
