@@ -271,7 +271,7 @@ class MainAdActivity : ComponentActivity() {
 ////            delay(30000)
 ////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
 ////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
-////            viewModel.fetchDirectly(url2)
+////            viewModel.fetchfetchDirectlyDirectly(url2)
 //
 //        }
 
