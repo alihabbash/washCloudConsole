@@ -295,18 +295,20 @@ class MainAdActivity : ComponentActivity() {
 
                     LaunchedEffect(apiData) {
                         apiData?.let {
+                            val box = viewModel.getBox(it.doorNo)
                             if(isDoorOpen) {
                                 showDialog = true
                                 FileLogger.log(context, "MainAdActivity", "Showing dialog for door 0${it.doorNo} and station 02")
 
+
                                 while (isDoorOpen && apiData != null) {
                                     delay(3000L)
-                                    viewModel.sendCheckDoorStatusCommand("02", "0${it.doorNo}")
-                                    FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${it.doorNo} and station 02")
+                                    viewModel.sendCheckDoorStatusCommand(box?.stationId.toString(), "0${it.doorNo}")
+                                    FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${it.doorNo} and station ${box?.stationId}")
                                 }
 
                             }else{
-                                FileLogger.log(context, "MainAdActivity", "Door is closed for that not showing dialog door 0${it.doorNo} and station 02")
+                                FileLogger.log(context, "MainAdActivity", "Door is closed for that not showing dialog door 0${it.doorNo} and station ${box?.stationId}")
                             }
                         }
                     }

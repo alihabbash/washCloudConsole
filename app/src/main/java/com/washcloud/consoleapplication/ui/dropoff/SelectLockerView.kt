@@ -161,7 +161,7 @@ fun SelectLockerView(
              //viewModel.setShowAlert()
              alertTitle = dropOffClothesText
              alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
-             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name)
+             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
              wayBillNo = ""
              selectedLocker = null
 
@@ -185,7 +185,7 @@ fun SelectLockerView(
         } else {
             alertTitle = dropOffClothesText
             alertMessage = dropOffMessageTemplate.format(selectedLocker!!.boxId)
-            viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name)
+            viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
             wayBillNoHidden = ""
             selectedLocker = null
         }
@@ -286,7 +286,7 @@ fun SelectLockerView(
 
                         } else if (isValidSerialNumber(wayBillNo)) {
                             Log.e("DropOffViewModel", "Drop off clothes in locker ${selectedLocker!!.boxId}.")
-                            viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name)
+                            viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
 
                             alertTitle = dropOffClothesText
                             alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")

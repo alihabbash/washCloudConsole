@@ -218,9 +218,15 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
             }
         }
     }
-    fun sendCommand(action: String, stationId: String, boxId: String) {
+    fun sendCommand(action: String, boxId: String) {
         val intent = Intent(action).apply {
-            putExtra("stationId", stationId)
+            val stationId =   lockers.value
+                .filter {it.boxType == BoxType.BOX}
+                .filter { it.boxId == boxId.toLong() }
+                .map { it.stationId }
+                .firstOrNull()
+            FileLogger.log(context, "LockerViewModel", "Sending command to open door: stationId: $stationId, boxId: $boxId")
+            putExtra("stationId", stationId.toString())
             putExtra("boxId", boxId)
         }
         context.sendBroadcast(intent)
@@ -229,7 +235,7 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
     fun openAllEmptyLockers() {
         viewModelScope.launch {
             lockers.value.filter { it.boxState == BoxState.AVAILABLE && it.boxType == BoxType.BOX}.forEach { locker ->
-                sendCommand("com.washcloud.open_door", locker.stationId.toString(), locker.boxId.toString())
+                sendCommand("com.washcloud.open_door", locker.boxId.toString())
             }
         }
     }
@@ -237,7 +243,7 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
     fun openAllOccupiedLockers() {
         viewModelScope.launch {
             lockers.value.filter { it.boxState == BoxState.OCCUPIED && it.boxType == BoxType.BOX }.forEach { locker ->
-                sendCommand("com.washcloud.open_door", locker.stationId.toString(), locker.boxId.toString())
+                sendCommand("com.washcloud.open_door", locker.boxId.toString())
             }
         }
     }

@@ -96,7 +96,7 @@ fun DropOffView(
 
                 }else{
                     val currentTransaction = transactions[selectedIndex]
-                    viewModel.recall(currentTransaction.orderSerial, currentTransaction.boxId.toString(), currentTransaction.boxType.name)
+                    viewModel.recall(currentTransaction.orderSerial, currentTransaction.boxId.toString(), currentTransaction.boxType.name, currentTransaction.stationId.toString())
                 }
 
 

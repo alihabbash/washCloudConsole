@@ -86,12 +86,12 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
-    fun dropoff(orderSerial: String, boxID: String, boxType: String){
+    fun dropoff(orderSerial: String, boxID: String, boxType: String, stationId: String){
 
         println("orderSerial: $orderSerial")
         FileLogger.log(context, "DropOffViewModel", "confirm Staff Drop-off button clicked: $orderSerial")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
-        FileLogger.log(context, "DropOffViewModel", "doorNo: $boxID")
+        FileLogger.log(context, "DropOffViewModel", "doorNo: $boxID  stationId: $stationId")
 
 
 
@@ -114,7 +114,8 @@ class DropOffViewModel @Inject constructor(
                 setShowAlert()
 
                 if(boxType == BoxType.BOX.name){
-                    sendCommand("02", "0$boxID")
+
+                    sendCommand(stationId, "0$boxID")
                 }else{
                     openConveyor(boxID)
                 }
@@ -130,7 +131,7 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
-    fun recall(orderSerial: String, boxID: String, boxType: String){
+    fun recall(orderSerial: String, boxID: String, boxType: String, stationId: String){
         println("orderSerial: $orderSerial")
         FileLogger.log(context, "DropOffViewModel", "confirm Staff Recall button clicked: $orderSerial")
         FileLogger.log(context, "DropOffViewModel", "doorNo: $boxID")
@@ -149,7 +150,7 @@ class DropOffViewModel @Inject constructor(
                 val response = staffRecallUseCase(request)
                 _staffRecallResponse.value = response
                 _isSuccessed.value = true
-                sendCommand("02", "0$boxID")
+                sendCommand(stationId, "0$boxID")
                 FileLogger.log(context, "DropOffViewModel", "Staff Recall successful: $response")
                 updateBoxState(boxID, orderSerial, BoxState.AVAILABLE, TransactionType.DROP_OFF, boxType)
             } catch (e: Exception) {
