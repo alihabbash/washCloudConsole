@@ -71,4 +71,16 @@ class PrefsManager constructor(
     override suspend fun clearKey(key: String) {
         prefsEditor.remove(key)
     }
+    companion object {
+        fun getApiKey(context: Context): String {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getString(API_KEY_KEY, "cb71a12703264742b5b8") ?: ""
+        }
+
+        fun getTerminalSN(context: Context): String {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getString(TERMINAL_SN_KEY, "21222213701A-001") ?: ""
+        }
+    }
+
 }

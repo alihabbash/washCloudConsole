@@ -3,7 +3,6 @@ package com.washcloud.consoleapplication.remote.config
 import android.content.Context
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.IPrefsManager
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,7 +21,7 @@ class HeadersInterceptors @Inject constructor(
     override fun intercept(chain: Interceptor.Chain): Response {
 
         var newRequest: Request = chain.request().newBuilder()
-            .addHeader("Apikey", API_KEY)
+            .addHeader("Apikey", PrefsManager.getApiKey(context))
             .build()
         var response = chain.proceed(newRequest)
 

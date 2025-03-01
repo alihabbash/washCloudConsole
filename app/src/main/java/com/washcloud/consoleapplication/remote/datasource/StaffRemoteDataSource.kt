@@ -1,6 +1,8 @@
 package com.washcloud.consoleapplication.remote.datasource
 
-import com.washcloud.consoleapplication.local.preferences.API_KEY
+import android.content.Context
+import com.washcloud.consoleapplication.local.preferences.PrefsManager
+
 import com.washcloud.consoleapplication.remote.config.IApiProvider
 import com.washcloud.consoleapplication.remote.config.IRetrofitService
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffRequest
@@ -9,18 +11,20 @@ import com.washcloud.consoleapplication.remote.model.dropoff.StaffRecallRequest
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffRecallResponse
 import com.washcloud.consoleapplication.remote.model.login.StaffLoginRequest
 import com.washcloud.consoleapplication.remote.model.login.StaffLoginResponse
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class StaffRemoteDataSource @Inject constructor(
     private val retrofitService: IRetrofitService,
-    private val apiProvider: IApiProvider
+    private val apiProvider: IApiProvider,
+    @ApplicationContext private val context: Context
 ) : IStaffRemoteDataSource {
     override suspend fun login(account: String, password: String): StaffLoginResponse {
         return apiProvider.proceedRequest {
             retrofitService.staffLogin(
                     account = account,
                     password = password,
-                    apiKey = API_KEY,
+                    apiKey = PrefsManager.getApiKey(context),
                     type = ""
             )
         }

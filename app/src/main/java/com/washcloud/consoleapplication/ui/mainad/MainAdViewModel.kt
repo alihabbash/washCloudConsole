@@ -26,9 +26,8 @@ import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
-import com.washcloud.consoleapplication.local.preferences.API_KEY
 import com.washcloud.consoleapplication.local.preferences.BRANCH_ID
-import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.config.BASE_URL
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_DROP_OFF
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_PICKUP
@@ -188,9 +187,9 @@ class MainAdViewModel @Inject constructor(
             try {
                 FileLogger.log(context,  "setCustomerDropOff"   ,"Fetching data from ${CUSTOMER_DROP_OFF}")
                 val response: Response<ApiResponse> = apiService.customerDropOff(
-                    apiKey = API_KEY,
+                    apiKey = PrefsManager.getApiKey(context),
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
-                    terminalSn = TERMINAL_SN,
+                    terminalSn = PrefsManager.getTerminalSN(context),
                     doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
                     type = 1
                 )
@@ -222,9 +221,9 @@ class MainAdViewModel @Inject constructor(
             try {
                 FileLogger.log(context,  "setCustomerPickup"   ,"Fetching data from ${CUSTOMER_PICKUP}")
                 val response: Response<ApiResponse> = apiService.customerPickup(
-                    apiKey = API_KEY,
+                    apiKey = PrefsManager.getApiKey(context),
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
-                    terminalSn = TERMINAL_SN,
+                    terminalSn = PrefsManager.getTerminalSN(context),
                     doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
                     type = 1
                 )
@@ -261,7 +260,7 @@ class MainAdViewModel @Inject constructor(
         if (URLUtil.isValidUrl(barcode)) {
             viewModelScope.launch {
                 try {
-                    val fullUrl = "$barcode?apiKey=$API_KEY"
+                    val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
 
 
 
@@ -291,7 +290,7 @@ class MainAdViewModel @Inject constructor(
                         FileLogger.log(context,  "handleBarcode"   ,"Error fetching data from $fullUrl: $errorBody")
                     }
                 } catch (e: Exception) {
-                    val fullUrl = "$barcode?apiKey=$API_KEY"
+                    val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
                     _error.value = "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
                     FileLogger.log(context,  "handleBarcode"   ,"Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}")
                 }
@@ -311,7 +310,7 @@ class MainAdViewModel @Inject constructor(
     fun fetchDirectly(url: String) {
         viewModelScope.launch {
             try {
-                val fullUrl = "$url?apiKey=$API_KEY"
+                val fullUrl = "$url?apiKey=${PrefsManager.getApiKey(context)}"
                 Log.d("MainAdViewModel", "Fetching data from $fullUrl")
 
                 val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
@@ -330,7 +329,7 @@ class MainAdViewModel @Inject constructor(
                     _error.value = "Error fetching data from $fullUrl: $errorBody"
                 }
             } catch (e: Exception) {
-                val fullUrl = "$url?apiKey=$API_KEY"
+                val fullUrl = "$url?apiKey=${PrefsManager.getApiKey(context)}"
                 _error.value = "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
             }
         }

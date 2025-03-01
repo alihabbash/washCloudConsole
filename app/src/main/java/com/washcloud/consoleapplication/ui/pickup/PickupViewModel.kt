@@ -19,8 +19,7 @@ import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
-import com.washcloud.consoleapplication.local.preferences.API_KEY
-import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupResponse
 import com.washcloud.consoleapplication.remote.usecase.StaffPickupUseCase
@@ -71,7 +70,7 @@ class PickupViewModel @Inject constructor(
         viewModelScope.launch {
             if (customPrinterHelper.OpenDevice()) {
                 FileLogger.log(context, "PickupViewModel", "Printing transaction: $transaction")
-                customPrinterHelper.PrintOrderQr(transaction.orderSerial, TERMINAL_SN)
+                customPrinterHelper.PrintOrderQr(transaction.orderSerial, PrefsManager.getTerminalSN(context))
                 //customPrinterHelper.closeDevice()
             } else {
               FileLogger.log(context, "PickupViewModel", "Error opening print device")
@@ -105,9 +104,9 @@ class PickupViewModel @Inject constructor(
             return
         }
         val request = StaffPickupRequest(
-            apiKey = API_KEY,
+            apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
-            terminalSn = TERMINAL_SN,
+            terminalSn = PrefsManager.getTerminalSN(context),
             type = 1,
             doorNo = doorNo.toInt()
         )

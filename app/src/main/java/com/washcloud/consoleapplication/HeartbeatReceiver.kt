@@ -12,8 +12,7 @@ import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
-import com.washcloud.consoleapplication.local.preferences.API_KEY
-import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.model.heartbeat.HeartbeatRequest
 import com.washcloud.consoleapplication.remote.usecase.SendHeartbeatUseCase
 import com.washcloud.consoleapplication.ui.mainad.HeartbeatViewModel
@@ -53,8 +52,8 @@ class HeartbeatReceiver : BroadcastReceiver() {
 
                     val response = sendHeartbeatUseCase(
                         SendHeartbeatUseCase.Params(
-                            apiKey = API_KEY,
-                            terminalSn = TERMINAL_SN,
+                            apiKey = PrefsManager.getApiKey(context),
+                            terminalSn = PrefsManager.getTerminalSN(context),
                             boxes = boxes
                         )
                     )
