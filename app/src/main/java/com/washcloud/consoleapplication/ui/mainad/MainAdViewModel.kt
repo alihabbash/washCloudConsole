@@ -19,8 +19,10 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
+import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
@@ -123,7 +125,6 @@ class MainAdViewModel @Inject constructor(
 ) : AndroidViewModel(application)  {
 
     private  val context: Context = getApplication<Application>().applicationContext
-
     private val apiService: ApiService = RetrofitClient.apiService
     private val _apiResponse = MutableLiveData<ApiResponse>()
     val apiResponse: LiveData<ApiResponse> get() = _apiResponse
@@ -152,6 +153,10 @@ class MainAdViewModel @Inject constructor(
     }*/
 
 
+    suspend fun getBox(boxId: String): BoxDto? {
+        val box = boxDao.getBoxById(boxId.toLong(), BoxType.BOX.name)
+        return box
+    }
 
     fun handCheckDoorStatusResponse(stationId: String? = "", boxId: String? = "",  isOpen: Boolean) {
         _isDoorOpen.value = isOpen
@@ -281,7 +286,7 @@ class MainAdViewModel @Inject constructor(
                                 } == BoxType.CONVEYOR.name){
                                 openConveyor(("0"+it.data?.firstOrNull()?.doorNo));
                             }else{
-                                sendCommand("02", "0"+it.data?.firstOrNull()?.doorNo)
+                                sendCommand( "0"+it.data?.firstOrNull()?.doorNo)
                             }
 
                         }
@@ -375,14 +380,15 @@ class MainAdViewModel @Inject constructor(
         }
     }
 
-   private fun sendCommand(stationId: String, boxId: String) {
+   private fun sendCommand(boxId: String) {
 
         viewModelScope.launch {
 
+            val box = boxDao.getBoxById(boxId.toLong(), BoxType.BOX.name)
             delay(1000L)
-            FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: $stationId, boxId: $boxId")
+            FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: ${box?.stationId}, boxId: $boxId")
             val intent = Intent("com.washcloud.open_door").apply {
-                putExtra("stationId", stationId)
+                putExtra("stationId", box?.stationId)
                 putExtra("boxId", boxId)
             }
 

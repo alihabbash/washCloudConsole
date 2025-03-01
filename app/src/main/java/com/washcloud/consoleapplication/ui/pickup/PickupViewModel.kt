@@ -96,6 +96,7 @@ class PickupViewModel @Inject constructor(
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId}")
         val doorNo = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId
+        val stationId = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.stationId
 
         if (doorNo == null) {
             _error.value = "Door number not found"
@@ -118,7 +119,7 @@ class PickupViewModel @Inject constructor(
                 val response = staffPickupUseCase(request)
                 _staffPickupResponse.value = response
                 _isSuccessed.value = true
-                sendCommand("02", "0$doorNo")
+                sendCommand(stationId.toString(), "0$doorNo")
                 FileLogger.log(context, "PickupViewModel", "Staff Pickup successful: $response")
                 deleteTransactionsByOrderSerial(_transactions.value.first { it.orderSerial == orderSerial })
             } catch (e: Exception) {
