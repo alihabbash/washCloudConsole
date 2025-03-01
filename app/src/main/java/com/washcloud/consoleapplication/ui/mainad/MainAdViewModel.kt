@@ -155,9 +155,10 @@ class MainAdViewModel @Inject constructor(
 
     fun handCheckDoorStatusResponse(stationId: String? = "", boxId: String? = "",  isOpen: Boolean) {
         _isDoorOpen.value = isOpen
+        FileLogger.log(context,  "handCheckDoorStatusResponse with order"   ,"apiResponse.value?.data?.firstOrNull() ${apiResponse.value?.data?.firstOrNull()}")
         FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
        // Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
-        if(!_isDoorOpen.value){
+        if(!_isDoorOpen.value && apiResponse.value?.data?.firstOrNull()?.operationType != null){
             checkOperationType()
 
         }
