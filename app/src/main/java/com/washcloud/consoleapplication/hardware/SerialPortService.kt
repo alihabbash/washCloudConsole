@@ -43,8 +43,10 @@ class SerialPortService : Service() {
                 openConveyor(conveyorNumber!!.toInt());
 
             }else if (intent.action == "com.washcloud.conveyor_close") {
+                FileLogger.log(context, "SerialPortService", "close door conveyor requested" )
                 closeConveyorDoor()
             } else if (intent.action == "com.washcloud.conveyor_open_door") {
+                FileLogger.log(context, "SerialPortService", "open door conveyor requested" )
                  openConveyorDoor()
             }
         }
@@ -132,13 +134,15 @@ class SerialPortService : Service() {
                 }
             }
         }
-        serialHelper.setDataBits(8)
-        serialHelper.setStopBits(1)
-        serialHelper.setParity(0)
+        serialHelperConveyorDoor.setDataBits(8)
+        serialHelperConveyorDoor.setStopBits(1)
+        serialHelperConveyorDoor.setParity(0)
         try {
-            serialHelper.open()
+            serialHelperConveyorDoor.open()
         } catch (e: IOException) {
             FileLogger.log(applicationContext, "onStartCommand ttyS0 error", e.message.toString())
+            e.printStackTrace()
+            stopSelf(startId)
         }
 
         serialHelperConveyor = object : SerialHelper("dev/ttyS3", 19200) {
@@ -165,6 +169,8 @@ class SerialPortService : Service() {
             serialHelperConveyor.open()
         } catch (e: IOException) {
             FileLogger.log(applicationContext, "onStartCommand ttyS3 error", e.message.toString())
+            e.printStackTrace()
+            stopSelf(startId)
         } finally {
             moveConveyorToZero()
         }
@@ -181,6 +187,7 @@ class SerialPortService : Service() {
             } finally {
                 FileLogger.log(applicationContext, "openConveyorDoor","connection open and send open" )
                 serialHelperConveyorDoor.sendHex("FEFA040A01000105F4012003000068A2")
+
             }
         } else {
             FileLogger.log(applicationContext, "openConveyorDoor","connection open before" )
