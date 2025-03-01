@@ -117,4 +117,10 @@
     <string name="run">تشغيل</string>
     <string name="clear_status">إزالة الحالة</string>
     <string name="conveyor">كونفاير</string>
+    <string name="confirmation">تأكيد</string>
+    <string name="confirmation_message">هل أنت متأكد أنك تريد متابعة هذا الإجراء؟</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="time_remaining">الوقت المتبقي</string>
+    <string name="seconds">ثواني</string>
 </resources>

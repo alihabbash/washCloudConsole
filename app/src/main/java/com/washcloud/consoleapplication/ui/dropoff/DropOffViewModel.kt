@@ -14,8 +14,7 @@ import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
-import com.washcloud.consoleapplication.local.preferences.API_KEY
-import com.washcloud.consoleapplication.local.preferences.TERMINAL_SN
+import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffRequest
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffResponse
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffRecallRequest
@@ -97,9 +96,9 @@ class DropOffViewModel @Inject constructor(
 
 
         val request = StaffDropoffRequest(
-            apiKey = API_KEY,
+            apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
-            terminalSn = TERMINAL_SN,
+            terminalSn = PrefsManager.getApiKey(context),
             type = 1,
             doorNo = boxID.toInt()
         )
@@ -137,9 +136,9 @@ class DropOffViewModel @Inject constructor(
         FileLogger.log(context, "DropOffViewModel", "doorNo: $boxID")
 
         val request = StaffRecallRequest(
-            apiKey = API_KEY,
+            apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
-            terminalSn = TERMINAL_SN,
+            terminalSn = PrefsManager.getTerminalSN(context),
             type = 2,
             doorNo = boxID.toInt()
         )

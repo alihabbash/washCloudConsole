@@ -116,4 +116,10 @@
     <string name="run">Run</string>
     <string name="clear_status">Clear Status</string>
     <string name="conveyor">Conveyor</string>
+    <string name="confirmation">Confirmation</string>
+    <string name="confirmation_message">Are you sure you want to proceed with this action?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="time_remaining">Time remaining</string>
+    <string name="seconds">Seconds</string>
 </resources>

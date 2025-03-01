@@ -22,7 +22,7 @@ class SerialPortService : Service() {
     private lateinit var serialHelperConveyor: SerialHelper
     private  lateinit var serialHelperConveyorDoor: SerialHelper
     private  var position: Int = 0
-    private  val holeNumber: Int = 67
+    private  val holeNumber: Int = 201
     private val buffer = StringBuilder()
 
     private val dataReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -38,14 +38,14 @@ class SerialPortService : Service() {
                 checkBox(boxId!!, stationId!!)
             }else if (intent.action == "com.washcloud.conveyor_open") {
 
-              FileLogger.log(context, "SerialPortService", "Opening conveyor requested" )
+                FileLogger.log(context, "SerialPortService", "Opening conveyor requested" )
                 val conveyorNumber = intent.getStringExtra("conveyorNumber")
                 openConveyor(conveyorNumber!!.toInt());
 
             }else if (intent.action == "com.washcloud.conveyor_close") {
                 closeConveyorDoor()
             } else if (intent.action == "com.washcloud.conveyor_open_door") {
-                 openConveyorDoor()
+                openConveyorDoor()
             }
         }
     }
@@ -59,47 +59,47 @@ class SerialPortService : Service() {
         filter.addAction("com.washcloud.conveyor_close")
         filter.addAction("com.washcloud.conveyor_open_door")
 
-       registerReceiver(dataReceiver, filter)
+        registerReceiver(dataReceiver, filter)
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         serialHelper = object : SerialHelper("dev/ttyS1", 9600) {
             public override fun onDataReceived(comBean: ComBean) {
 
-                    val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
+                val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
 
+                FileLogger.log(
+                    applicationContext,
+                    "SerialPortService",
+                    "Received data (hex): $dataReceive"
+                )
+                //  FileLogger.log(applicationContext, "SerialPortService", "Received data (raw bytes): ${comBean.bRec.contentToString()}")
+                val broadcastIntent = Intent("com.washcloud.door_status")
+                if (dataReceive.startsWith("900785")) {
                     FileLogger.log(
                         applicationContext,
-                        "SerialPortService",
-                        "Received data (hex): $dataReceive"
+                        "SerialPortService 900785",
+                        "Received data: $dataReceive"
                     )
-                    //  FileLogger.log(applicationContext, "SerialPortService", "Received data (raw bytes): ${comBean.bRec.contentToString()}")
-                    val broadcastIntent = Intent("com.washcloud.door_status")
-                    if (dataReceive.startsWith("900785")) {
-                        FileLogger.log(
-                            applicationContext,
-                            "SerialPortService 900785",
-                            "Received data: $dataReceive"
-                        )
-                        broadcastIntent.putExtra("stationId", dataReceive.substring(6, 8))
-                        broadcastIntent.putExtra("boxId", dataReceive.substring(8, 10))
-                        val isOpen = dataReceive.substring(10, 12) == "01"
-                        broadcastIntent.putExtra("status", isOpen)
-                        broadcastIntent.putExtra("data", dataReceive)
-                        sendBroadcast(broadcastIntent)
-                    } else if (dataReceive.startsWith("900792")) {
-                        FileLogger.log(
-                            applicationContext,
-                            "SerialPortService 900792",
-                            "Received data: $dataReceive"
-                        )
-                        broadcastIntent.putExtra("stationId", dataReceive.substring(6, 8))
-                        broadcastIntent.putExtra("boxId", dataReceive.substring(10, 12))
-                        val isOpen = dataReceive.substring(8, 10) == "01"
-                        broadcastIntent.putExtra("status", isOpen)
-                        broadcastIntent.putExtra("data", dataReceive)
-                        sendBroadcast(broadcastIntent)
-                    }
+                    broadcastIntent.putExtra("stationId", dataReceive.substring(6, 8))
+                    broadcastIntent.putExtra("boxId", dataReceive.substring(8, 10))
+                    val isOpen = dataReceive.substring(10, 12) == "01"
+                    broadcastIntent.putExtra("status", isOpen)
+                    broadcastIntent.putExtra("data", dataReceive)
+                    sendBroadcast(broadcastIntent)
+                } else if (dataReceive.startsWith("900792")) {
+                    FileLogger.log(
+                        applicationContext,
+                        "SerialPortService 900792",
+                        "Received data: $dataReceive"
+                    )
+                    broadcastIntent.putExtra("stationId", dataReceive.substring(6, 8))
+                    broadcastIntent.putExtra("boxId", dataReceive.substring(10, 12))
+                    val isOpen = dataReceive.substring(8, 10) == "01"
+                    broadcastIntent.putExtra("status", isOpen)
+                    broadcastIntent.putExtra("data", dataReceive)
+                    sendBroadcast(broadcastIntent)
+                }
 
 
             }
@@ -108,16 +108,18 @@ class SerialPortService : Service() {
         serialHelper.setStopBits(1)
         serialHelper.setParity(0)
         try {
-          serialHelper.open()
+            serialHelper.open()
         } catch (e: IOException) {
+            FileLogger.log(applicationContext, "onStartCommand ttyS1", e.message.toString())
             e.printStackTrace()
             stopSelf(startId)
         }
         serialHelperConveyorDoor = object : SerialHelper("dev/ttyS0", 9600) {
             public override fun onDataReceived(comBean: ComBean) {
                 val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
+                FileLogger.log(applicationContext, "onDataReceived ttyS0",dataReceive.toString() )
                 val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
-                if (dataReceive == "FEFA8E0701050000000101B675") {
+                if (dataReceive == "FEFA8E070105000000010175B6") {
                     FileLogger.log(applicationContext, "SerialPortService", "Conveyor door opened")
                     broadcastIntent.putExtra("status", "open")
                     sendBroadcast(broadcastIntent)
@@ -136,11 +138,13 @@ class SerialPortService : Service() {
         try {
             serialHelper.open()
         } catch (e: IOException) {
+            FileLogger.log(applicationContext, "onStartCommand ttyS0 error", e.message.toString())
         }
 
         serialHelperConveyor = object : SerialHelper("dev/ttyS3", 19200) {
             public override fun onDataReceived(comBean: ComBean) {
                 val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
+                FileLogger.log(applicationContext, "onDataReceived ttyS3",dataReceive.toString() )
                 val broadcastIntent = Intent("com.washcloud.conveyor_move")
                 if (dataReceive == "0110620100020FB0") {
                     serialHelper.sendHex("01066002001037C6")
@@ -160,6 +164,7 @@ class SerialPortService : Service() {
         try {
             serialHelperConveyor.open()
         } catch (e: IOException) {
+            FileLogger.log(applicationContext, "onStartCommand ttyS3 error", e.message.toString())
         } finally {
             moveConveyorToZero()
         }
@@ -172,10 +177,13 @@ class SerialPortService : Service() {
             try {
                 serialHelperConveyorDoor.open()
             } catch (e: IOException) {
+                FileLogger.log(applicationContext, "openConveyorDoor error", e.message.toString())
             } finally {
+                FileLogger.log(applicationContext, "openConveyorDoor","connection open and send open" )
                 serialHelperConveyorDoor.sendHex("FEFA040A01000105F4012003000068A2")
             }
         } else {
+            FileLogger.log(applicationContext, "openConveyorDoor","connection open before" )
             serialHelperConveyorDoor.sendHex("FEFA040A01000105F4012003000068A2")
         }
     }
@@ -186,9 +194,11 @@ class SerialPortService : Service() {
                 serialHelperConveyorDoor.open()
             } catch (e: IOException) {
             } finally {
+                FileLogger.log(applicationContext, "closeConveyorDoor","connection open and send open" )
                 serialHelperConveyorDoor.sendHex("FEFA040602000105E803E639")
             }
         } else {
+            FileLogger.log(applicationContext, "closeConveyorDoor","connection open before" )
             serialHelperConveyorDoor.sendHex("FEFA040A01000105F4012003000068A2")
         }
     }
@@ -199,9 +209,9 @@ class SerialPortService : Service() {
         if (!serialHelperConveyor.isOpen) {
             try {
                 serialHelperConveyor.open()
-          FileLogger.log(applicationContext, "SerialPortService", "Opening conveyor door $conveyorNumber")
+                FileLogger.log(applicationContext, "SerialPortService", "Opening conveyor door $conveyorNumber")
             } catch (e: IOException) {
-            FileLogger.log(applicationContext, "SerialPortService", "Error opening conveyor door $conveyorNumber")
+                FileLogger.log(applicationContext, "SerialPortService", "Error opening conveyor door $conveyorNumber")
             }
             moveConveyor(conveyorNumber)
         } else {
@@ -212,23 +222,29 @@ class SerialPortService : Service() {
     private fun moveConveyor(targetPoint: Int) {
         FileLogger.log(applicationContext, "SerialPortService", "Moving conveyor to point $targetPoint")
         val prefix = "01106201000204" + calculatePulseNumber(targetPoint * 3 - 1)
+        FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor to prefix $prefix")
         val data: ByteArray = hexStringToByteArray(prefix)
         val crc: Int = compute(data)
+        FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor to hex ${prefix + toHex(crc)}")
         serialHelperConveyor.sendHex(prefix + toHex(crc))
+        FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor to location 01066002001037C6")
+        serialHelperConveyor.sendHex("01066002001037C6")
     }
 
     private fun calculatePulseNumber(targetPoint: Int): String {
         FileLogger.log(applicationContext, "SerialPortService", "Calculating pulse number for point $targetPoint")
         val pulsePerPoint = 20000
 
-        val pulseNumber = if (determineMovementDirection(targetPoint)) {
-            // Forward direction
-            pulsePerPoint * targetPoint
-        } else {
-            // Reverse direction with compensation offset
-            pulsePerPoint * targetPoint - 3000
-        }
-
+//        val pulseNumber = if (determineMovementDirection(targetPoint)) {
+//            FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor Forward direction")
+//            // Forward direction
+//            pulsePerPoint * targetPoint
+//        } else {
+//            // Reverse direction with compensation offset
+//            FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor Reverse direction with compensation offset")
+//            pulsePerPoint * targetPoint - 3000
+//        }
+        val pulseNumber =  pulsePerPoint * targetPoint
         FileLogger.log(applicationContext, "SerialPortService", "Pulse number for point $targetPoint is $pulseNumber")
 
         return String.format("%08X", pulseNumber)
@@ -250,7 +266,7 @@ class SerialPortService : Service() {
     }
 
     private fun determineMovementDirection(targetPoint: Int): Boolean {
-            FileLogger.log(applicationContext, "SerialPortService", "Determining movement direction to point $targetPoint")
+        FileLogger.log(applicationContext, "SerialPortService", "Determining movement direction to point $targetPoint")
         val forwardSteps = (targetPoint - position + holeNumber) % holeNumber
         val reverseSteps = (position - targetPoint + holeNumber) % holeNumber
 
