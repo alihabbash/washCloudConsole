@@ -1,7 +1,12 @@
 package com.washcloud.consoleapplication.ui.common
 
+import android.app.Application
 import android.os.CountDownTimer
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.preference.PreferenceManager
+import com.washcloud.consoleapplication.local.preferences.DELAY_MILLIS_KEY
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -11,10 +16,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
+@HiltViewModel
+class TimerViewModel @Inject constructor(
 
-class TimerViewModel @Inject constructor() : ViewModel() {
+    application: Application
+) : AndroidViewModel(application) {
 
     private val _timerText = MutableStateFlow("")
+    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
     val timerText = _timerText.asStateFlow()
     private var timer: CountDownTimer? = null
     private var remainingTime: Long = 0
@@ -26,10 +35,15 @@ class TimerViewModel @Inject constructor() : ViewModel() {
 
     fun startTimeWatcher() {
         cancelTimer() //
-        remainingTime = 1000 * 60 * 2 //
+        remainingTime = getStoredDelayTime()
         timerPaused = false
         createTimer(remainingTime)
 
+    }
+
+    private fun getStoredDelayTime(): Long {
+        val delayString = sharedPreferences.getString(DELAY_MILLIS_KEY, "600000") ?: "600000"
+        return delayString.toLongOrNull() ?: 600000L
     }
 
     private fun createTimer(timeInMillis: Long) {

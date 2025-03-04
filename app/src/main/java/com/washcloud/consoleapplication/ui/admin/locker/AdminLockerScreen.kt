@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,9 +35,11 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.times
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
@@ -44,6 +47,8 @@ import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.dimBackground
+import com.washcloud.consoleapplication.utils.primaryDark
+import kotlinx.coroutines.delay
 
 @Composable
 fun AdminLockerScreen(
@@ -73,6 +78,13 @@ fun AdminLockerScreen(
     var lockerToDelete by remember { mutableStateOf<Int?>(null) }
     var confirmationMessage by remember { mutableStateOf("") }
 
+
+    var showStatusDialog by remember { mutableStateOf(false) }
+    val lockerStatuses by viewModel.lockerStatuses.collectAsState(initial = emptyList())
+
+
+
+
     val interactionModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(onTap = {
             timerViewModel.pauseTimer()
@@ -91,6 +103,11 @@ fun AdminLockerScreen(
     LaunchedEffect(Unit) {
         viewModel.fetchLockers()
     }
+
+//    LaunchedEffect(Unit) {
+//        delay(10000)
+//        viewModel.sendMockDoorStatusBrodcast();
+//    }
 
     Column(
         modifier = Modifier
@@ -224,7 +241,11 @@ fun AdminLockerScreen(
             ) {
                 TextButton(stringResource(id = R.string.open_all_empty_lockers), secondaryColor) { viewModel.openAllEmptyLockers() }
                 TextButton(stringResource(id = R.string.open_all_accuity_lockers), Color.Red) {  viewModel.openAllOccupiedLockers()}
-                TextButton(stringResource(id = R.string.check_locker_status), secondaryColor) {  }
+                TextButton(stringResource(id = R.string.check_locker_status), secondaryColor) {
+                  //  lockerStatuses = emptyList()
+                    viewModel.checkAllLockerStatuses()
+                    showStatusDialog = true
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn( modifier = Modifier
@@ -272,6 +293,17 @@ fun AdminLockerScreen(
                 style = TextStyle(fontSize = 50.sp)
             )
         }
+
+
+        LockerStatusDialog(
+            showDialog = showStatusDialog,
+            lockerStatuses = lockerStatuses,
+            onDismiss = {
+                viewModel.clearLockerStatuses()
+                showStatusDialog = false
+            }
+        )
+
 
         Spacer(modifier = Modifier.weight(1f))
         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
@@ -476,4 +508,79 @@ fun TextButton(text: String, bgColor: Color = Color(0xFF1DA0B4), onClick: () -> 
         )
     }
 }
+
+@Composable
+fun LockerStatusDialog(
+    showDialog: Boolean,
+    lockerStatuses: List<Pair<String, Boolean>>,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        val configuration = LocalConfiguration.current
+        val screenWidth = configuration.screenWidthDp.dp
+
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            title = {
+                Text(
+                    text = stringResource(id = R.string.locker_status),
+                    style = TextStyle(
+                        fontSize = 42.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryDark,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    lockerStatuses.forEachIndexed { index, (boxId, isOpen) ->
+                        Text(
+                            text = "${stringResource(id = R.string.box_id)} $boxId: ${if (isOpen) stringResource(id = R.string.opened) else stringResource(id = R.string.closed)}",
+                            style = TextStyle(
+                                fontSize = 36.sp,
+                                color = if (isOpen) secondaryColor else Color.Red,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp, vertical = 8.dp)
+                            .background(Color(0xFF1DA0B4), RoundedCornerShape(16.dp))
+                            .clickable {
+                                onDismiss()
+
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.ok),
+                            style = TextStyle(
+                                color = Color.White,
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {}
+        )
+    }
+}
+
 

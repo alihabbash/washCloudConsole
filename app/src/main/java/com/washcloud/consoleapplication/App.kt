@@ -1,6 +1,7 @@
 package com.washcloud.consoleapplication
 
 import android.app.Application
+import android.view.View
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
@@ -25,5 +26,6 @@ class App : Application() {
 
         MainActivity.dLocale = Locale("ar")
         MainAdActivity.dLocale = Locale("ar")
+
     }
 }

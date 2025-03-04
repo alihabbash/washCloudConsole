@@ -8,6 +8,7 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.KeyEvent
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -111,6 +112,13 @@ class MainActivity : ComponentActivity() {
         setAdminPassword()
         loadPhoneNumber()
 
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+
         if(dLocale == null) {
             dLocale = Locale("ar")
         }
@@ -192,6 +200,7 @@ class MainActivity : ComponentActivity() {
     }
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
 
+        FileLogger.log(this, "MainActivity", "keyCode $keyCode")
         return if (keyCode == KeyEvent.KEYCODE_ENTER) {
             Log.e("MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
             FileLogger.log(this, "MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")

@@ -49,7 +49,7 @@ class PCSettingsViewModel @Inject constructor(
             apiKey.value = sharedPreferences.getString(API_KEY_KEY, "cb71a12703264742b5b8") ?: ""
             terminalSn.value = sharedPreferences.getString(TERMINAL_SN_KEY, "21222213701A-001") ?: ""
             branchId.value = sharedPreferences.getString(BRANCH_ID_KEY, "28") ?: ""
-            delayMillis.value = sharedPreferences.getString(DELAY_MILLIS_KEY, "10_000") ?: ""
+            delayMillis.value = sharedPreferences.getString(DELAY_MILLIS_KEY, "600000") ?: ""
 
             serverOption.value = sharedPreferences.getString(SERVER_OPTION, BASE_URL_DEV) ?: BASE_URL_DEV
             customServer.value = sharedPreferences.getString(CUSTOM_SERVER, "") ?: ""

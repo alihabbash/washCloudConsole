@@ -122,4 +122,7 @@
     <string name="no">No</string>
     <string name="time_remaining">Time remaining</string>
     <string name="seconds">Seconds</string>
+    <string name="locker_status">Locker Status</string>
+    <string name="opened">Opened</string>
+    <string name="closed">Closed</string>
 </resources>
