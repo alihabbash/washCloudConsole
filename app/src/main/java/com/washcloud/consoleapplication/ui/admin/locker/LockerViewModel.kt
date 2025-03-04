@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,7 +29,10 @@ import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
+import com.washcloud.consoleapplication.repository.BroadcastReceiverRepository
 import com.washcloud.consoleapplication.utils.FileLogger
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -37,7 +41,10 @@ import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
-class LockerViewModel @Inject constructor(application: Application) : AndroidViewModel(application) {
+class LockerViewModel @Inject constructor(
+    application: Application,
+    private val broadcastReceiverRepository: BroadcastReceiverRepository
+) : AndroidViewModel(application) {
 
     private val context: Context = getApplication<Application>().applicationContext
 
@@ -53,12 +60,88 @@ class LockerViewModel @Inject constructor(application: Application) : AndroidVie
     val errorMessage: LiveData<String> = _errorMessage
 
 
+    private val _lockerStatuses = MutableStateFlow<List<Pair<String, Boolean>>>(emptyList())
+    val lockerStatuses: StateFlow<List<Pair<String, Boolean>>> = _lockerStatuses.asStateFlow()
+
+
     init {
         fetchLockers()
+        registerLockerStatusReceiver()
 
     }
 
-     fun fetchLockers() {
+    private fun registerLockerStatusReceiver() {
+        val filter = IntentFilter().apply {
+            addAction("com.washcloud.door_status")
+        }
+        broadcastReceiverRepository.registerReceiver(filter)
+
+        viewModelScope.launch {
+            broadcastReceiverRepository.broadcastFlow.collectLatest { intent ->
+                handleBroadcastIntent(intent)
+            }
+        }
+    }
+
+    private fun handleBroadcastIntent(intent: Intent) {
+        println("LockerViewModel: Received broadcast intent: ${intent.action}")
+        when (intent.action) {
+            "com.washcloud.door_status" -> {
+                val isOpen = intent.getBooleanExtra("status", false)
+                val stationId = intent.getStringExtra("stationId")
+                val boxId = intent.getStringExtra("boxId")
+              println("LockerViewModel: Station ID: $stationId, Box ID: $boxId, Door is open: $isOpen")
+                FileLogger.log(context, "LocketViewModel", "LockerViewModel: Station ID: $stationId, Box ID: $boxId, Door is open: $isOpen")
+
+                _lockerStatuses.value = _lockerStatuses.value.toMutableList().apply {
+                    removeAll { it.first == boxId }
+                    add((boxId to isOpen) as Pair<String, Boolean>)
+                }
+
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        broadcastReceiverRepository.unregisterReceiver()
+    }
+
+
+     fun sendMockDoorStatusBrodcast(boxId: String) {
+        val intent = Intent("com.washcloud.door_status").apply {
+            putExtra("stationId", "02")
+            putExtra("boxId", boxId)
+            putExtra("status", boxId.toInt()%2 ==0)
+            putExtra("data", "900785010101")
+        }
+        Log.e("LockersViewModel", "sendDoorStatusBrodcast: ${intent.action}")
+        context.sendBroadcast(intent)
+
+    }
+
+    fun checkAllLockerStatuses() {
+        viewModelScope.launch {
+            val allLockers = lockers.value.filter { it.boxType == BoxType.BOX }
+
+            for (locker in allLockers) {
+                sendCommand("com.washcloud.check_door", locker.boxId.toString())
+                delay(1000)
+              /*  delay(2000)
+                sendMockDoorStatusBrodcast(locker.boxId.toString());*/
+            }
+
+
+        }
+    }
+
+    fun clearLockerStatuses() {
+        _lockerStatuses.value = emptyList()
+    }
+
+
+
+    fun fetchLockers() {
         viewModelScope.launch {
             _lockers.value = boxDao.getAllBoxes()
         }

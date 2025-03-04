@@ -123,4 +123,7 @@
     <string name="no">لا</string>
     <string name="time_remaining">الوقت المتبقي</string>
     <string name="seconds">ثواني</string>
+    <string name="locker_status">حالة الخزنة</string>
+    <string name="opened">مفتوحة</string>
+    <string name="closed">مغلقة</string>
 </resources>

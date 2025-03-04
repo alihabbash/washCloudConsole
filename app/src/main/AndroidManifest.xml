@@ -22,7 +22,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ConsoleAppliaction"
+        android:theme="@style/AppTheme.NoTitle"
         android:name=".App"
         android:installLocation="internalOnly"
          >
@@ -55,7 +55,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <action android:name="com.washcloud.consoleapplication.USB_PERMISSION" />
             </intent-filter>
@@ -66,7 +65,7 @@
             android:exported="true"
             android:screenOrientation="portrait"
             android:label="@string/app_name"
-            android:theme="@style/Theme.ConsoleAppliaction" >
+            android:theme="@style/AppTheme.NoTitle" >
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
