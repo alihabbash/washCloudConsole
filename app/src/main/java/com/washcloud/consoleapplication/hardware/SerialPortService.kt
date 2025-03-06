@@ -10,6 +10,9 @@ import com.washcloud.consoleapplication.hardware.CRC16Modbus.compute
 import com.washcloud.consoleapplication.hardware.CRC16Modbus.hexStringToByteArray
 import com.washcloud.consoleapplication.hardware.CRC16Modbus.toHex
 import com.washcloud.consoleapplication.utils.FileLogger
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import tp.xmaihh.serialport.SerialHelper
 import tp.xmaihh.serialport.bean.ComBean
 import tp.xmaihh.serialport.utils.ByteUtil
@@ -76,9 +79,16 @@ class SerialPortService : Service() {
 
             override fun open() {
                 super.open()
-                FileLogger.log(applicationContext, "SerialPortService", "Port $port opened, sending initial command")
+                FileLogger.log(
+                    applicationContext,
+                    "SerialPortService",
+                    "Port $port opened, sending initial command"
+                )
                 sendHex("01066203025866E8")
-                sendHex("01066002002037D2")
+                GlobalScope.launch {
+                    delay(100)
+                    sendHex("01066002002037D2")
+                }
             }
         }.apply {
             dataBits = 8
@@ -132,9 +142,18 @@ class SerialPortService : Service() {
         val crc: Int = compute(data)
         val command = prefix + toHex(crc)
 
-        FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor to $targetPoint -> $command")
+        FileLogger.log(
+            applicationContext,
+            "moveConveyor",
+            "Moving conveyor to $targetPoint -> $command"
+        )
         serialHelperConveyor.sendHex(command)
-        serialHelperConveyor.sendHex("01066002001037C6")
+        GlobalScope.launch {
+            delay(100)
+            FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor 01066002001037C6")
+            serialHelperConveyor.sendHex("01066002001037C6")
+        }
+
     }
     private fun calculatePulseNumber(targetPoint: Int): String =
         String.format("%08X", 20000 * targetPoint)
