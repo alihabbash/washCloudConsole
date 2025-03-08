@@ -125,4 +125,6 @@
     <string name="locker_status">Locker Status</string>
     <string name="opened">Opened</string>
     <string name="closed">Closed</string>
+    <string name="adding_ad_error">Only images and videos are allowed</string>
+    <string name="file_name">File name</string>
 </resources>

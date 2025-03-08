@@ -1,6 +1,9 @@
 package com.washcloud.consoleapplication.ui.admin.ads
 
+import android.content.Intent
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -52,13 +55,29 @@ fun AdsManagementScreen(
     viewModel: AdsManagementViewModel = hiltViewModel()
 ) {
     val adsList by viewModel.adsList.collectAsState()
-
+   val errorMsg = stringResource(id = R.string.adding_ad_error)
     val context = LocalContext.current
     val pickFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let {
-            viewModel.addFile(it)
+            val contentResolver = context.contentResolver
+            val type = contentResolver.getType(it)
+
+            if (type?.startsWith("image/") == true || type?.startsWith("video/") == true) {
+
+                try {
+                    val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    contentResolver.takePersistableUriPermission(it, takeFlags)
+                    Log.d("AdsManagementScreen", "Persisted URI permission for: $it")
+                } catch (e: SecurityException) {
+                    Log.e("AdsManagementScreen", "Failed to persist URI permission: $it", e)
+                }
+                viewModel.addFile(it)
+            } else {
+
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -114,12 +133,14 @@ fun AdsManagementScreen(
                         shape = RoundedCornerShape(8.dp)
                     )
                     .clickable {
-                        pickFileLauncher.launch("image/*")
+                        pickFileLauncher.launch(arrayOf("*/*"))
                     },
                 contentAlignment = Alignment.Center
             ) {
 
-                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     Image(painter = painterResource(id = R.drawable.add_file),
                         contentDescription = null,
                         modifier = Modifier
@@ -228,7 +249,7 @@ fun AdItem(uri: Uri, screenWidth: Dp, onDelete: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(32.dp)
             .background(Color.White, RoundedCornerShape(8.dp))
             .border(1.dp, secondaryColor, RoundedCornerShape(8.dp)),
         verticalAlignment = Alignment.CenterVertically
@@ -242,19 +263,26 @@ fun AdItem(uri: Uri, screenWidth: Dp, onDelete: () -> Unit) {
 //        )
         Spacer(modifier = Modifier.width(8.dp))
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .padding(32.dp)
         ) {
             Text(
-                text = "File Name: ${uri.lastPathSegment}",
-                style = TextStyle(fontWeight = FontWeight.Bold)
+                text = stringResource(id = R.string.file_name) + ": " + "${uri.lastPathSegment}",
+                style = TextStyle(
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,),
+
             )
-            Text(
-                text = "Rank: 1",
-                style = TextStyle(color = Color.Gray)
-            )
+//            Text(
+//                text = "Rank: 1",
+//                style = TextStyle(color = Color.Gray, fontSize = 40.sp,
+//                    fontWeight = FontWeight.Bold,)
+//            )
         }
-        IconButton(onClick = onDelete) {
+        IconButton(onClick = onDelete, modifier =  Modifier.padding(16.dp)) {
             Icon(
+
                 painter = painterResource(R.drawable.delete),
                 contentDescription = null,
                 tint = Color.Red

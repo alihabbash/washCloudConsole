@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -50,9 +51,15 @@ class AdsManagementViewModel @Inject constructor(
     }
 
     private fun loadAdsList() {
-        val adsString = sharedPreferences.getString("ADS_ARRAY", null)
+
+        val adsString: Set<String>? = try {
+            sharedPreferences.getStringSet("ADS_ARRAY", emptySet())
+        } catch (e: Exception) {
+            Log.e("MainAdViewModel", "Error retrieving ADS_ARRAY from SharedPreferences", e)
+            emptySet()
+        }
         adsString?.let {
-            val adsUris = it.split(",").map { uriString -> Uri.parse(uriString) }
+            val adsUris = it.map { uriString -> Uri.parse(uriString) }
             _adsList.value = adsUris
         }
     }

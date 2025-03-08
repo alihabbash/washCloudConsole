@@ -19,7 +19,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,14 +56,16 @@ fun HelpForm(
     screenWidth: Dp,
     screenHeight: Dp,
     phoneNumber: String,
+    quickOpen: (String) -> Unit,
     changeLanguage: () -> Unit,
-    showAd2: () -> Unit
+    showAd2: () -> Unit,
+
 ) {
 
 
     val configuration = LocalConfiguration.current
     val isRtl by rememberUpdatedState(newValue = configuration.layoutDirection == android.util.LayoutDirection.RTL)
-
+    var order by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -251,10 +256,10 @@ fun HelpForm(
                                 modifier = Modifier.padding(start = (screenHeight.value * 0.01f).dp)
                             )
                             OutlinedInputField(
-                                value = "",
+                                value = order,
                                 hintText = "XXXX-XXXX-XXXX",
                                 onValueChange = {
-
+                                    order = it
                                 },
                                 hintTextSize = (screenWidth.value * 0.02f).sp,
                                 cornerRadius = (screenWidth.value * 0.06f),
@@ -283,7 +288,14 @@ fun HelpForm(
                                         bottom = (screenWidth.value * 0.02f).dp
                                     )
                                     .fillMaxWidth()
-                                    .padding(start = 24.dp, end = 24.dp),
+                                    .padding(start = 24.dp, end = 24.dp)
+                                    .clickable {
+
+                                         quickOpen(order);
+                                    }
+
+                                ,
+
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(

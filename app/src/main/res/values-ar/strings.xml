@@ -126,4 +126,6 @@
     <string name="locker_status">حالة الخزنة</string>
     <string name="opened">مفتوحة</string>
     <string name="closed">مغلقة</string>
+    <string name="adding_ad_error">الصور ومقاطع الفيديو فقط مسموح بها</string>
+    <string name="file_name">اسم الملف</string>
 </resources>

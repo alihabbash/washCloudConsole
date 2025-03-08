@@ -85,6 +85,7 @@ class LockerViewModel @Inject constructor(
 
     private fun handleBroadcastIntent(intent: Intent) {
         println("LockerViewModel: Received broadcast intent: ${intent.action}")
+        FileLogger.log(context, "LockerViewModel", "Received broadcast intent: ${intent.action}")
         when (intent.action) {
             "com.washcloud.door_status" -> {
                 val isOpen = intent.getBooleanExtra("status", false)
@@ -121,12 +122,16 @@ class LockerViewModel @Inject constructor(
     }
 
     fun checkAllLockerStatuses() {
+
+        FileLogger.log(context, "LockerViewModel", "Checking all locker statuses")
         viewModelScope.launch {
             val allLockers = lockers.value.filter { it.boxType == BoxType.BOX }
 
+            FileLogger.log(context, "LockerViewModel", "Checking all locker statuses: ${allLockers.size} lockers  ${allLockers.map { it.boxId }}")
             for (locker in allLockers) {
+                delay(100)
                 sendCommand("com.washcloud.check_door", locker.boxId.toString())
-                delay(1000)
+
               /*  delay(2000)
                 sendMockDoorStatusBrodcast(locker.boxId.toString());*/
             }
@@ -308,9 +313,9 @@ class LockerViewModel @Inject constructor(
                 .filter { it.boxId == boxId.toLong() }
                 .map { it.stationId }
                 .firstOrNull()
-            FileLogger.log(context, "LockerViewModel", "Sending command to open door: stationId: $stationId, boxId: $boxId")
-            putExtra("stationId", stationId.toString())
-            putExtra("boxId", boxId)
+            FileLogger.log(context, "LockerViewModel", "Sending command to open door: stationId: 0$stationId, boxId: 0$boxId")
+            putExtra("stationId", "0"+stationId.toString())
+            putExtra("boxId", "0"+boxId)
         }
         context.sendBroadcast(intent)
     }

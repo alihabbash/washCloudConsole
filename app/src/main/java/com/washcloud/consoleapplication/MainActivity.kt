@@ -86,6 +86,9 @@ class MainActivity : ComponentActivity() {
     private val barcodeData = StringBuilder()
     private var phoneNumber by mutableStateOf("")
 
+
+
+
     companion object {
          var dLocale: Locale? = null
     }
@@ -222,8 +225,19 @@ class MainActivity : ComponentActivity() {
             true
         } else {
             barcodeData.append(event.unicodeChar.toChar())
+            FileLogger.log(this, "MainActivity", "barcodeData: ${barcodeData.toString()}")
             super.onKeyDown(keyCode, event)
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        FileLogger.log(this, "MainActivity", "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        FileLogger.log(this, "MainActivity", "onStop")
     }
 
     @Composable
@@ -266,16 +280,24 @@ class MainActivity : ComponentActivity() {
                 screenHeight = screenHeight
             )
             is SelectedView.HelpForm -> {
-                LaunchedEffect(Unit) {
+              /*  LaunchedEffect(Unit) {
                     delay(DELAY_MILLIS)
                     finish()
-                }
+                }*/
 
                 HelpForm(
                     screenWidth = screenWidth,
                     screenHeight = screenHeight,
                     phoneNumber = phoneNumber,
+                    quickOpen = { serialOrder  ->
+                        val intent = Intent(this, MainAdActivity::class.java).apply {
+                            putExtra("serialOrder", serialOrder)
+                        }
+                        startActivity(intent)
+                        finish()
+                    },
                     { changeLanguage() },
+
                     { mainViewModel.resetStack() }
                 )
             }
