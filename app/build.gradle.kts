@@ -112,6 +112,9 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation ("io.github.xmaihh:serialport:2.1.2")
 
+    implementation("io.coil-kt:coil-compose:2.4.0") // Check for latest version
+
+
     implementation("com.google.android.exoplayer:exoplayer:2.18.1")
     implementation("com.google.android.exoplayer:exoplayer-core:2.18.1")
     implementation("com.google.android.exoplayer:exoplayer-ui:2.18.1")

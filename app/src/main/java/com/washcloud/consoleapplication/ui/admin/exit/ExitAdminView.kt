@@ -56,7 +56,8 @@ fun ExitAdminView(
 ) {
 
     val timerViewModel: TimerViewModel = hiltViewModel()
-
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogAction by remember { mutableStateOf<() -> Unit>({}) }
 
     val interactionModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(onTap = {
@@ -79,10 +80,22 @@ fun ExitAdminView(
         MenuGrid(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            exitToAndroid = exitToAndroid,
-            rebootAndroid = rebootAndroid,
-            shutdown = shutdown,
-            logoutAdmin = logoutAdmin
+            exitToAndroid = {
+                dialogAction = exitToAndroid
+                showDialog = true
+            },
+            rebootAndroid = {
+                dialogAction = rebootAndroid
+                showDialog = true
+            },
+            shutdown = {
+                dialogAction = shutdown
+                showDialog = true
+            },
+            logoutAdmin = {
+                dialogAction = logoutAdmin
+                showDialog = true
+            }
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -90,6 +103,16 @@ fun ExitAdminView(
         // Footer(screenWidth)
 
         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, showAd2)
+
+        if (showDialog) {
+            CustomAlertDialog(
+                onConfirm = {
+                    dialogAction()
+                    showDialog = false
+                },
+                onDismiss = { showDialog = false }
+            )
+        }
     }
 }
 
@@ -114,7 +137,7 @@ fun MenuGrid(
     exitToAndroid: () -> Unit,
     rebootAndroid: () -> Unit,
     shutdown: () -> Unit,
-    logoutAdmin: () -> Unit
+    logoutAdmin: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -130,20 +153,20 @@ fun MenuGrid(
             screenHeight = screenHeight,
             title1 = stringResource(id = R.string.exit_to_android),
             icon1 = R.drawable.exit_android,
-            action1 = exitToAndroid,
+            action1 = { exitToAndroid() },
             title2 = stringResource(id = R.string.reboot),
             icon2 = R.drawable.reboot,
-            action2 = rebootAndroid
+            action2 = { rebootAndroid()  }
         )
         MenuRow(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             title1 = stringResource(id = R.string.shutdown),
             icon1 = R.drawable.shutdown,
-            action1 = shutdown,
+            action1 =  { shutdown() },
             title2 = stringResource(id = R.string.exit_admin),
             icon2 = R.drawable.logout,
-            action2 = logoutAdmin
+            action2 =  { logoutAdmin() }
         )
     }
 }
@@ -193,25 +216,19 @@ fun MenuItem(
     icon: Int,
     action: () -> Unit
 ) {
-    var showDialog by remember { mutableStateOf(false) }
 
-    if (showDialog) {
-        CustomAlertDialog(
-            showDialog = showDialog,
-            onConfirm = {
-                action() // Execute your action
-                showDialog = false
-            },
-            onDismiss = { showDialog = false }
-        )
-    }
+
     Column(
         modifier = Modifier
             .width(0.4 * screenWidth)
             .height(0.23 * screenHeight)
             .border(1.dp, secondaryColor, RoundedCornerShape(24.dp))
             .padding(top = 24.dp, bottom = 24.dp)
-            .clickable { showDialog = true },
+            .clickable {
+                action()
+            }
+        ,
+
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -249,11 +266,11 @@ fun MenuItem(
 
 @Composable
 fun CustomAlertDialog(
-    showDialog: Boolean,
+
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    if (showDialog) {
+
         val configuration = LocalConfiguration.current
         val screenWidth = configuration.screenWidthDp.dp
         val screenHeight = configuration.screenHeightDp.dp
@@ -335,6 +352,6 @@ fun CustomAlertDialog(
             confirmButton = {}, // Remove default confirm button
             dismissButton = {} // Remove default dismiss button
         )
-    }
+
 }
 

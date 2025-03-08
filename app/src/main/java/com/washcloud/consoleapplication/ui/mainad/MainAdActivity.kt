@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.ContextThemeWrapper
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,12 +58,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
+import coil.compose.rememberAsyncImagePainter
 import com.washcloud.consoleapplication.HeartbeatReceiver
 import com.washcloud.consoleapplication.MainActivity
 import com.washcloud.consoleapplication.R
@@ -72,6 +76,10 @@ import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
 import com.washcloud.consoleapplication.local.preferences.IS_REBOOT_ENABLED_KEY
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.local.preferences.REBOOT_TIME_KEY
+import com.washcloud.consoleapplication.remote.config.BASE_URL
+import com.washcloud.consoleapplication.remote.config.LOCKER_API
+import com.washcloud.consoleapplication.remote.config.PREFIX
+import com.washcloud.consoleapplication.remote.config.VERIFICATION
 
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
@@ -148,6 +156,7 @@ class MainAdActivity : ComponentActivity() {
         FileLogger.log(this,  "registerReceiver"   ,"registerReceiver com.washcloud.door_status")
         registerReceiver(dataReceiver, filter)
     }
+
 
 
     companion object {
@@ -235,6 +244,22 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        FileLogger.log(this, "MainAdActivity", "onStop")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        FileLogger.log(this, "MainAdActivity", "onPause")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadAdsFromStorage()
+        FileLogger.log(this, "MainAdActivity", "Loading ads from storage ")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -257,9 +282,18 @@ class MainAdActivity : ComponentActivity() {
             Log.e("MainAdActivity", "No barcode received")
         }
 
+
+        val  serialOrder = intent.getStringExtra("serialOrder");
+        if(serialOrder != null) {
+            FileLogger.log(this, "MainAdActivity", "Received serialOrder: $serialOrder")
+            Log.e("MainAdActivity", "Received serialOrder: $serialOrder")
+            handleSerialOrder(serialOrder)
+
+        }
+
         registerConveyorReceiver()
         registerReceiver()
-       // startPortService()
+        startPortService()
 
         requestPermissionsIfNeeded()
         checkRebootStatus()
@@ -292,6 +326,8 @@ class MainAdActivity : ComponentActivity() {
      //   insertBoxes()
 
         setContent {
+
+
             ConsoleApplicationTheme {
                 screenHeight = LocalConfiguration.current.screenHeightDp.dp
                 screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -304,6 +340,8 @@ class MainAdActivity : ComponentActivity() {
                     val isDoorOpen by viewModel.isDoorOpen.collectAsState()
 
                     var showDialog by remember { mutableStateOf(false) }
+                    val adsList by viewModel.adsList.collectAsState()
+
 
                     LaunchedEffect(apiData) {
                         apiData?.let {
@@ -352,6 +390,8 @@ class MainAdActivity : ComponentActivity() {
                                 )
                             }
                     ) {
+
+                        AdDisplay(adsList, context, screenWidth, screenHeight)
 //                        Image(
 //                            painterResource(R.drawable.empty_image),
 //                            "ad_1",
@@ -369,7 +409,7 @@ class MainAdActivity : ComponentActivity() {
 //                            textAlign = TextAlign.Center,
 //                        )
 
-                        VideoPlayer(context, Modifier.fillMaxSize())
+//                        VideoPlayer(context, Modifier.fillMaxSize())
                     }
 
 
@@ -490,6 +530,55 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun AdDisplay(adsList: List<Uri>, context: Context, screenWidth: Dp, screenHeight: Dp) {
+        var currentIndex by remember { mutableStateOf(0) }
+        val contentResolver = context.contentResolver
+
+        LaunchedEffect(adsList, currentIndex) {
+            if (adsList.isNotEmpty()) {
+                val currentAd = adsList[currentIndex]
+                val mimeType = contentResolver.getType(currentAd)
+
+                if (mimeType?.startsWith("image/") == true) {
+                    delay(10_000L)
+                    currentIndex = (currentIndex + 1) % adsList.size
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (adsList.isNotEmpty()) {
+                val currentAd = adsList[currentIndex]
+                val mimeType = contentResolver.getType(currentAd)
+
+                if (mimeType?.startsWith("image/") == true) {
+                    Image(
+                        painter = rememberAsyncImagePainter(currentAd),
+                        contentDescription = "Ad Image",
+                        modifier = Modifier
+                            .width(screenWidth * 0.3f)
+                            .height(screenWidth * 0.3f)
+                    )
+                } else if (mimeType?.startsWith("video/") == true) {
+                    VideoPlayer(
+                        context = context,
+                        videoUri = currentAd,
+                        modifier = Modifier.fillMaxSize(),
+                        onVideoEnded = {
+                            currentIndex = (currentIndex + 1) % adsList.size
+                        }
+                    )
+                }
+            } else {
+                VideoPlayer(context, modifier = Modifier.fillMaxSize(), onVideoEnded = {})
+            }
+        }
+    }
+
 
     /*private  fun insertBoxes() {
 
@@ -500,6 +589,13 @@ class MainAdActivity : ComponentActivity() {
         }
     }*/
 
+    private  fun handleSerialOrder(serialOrder: String){
+
+        val url = BASE_URL+ LOCKER_API + VERIFICATION + serialOrder + "/" + PrefsManager.getTerminalSN(this);
+
+        FileLogger.log(this, "MainActivity", "Open box quick way using data from $url")
+        viewModel.handleBarcode(url)
+    }
     private fun startPortService() {
         try {
             startService(Intent(this, SerialPortService::class.java))
@@ -540,10 +636,12 @@ class MainAdActivity : ComponentActivity() {
     private fun requestPermissionsIfNeeded() {
         val permissionsNeeded = listOf(
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            android.Manifest.permission.READ_EXTERNAL_STORAGE
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.MANAGE_DOCUMENTS,
         ).filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }.toTypedArray()
+
 
         if (permissionsNeeded.isNotEmpty()) {
             requestPermissionsLauncher.launch(permissionsNeeded)

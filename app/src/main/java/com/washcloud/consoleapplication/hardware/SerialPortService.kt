@@ -10,11 +10,14 @@ import com.washcloud.consoleapplication.hardware.CRC16Modbus.compute
 import com.washcloud.consoleapplication.hardware.CRC16Modbus.hexStringToByteArray
 import com.washcloud.consoleapplication.hardware.CRC16Modbus.toHex
 import com.washcloud.consoleapplication.utils.FileLogger
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import tp.xmaihh.serialport.SerialHelper
 import tp.xmaihh.serialport.bean.ComBean
 import tp.xmaihh.serialport.utils.ByteUtil
 import java.io.IOException
-
+import java.util.Locale
 
 
 class SerialPortService : Service() {
@@ -27,6 +30,7 @@ class SerialPortService : Service() {
 
     private val dataReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            FileLogger.log(applicationContext, "SerialPortService", "Received intent: ${intent.action}")
             when (intent.action) {
                 "com.washcloud.open_door" -> handleOpenBox(intent, context)
                 "com.washcloud.check_door" -> handleCheckBox(intent,context)
@@ -76,9 +80,16 @@ class SerialPortService : Service() {
 
             override fun open() {
                 super.open()
-                FileLogger.log(applicationContext, "SerialPortService", "Port $port opened, sending initial command")
+                FileLogger.log(
+                    applicationContext,
+                    "SerialPortService",
+                    "Port $port opened, sending initial command"
+                )
                 sendHex("01066203025866E8")
-                sendHex("01066002002037D2")
+                GlobalScope.launch {
+                    delay(100)
+                    sendHex("01066002002037D2")
+                }
             }
         }.apply {
             dataBits = 8
@@ -132,15 +143,24 @@ class SerialPortService : Service() {
         val crc: Int = compute(data)
         val command = prefix + toHex(crc)
 
-        FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor to $targetPoint -> $command")
+        FileLogger.log(
+            applicationContext,
+            "moveConveyor",
+            "Moving conveyor to $targetPoint -> $command"
+        )
         serialHelperConveyor.sendHex(command)
-        serialHelperConveyor.sendHex("01066002001037C6")
+        GlobalScope.launch {
+            delay(100)
+            FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor 01066002001037C6")
+            serialHelperConveyor.sendHex("01066002001037C6")
+        }
+
     }
     private fun calculatePulseNumber(targetPoint: Int): String =
-        String.format("%08X", 20000 * targetPoint)
+        String.format(Locale.US,"%08X", 20000 * targetPoint)
 
     private fun determineMovementDirection(targetPoint: Int): Boolean {
-            FileLogger.log(applicationContext, "SerialPortService", "Determining movement direction to point $targetPoint")
+        FileLogger.log(applicationContext, "SerialPortService", "Determining movement direction to point $targetPoint")
         val forwardSteps = (targetPoint - position + holeNumber) % holeNumber
         val reverseSteps = (position - targetPoint + holeNumber) % holeNumber
 
@@ -174,6 +194,7 @@ class SerialPortService : Service() {
             }
         }
         sendBroadcast(broadcastIntent)
+        FileLogger.log(applicationContext, "SerialPortService", "sendBroadcasta: $broadcastIntent");
     }
 
     private fun handleDoorStatus(data: String, intent: Intent) {
@@ -186,12 +207,12 @@ class SerialPortService : Service() {
 
     private fun openBox(boxId: String, stationId: String) {
         FileLogger.log(applicationContext, "openBox", "open box send data: 900605$stationId${boxId}03")
-        sendCommand(serialHelper, "900605${String.format("%02d", stationId.toInt())}${String.format("%02d", boxId.toInt())}03")
+        sendCommand(serialHelper, "900605${String.format(Locale.US,"%02d", stationId.toInt())}${String.format(Locale.US,"%02d", boxId.toInt())}03")
     }
 
     private fun checkBox(boxId: String, stationId: String) {
         FileLogger.log(applicationContext, "checkBox", "check box send data: 900612$stationId${boxId}03")
-        sendCommand(serialHelper, "900612${String.format("%02d", stationId.toInt())}${String.format("%02d", boxId.toInt())}03")
+        sendCommand(serialHelper, "900612${String.format(Locale.US,"%02d", stationId.toInt())}${String.format(Locale.US,"%02d", boxId.toInt())}03")
     }
 
     private fun moveConveyorToZero() {
@@ -200,8 +221,10 @@ class SerialPortService : Service() {
     }
 
     private fun sendCommand(helper: SerialHelper, command: String) {
+        FileLogger.log(applicationContext, "SerialPortService", "Sending command: $command")
         if (!helper.isOpen) {
             try {
+                FileLogger.log(applicationContext, "SerialPortService", "Opening port")
                 helper.open()
             } catch (e: IOException) {
                 FileLogger.log(applicationContext, "SerialPortService", "Error opening port: ${e.message}")

@@ -5,16 +5,22 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.util.Log
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.compose.ui.text.capitalize
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -49,8 +55,11 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Url
+import java.io.File
+import java.io.FileOutputStream
 import java.util.Date
 import java.util.Locale
+import java.util.jar.Manifest
 import javax.inject.Inject
 
 
@@ -151,6 +160,66 @@ class MainAdViewModel @Inject constructor(
         }
         handler.post(checkDoorRunnable)
     }*/
+
+    private val _adsList = MutableStateFlow<List<Uri>>(emptyList())
+    val adsList: StateFlow<List<Uri>> = _adsList.asStateFlow()
+
+
+
+
+    init {
+        loadAdsFromStorage()
+    }
+
+    fun loadAdsFromStorage() {
+        val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+
+        val adsString: Set<String>? = try {
+            sharedPreferences.getStringSet("ADS_ARRAY", emptySet())
+        } catch (e: Exception) {
+            Log.e("MainAdViewModel", "Error retrieving ADS_ARRAY from SharedPreferences", e)
+            emptySet()
+        }
+
+        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.e("MainAdViewModel", "Storage permission not granted")
+            return
+        }
+
+        adsString?.let {
+            val adsUris = it.map { uriString -> Uri.parse(uriString) }
+
+            Log.e("MainAdViewModel", "Resolved URIs: $adsUris")
+            _adsList.value = adsUris
+        }
+    }
+
+    /*  fun getRealPathFromURI(context: Context, uri: Uri): String? {
+          val projection = arrayOf(MediaStore.Images.Media.DATA)
+          val cursor = context.contentResolver.query(uri, projection, null, null, null)
+
+          cursor?.use {
+              if (it.moveToFirst()) {
+                  val columnIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                  return it.getString(columnIndex)
+              }
+          }
+          return null
+      }
+
+      fun copyFileToInternalStorage(context: Context, uri: Uri): String? {
+          val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+          val file = File(context.filesDir, "tempFile_${System.currentTimeMillis()}")
+
+          inputStream.use { input ->
+              FileOutputStream(file).use { output ->
+                  input.copyTo(output)
+              }
+          }
+          return file.absolutePath
+      }*/
 
 
     suspend fun getBox(boxId: String): BoxDto? {
