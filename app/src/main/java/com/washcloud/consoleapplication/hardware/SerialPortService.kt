@@ -187,21 +187,29 @@ class SerialPortService : Service() {
 
     private fun handleSerialData(comBean: ComBean) {
         val data = ByteUtil.ByteArrToHex(comBean.bRec)
-        val broadcastIntent = Intent("com.washcloud.door_status").apply {
-            when {
-                data.startsWith("900785") -> handleDoorStatus(data, this)
-                data.startsWith("900792") -> handleDoorStatus(data, this)
+        if( data.startsWith("9007")) {
+            val broadcastIntent = Intent("com.washcloud.door_status").apply {
+                when {
+                    data.startsWith("900785") -> handleDoorStatus(data, this, false)
+                    data.startsWith("900792") -> handleDoorStatus(data, this, true)
+                }
             }
+            sendBroadcast(broadcastIntent)
         }
-        sendBroadcast(broadcastIntent)
-        FileLogger.log(applicationContext, "SerialPortService", "sendBroadcasta: $broadcastIntent");
+        FileLogger.log(applicationContext, "SerialPortService", "sendBroadcasta: $data");
     }
 
-    private fun handleDoorStatus(data: String, intent: Intent) {
+    private fun handleDoorStatus(data: String, intent: Intent,ischeck: Boolean = false) {
         FileLogger.log(applicationContext, "SerialPortService", "Received data: $data")
         intent.putExtra("stationId", data.substring(6, 8))
-        intent.putExtra("boxId", data.substring(8, 10))
-        intent.putExtra("status", data.substring(10, 12) == "01")
+        if(!ischeck){
+            intent.putExtra("boxId", data.substring(8, 10))
+            intent.putExtra("status", data.substring(10, 12) == "01")
+        }else{
+            intent.putExtra("boxId", data.substring(10, 12))
+            intent.putExtra("status", data.substring(8, 10) == "01")
+        }
+
         intent.putExtra("data", data)
     }
 
@@ -237,31 +245,35 @@ class SerialPortService : Service() {
     private fun handleConveyorDoorData(comBean: ComBean) {
         val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
         FileLogger.log(applicationContext, "SerialPortService", "Conveyor door data: $dataReceive")
+        if(dataReceive == "FEFA8E070105000000010175B6" || dataReceive == "FEFA8E030205012F0B") {
+            val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
+            when (dataReceive) {
+                "FEFA8E070105000000010175B6" -> {
+                    broadcastIntent.putExtra("status", "open")
+                    openConveyorDoor()
+                }
 
-        val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
-        when (dataReceive) {
-            "FEFA8E070105000000010175B6" -> {
-                broadcastIntent.putExtra("status", "open")
-                openConveyorDoor()
+                "FEFA8E030205012F0B" -> {
+                    broadcastIntent.putExtra("status", "close")
+                    closeConveyorDoor()
+                }
             }
-            "FEFA8E030205012F0B" -> {
-                broadcastIntent.putExtra("status", "close")
-                closeConveyorDoor()
-            }
+            sendBroadcast(broadcastIntent)
         }
-        sendBroadcast(broadcastIntent)
     }
 
     private fun handleConveyorData(comBean: ComBean) {
         val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
         FileLogger.log(applicationContext, "SerialPortService", "Conveyor data: $dataReceive")
-
-        val broadcastIntent = Intent("com.washcloud.conveyor_move")
-        when (dataReceive) {
-            "01066002001037C6" -> broadcastIntent.putExtra("status", "open")
-            "01066002002037D2" -> broadcastIntent.putExtra("status", "close").also { position = 0 }
+        if(dataReceive.startsWith("01066002001037")) {
+            val broadcastIntent = Intent("com.washcloud.conveyor_move")
+            when (dataReceive) {
+                "01066002001037C6" -> broadcastIntent.putExtra("status", "open")
+                "01066002002037D2" -> broadcastIntent.putExtra("status", "close")
+                    .also { position = 0 }
+            }
+            sendBroadcast(broadcastIntent)
         }
-        sendBroadcast(broadcastIntent)
     }
     override fun onDestroy() {
         super.onDestroy()
