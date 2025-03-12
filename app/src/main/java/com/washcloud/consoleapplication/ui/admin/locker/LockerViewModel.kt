@@ -132,8 +132,8 @@ class LockerViewModel @Inject constructor(
                 delay(100)
                 sendCommand("com.washcloud.check_door", locker.boxId.toString())
 
-              /*  delay(2000)
-                sendMockDoorStatusBrodcast(locker.boxId.toString());*/
+                delay(2000)
+                sendMockDoorStatusBrodcast(locker.boxId.toString());
             }
 
 

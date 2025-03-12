@@ -128,4 +128,12 @@
     <string name="closed">مغلقة</string>
     <string name="adding_ad_error">الصور ومقاطع الفيديو فقط مسموح بها</string>
     <string name="file_name">اسم الملف</string>
-</resources>
+    <string name="video_file">ملف الفيديو</string>
+    <string name="secondary_ads">إعلانات ثانوية</string>
+    <string name="primary_ads">إعلانات أساسية</string>
+    <string name="add_secondary_file">إضافة صورة </string>
+    <string name="adding_ad_error_only_images">الصور فقط مسموح بها</string>
+    <string name="secondary_ad">إعلان ثانوي</string>
+    <string name="add_primary_ad">إضافة إعلان أساسي</string>
+    <string name="add_secondary_ad">إضافة إعلان ثانوي</string>
+s</resources>
