@@ -9,6 +9,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import com.washcloud.consoleapplication.local.preferences.ADS_ARRAY
+import com.washcloud.consoleapplication.local.preferences.ADS_SECONDARY_ARRAY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,28 +24,57 @@ class AdsManagementViewModel @Inject constructor(
 
     private val _adsList = MutableStateFlow<List<Uri>>(emptyList())
     val adsList: StateFlow<List<Uri>> = _adsList
+
+
+    private val _adsSecondaryList = MutableStateFlow<List<Uri>>(emptyList())
+    val adsSecondaryList: StateFlow<List<Uri>> = _adsSecondaryList
     private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
-    fun addFile(uri: Uri) {
+    fun addFile(uri: Uri, isSecondary: Boolean = false) {
         viewModelScope.launch {
-            val updatedList = _adsList.value.toMutableList()
-            updatedList.add(uri)
-            _adsList.value = updatedList
-            saveAdsList(updatedList)
+
+            if(isSecondary){
+                val updatedList = _adsSecondaryList.value.toMutableList()
+                updatedList.add(uri)
+                _adsSecondaryList.value = updatedList
+                saveAdsList(updatedList, true)
+
+            }else{
+                val updatedList = _adsList.value.toMutableList()
+                updatedList.add(uri)
+                _adsList.value = updatedList
+                saveAdsList(updatedList)
+            }
+
         }
     }
 
-    fun removeFile(uri: Uri) {
+    fun removeFile(uri: Uri, isSecondary: Boolean = false) {
         viewModelScope.launch {
-            val updatedList = _adsList.value.toMutableList()
-            updatedList.remove(uri)
-            _adsList.value = updatedList
-            saveAdsList(updatedList)
+            if(isSecondary){
+                val updatedList = _adsSecondaryList.value.toMutableList()
+                updatedList.remove(uri)
+                _adsSecondaryList.value = updatedList
+                saveAdsList(updatedList, true)
+            }else{
+                val updatedList = _adsList.value.toMutableList()
+                updatedList.remove(uri)
+                _adsList.value = updatedList
+                saveAdsList(updatedList)
+            }
         }
     }
 
-    private fun saveAdsList(adsList: List<Uri>) {
-        val adsString = adsList.joinToString(",") { it.toString() }
-        sharedPreferences.edit().putString("ADS_ARRAY", adsString).apply()
+    private fun saveAdsList(adsList: List<Uri>, isSecondary: Boolean = false) {
+
+        if(isSecondary){
+            val adsString = adsList.joinToString(",") { it.toString() }
+            sharedPreferences.edit().putString("ADS_SECONDARY_ARRAY", adsString).apply()
+            return
+        }else{
+            val adsString = adsList.joinToString(",") { it.toString() }
+            sharedPreferences.edit().putString(ADS_ARRAY, adsString).apply()
+        }
+
     }
 
     init {
@@ -53,7 +84,7 @@ class AdsManagementViewModel @Inject constructor(
     private fun loadAdsList() {
 
         val adsString: Set<String>? = try {
-            sharedPreferences.getStringSet("ADS_ARRAY", emptySet())
+            sharedPreferences.getStringSet(ADS_ARRAY, emptySet())
         } catch (e: Exception) {
             Log.e("MainAdViewModel", "Error retrieving ADS_ARRAY from SharedPreferences", e)
             emptySet()
@@ -62,13 +93,29 @@ class AdsManagementViewModel @Inject constructor(
             val adsUris = it.map { uriString -> Uri.parse(uriString) }
             _adsList.value = adsUris
         }
+
+        val adsSecondaryString: Set<String>? = try {
+            sharedPreferences.getStringSet(ADS_SECONDARY_ARRAY, emptySet())
+        } catch (e: Exception) {
+            Log.e("MainAdViewModel", "Error retrieving ADS_SECONDARY_ARRAY from SharedPreferences", e)
+            emptySet()
+        }
+
+        adsSecondaryString?.let {
+            val adsUris = it.map { uriString -> Uri.parse(uriString) }
+            _adsSecondaryList.value = adsUris
+        }
     }
 
     fun saveAds() {
         viewModelScope.launch {
             val editor = sharedPreferences.edit()
             val uriStrings = _adsList.value.map { it.toString() }
-            editor.putStringSet("ADS_ARRAY", uriStrings.toSet())
+            editor.putStringSet(ADS_ARRAY, uriStrings.toSet())
+            editor.apply()
+
+            val uriSecondaryStrings = _adsSecondaryList.value.map { it.toString() }
+            editor.putStringSet(ADS_SECONDARY_ARRAY, uriSecondaryStrings.toSet())
             editor.apply()
         }
     }

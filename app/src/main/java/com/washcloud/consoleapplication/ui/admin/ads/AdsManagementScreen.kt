@@ -14,7 +14,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,7 +57,10 @@ fun AdsManagementScreen(
     viewModel: AdsManagementViewModel = hiltViewModel()
 ) {
     val adsList by viewModel.adsList.collectAsState()
+    val adsSecondaryList by viewModel.adsSecondaryList.collectAsState()
    val errorMsg = stringResource(id = R.string.adding_ad_error)
+    val errorMsgOnlyImages = stringResource(id = R.string.adding_ad_error_only_images)
+
     val context = LocalContext.current
     val pickFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -81,6 +86,32 @@ fun AdsManagementScreen(
         }
     }
 
+
+    val pickFileLauncherSecondary = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            val contentResolver = context.contentResolver
+            val type = contentResolver.getType(it)
+
+            if (type?.startsWith("image/") == true) {
+
+                try {
+                    val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    contentResolver.takePersistableUriPermission(it, takeFlags)
+                    Log.d("AdsManagementScreen", "Persisted URI permission for: $it")
+                } catch (e: SecurityException) {
+                    Log.e("AdsManagementScreen", "Failed to persist URI permission: $it", e)
+                }
+                viewModel.addFile(it, isSecondary = true);
+            } else {
+
+                Toast.makeText(context, errorMsgOnlyImages, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+
     val timerViewModel: TimerViewModel = hiltViewModel()
 
 
@@ -90,10 +121,11 @@ fun AdsManagementScreen(
             timerViewModel.resumeTimerAfterDelay(1000)
         })
     }
-
+    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -111,6 +143,25 @@ fun AdsManagementScreen(
 
         dateAndTimeView(screenWidth = screenWidth)
         Spacer(modifier = Modifier.height(24.dp))
+
+        LazyColumn(
+            modifier = Modifier
+                .height( adsList.size * 0.12 * screenHeight)
+                .padding(16.dp)
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .border(1.dp, secondaryColor, RoundedCornerShape(16.dp))
+        ) {
+            items(adsList) { uri ->
+                AdItem(uri = uri, screenWidth = screenWidth, onDelete = {
+                    viewModel.removeFile(uri)
+                })
+            }
+        }
+
+
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -146,10 +197,10 @@ fun AdsManagementScreen(
                         modifier = Modifier
                             .size(0.05 * screenWidth)
 
-                        )
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(id = R.string.add_file),
+                        text = stringResource(id = R.string.add_primary_ad),
                         style = TextStyle(
                             color = Color.White,
                             fontSize = (screenWidth.value * 0.032f).sp,
@@ -160,11 +211,30 @@ fun AdsManagementScreen(
             }
         }
 
+
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(id = R.string.secondary_ads),
+            style = TextStyle(
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold,
+                color = primaryDark
+            ),
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
 
         LazyColumn(
             modifier = Modifier
-                .weight(1f)
+                .height( adsSecondaryList.size * 0.12 * screenHeight)
                 .padding(16.dp)
                 .background(
                     color = Color.White,
@@ -172,15 +242,64 @@ fun AdsManagementScreen(
                 )
                 .border(1.dp, secondaryColor, RoundedCornerShape(16.dp))
         ) {
-            items(adsList) { uri ->
+            items(adsSecondaryList) { uri ->
                 AdItem(uri = uri, screenWidth = screenWidth, onDelete = {
-                    viewModel.removeFile(uri)
+                    viewModel.removeFile(uri, isSecondary = true)
                 })
             }
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(0.1 * screenHeight)
+                    .padding(16.dp)
+                    .padding(32.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                blueGradient,
+                                secondaryColor,
+                            ),
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clickable {
+                        pickFileLauncherSecondary.launch(arrayOf("*/*"))
+                    },
+                contentAlignment = Alignment.Center
+            ) {
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Image(painter = painterResource(id = R.drawable.add_file),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(0.05 * screenWidth)
 
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(id = R.string.add_secondary_ad),
+                        style = TextStyle(
+                            color = Color.White,
+                            fontSize = (screenWidth.value * 0.032f).sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+        }
+
+
+
+
+        Spacer(modifier = Modifier.weight(1f))
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -213,30 +332,7 @@ fun AdsManagementScreen(
         )
 
     }
-//
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//                .padding(bottom = 32.dp)
-//                .background(
-//                    brush = Brush.horizontalGradient(
-//                        colors = listOf(
-//                            blueGradient,
-//                            secondaryColor,
-//                        ),
-//                    ),
-//                    shape = RoundedCornerShape(8.dp)
-//                )
-//                .clickable { },
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                text = stringResource(id = R.string.save),
-//                color = Color.White,
-//                fontWeight = FontWeight.Bold
-//            )
-//        }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 

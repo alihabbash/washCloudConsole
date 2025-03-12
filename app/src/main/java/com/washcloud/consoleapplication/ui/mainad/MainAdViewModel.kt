@@ -34,6 +34,7 @@ import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
+import com.washcloud.consoleapplication.local.preferences.ADS_ARRAY
 import com.washcloud.consoleapplication.local.preferences.BRANCH_ID
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.config.BASE_URL
@@ -175,9 +176,10 @@ class MainAdViewModel @Inject constructor(
         val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
 
         val adsString: Set<String>? = try {
-            sharedPreferences.getStringSet("ADS_ARRAY", emptySet())
+            sharedPreferences.getStringSet(ADS_ARRAY, emptySet())
         } catch (e: Exception) {
             Log.e("MainAdViewModel", "Error retrieving ADS_ARRAY from SharedPreferences", e)
+            FileLogger.log(context,  "MainAdViewModel"   ,"Error retrieving ADS_ARRAY from SharedPreferences")
             emptySet()
         }
 
