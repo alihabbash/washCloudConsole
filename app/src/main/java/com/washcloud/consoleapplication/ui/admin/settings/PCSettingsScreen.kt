@@ -71,6 +71,7 @@ fun PCSettingsScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(id = R.string.pc_setting),
             style = TextStyle(
@@ -108,9 +109,7 @@ fun PCSettingsScreen(
                         label =  stringResource(R.string.locker_sn),
                         value =  viewModel.lockerName.value,
                         onValueChange = { viewModel.lockerName.value = it },
-                    ) {
-                        viewModel.saveLockerName()
-                    }
+                    )
                 }
 
                 item {
@@ -125,9 +124,7 @@ fun PCSettingsScreen(
                         label =  stringResource(R.string.api_key),
                         value =  viewModel.apiKey.value,
                         onValueChange = { viewModel.apiKey.value = it },
-                    ) {
-                        viewModel.saveApiKey()
-                    }
+                    )
                 }
 
                 item {
@@ -142,9 +139,7 @@ fun PCSettingsScreen(
                         label =  stringResource(R.string.terminal_sn),
                         value =  viewModel.terminalSn.value,
                         onValueChange = { viewModel.terminalSn.value = it },
-                    ) {
-                        viewModel.saveTerminalSn()
-                    }
+                    )
                 }
 
                 item {
@@ -163,8 +158,7 @@ fun PCSettingsScreen(
                                 viewModel.customServer.value = ""
                             }
                         },
-                        onCustomServerChange = { viewModel.customServer.value = it },
-                        onSave = { viewModel.saveServerOption() }
+                        onCustomServerChange = { viewModel.customServer.value = it }
                     )
 
 
@@ -182,9 +176,8 @@ fun PCSettingsScreen(
                     value =  viewModel.branchId.value,
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     onValueChange = { viewModel.branchId.value = it },
-                ) {
-                    viewModel.saveBranchId()
-                } }
+                )
+                }
 
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
@@ -199,9 +192,7 @@ fun PCSettingsScreen(
                         value =  viewModel.delayMillis.value,
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                         onValueChange = { viewModel.delayMillis.value = it },
-                    ) {
-                        viewModel.saveDelayMillis()
-                    }
+                    )
                 }
 
                 item {
@@ -349,34 +340,6 @@ fun PCSettingsScreen(
                                         }
                                     )
 
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .background(
-                                                brush = Brush.horizontalGradient(
-                                                    colors = listOf(
-                                                        blueGradient,
-                                                        secondaryColor,
-                                                    ),
-                                                )
-                                            )
-                                            .padding(16.dp)
-                                            .clickable {
-                                                viewModel.saveRebootTime()
-                                            }
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.save),
-                                            style = TextStyle(
-                                                color = Color.White,
-                                                fontSize = (screenWidth.value * 0.035f).sp,
-                                                textAlign = TextAlign.Center
-                                            )
-                                        )
-                                    }
                                 }
                             }
 
@@ -389,6 +352,37 @@ fun PCSettingsScreen(
 
 
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                blueGradient,
+                                secondaryColor,
+                            ),
+                        )
+                    )
+                    .padding(16.dp)
+                    .width(0.8 * screenWidth)
+                    .clickable {
+                        viewModel.saveAllSettings()
+                    }
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.save),
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = (screenWidth.value * 0.035f).sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, showAd2)
         }
     }
@@ -404,7 +398,6 @@ fun SettingItem(
     value: String,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     onValueChange: (String) -> Unit,
-    onSave: () -> Unit,
 
     ) {
     Box(
@@ -454,33 +447,6 @@ fun SettingItem(
 
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                blueGradient,
-                                secondaryColor,
-                            ),
-                        )
-                    )
-                    .padding(16.dp)
-                    .clickable {
-                        onSave()
-                    }
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.save),
-                    style = TextStyle(
-                        color = Color.White,
-                        fontSize = (screenWidth.value * 0.035f).sp,
-                        textAlign = TextAlign.Center
-                    )
-                )
-            }
         }
     }
 }
@@ -493,7 +459,6 @@ fun ServerSettingItem(
     customServer: String,
     onOptionSelected: (String) -> Unit,
     onCustomServerChange: (String) -> Unit,
-    onSave: () -> Unit
 ) {
     val devServerUrl = BASE_URL_DEV
     val prodServerUrl = BASE_URL_PROD
@@ -518,7 +483,7 @@ fun ServerSettingItem(
             modifier = Modifier
                 .padding(8.dp)
                 .padding(top = 8.dp, bottom = 8.dp)
-                .height( if(serverOption == "Other") 0.18 * screenHeight else 0.12 * screenHeight),
+                .height(if (serverOption == "Other") 0.18 * screenHeight else 0.12 * screenHeight),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -597,33 +562,6 @@ fun ServerSettingItem(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                blueGradient,
-                                secondaryColor,
-                            ),
-                        )
-                    )
-                    .padding(16.dp)
-                    .clickable {
-                        onSave()
-                    }
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.save),
-                    style = TextStyle(
-                        color = Color.White,
-                        fontSize = (screenWidth.value * 0.035f).sp,
-                        textAlign = TextAlign.Center
-                    )
-                )
-            }
         }
     }
 }

@@ -56,27 +56,6 @@ class PCSettingsViewModel @Inject constructor(
         }
     }
 
-    fun saveLockerName() {
-        with(sharedPreferences.edit()) {
-            putString(LOCKER_NAME_KEY, lockerName.value)
-            apply()
-        }
-    }
-    fun saveRebootTime() {
-
-        with(sharedPreferences.edit()) {
-            putString(REBOOT_TIME_KEY, rebootTime.value)
-            apply()
-        }
-    }
-
-    fun saveServerOption() {
-        with(sharedPreferences.edit()) {
-            putString(SERVER_OPTION, serverOption.value)
-            putString(CUSTOM_SERVER, customServer.value)
-            apply()
-        }
-    }
 
     fun saveIsRebootEnabled() {
         with(sharedPreferences.edit()) {
@@ -85,33 +64,21 @@ class PCSettingsViewModel @Inject constructor(
         }
     }
 
-    fun saveApiKey() {
+
+    fun saveAllSettings() {
         with(sharedPreferences.edit()) {
+            putString(LOCKER_NAME_KEY, lockerName.value)
+            putString(REBOOT_TIME_KEY, rebootTime.value)
             putString(API_KEY_KEY, apiKey.value)
-            apply()
-        }
-    }
-
-    fun saveTerminalSn() {
-        with(sharedPreferences.edit()) {
             putString(TERMINAL_SN_KEY, terminalSn.value)
-            apply()
-        }
-    }
-
-    fun saveBranchId() {
-        with(sharedPreferences.edit()) {
             putString(BRANCH_ID_KEY, branchId.value)
+            putString(DELAY_MILLIS_KEY, delayMillis.value)
+            putString(SERVER_OPTION, serverOption.value)
+            putString(CUSTOM_SERVER, customServer.value)
             apply()
         }
     }
 
-    fun saveDelayMillis() {
-        with(sharedPreferences.edit()) {
-            putString(DELAY_MILLIS_KEY, delayMillis.value)
-            apply()
-        }
-    }
 
     fun resetDatabase() {
         viewModelScope.launch {

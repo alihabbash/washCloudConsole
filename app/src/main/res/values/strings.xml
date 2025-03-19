@@ -127,4 +127,12 @@
     <string name="closed">Closed</string>
     <string name="adding_ad_error">Only images and videos are allowed</string>
     <string name="file_name">File name</string>
+    <string name="video_file">Video file</string>
+    <string name="secondary_ads">Secondary Ads</string>
+    <string name="primary_ads">Primary Ads</string>
+    <string name="add_secondary_file">Add Secondary File</string>
+    <string name="adding_ad_error_only_images">Only images are allowed</string>
+    <string name="secondary_ad">Secondary Ad</string>
+    <string name="add_primary_ad">Add Primary Ad</string>
+    <string name="add_secondary_ad">Add Secondary Ad</string>
 </resources>

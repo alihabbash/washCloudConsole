@@ -2,6 +2,7 @@ package com.washcloud.consoleapplication
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
@@ -30,12 +31,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -47,7 +50,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.preference.PreferenceManager
+import coil.compose.rememberAsyncImagePainter
 import com.washcloud.consoleapplication.local.preferences.ADMIN_PASSWORD
+import com.washcloud.consoleapplication.local.preferences.ADS_SECONDARY_ARRAY
 import com.washcloud.consoleapplication.local.preferences.DELAY_MILLIS
 import com.washcloud.consoleapplication.local.preferences.PHONE_NUMBER
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
@@ -442,6 +447,24 @@ class MainActivity : ComponentActivity() {
         phoneNumber: String,
     ) {
 
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(LocalContext.current)
+        val adsSecondaryString: Set<String>? = try {
+            sharedPreferences.getStringSet(ADS_SECONDARY_ARRAY, emptySet())
+        } catch (e: Exception) {
+            Log.e("MainAdViewModel", "Error retrieving ADS_SECONDARY_ARRAY from SharedPreferences", e)
+            emptySet()
+        }
+
+        val adsSecondaryList = adsSecondaryString?.map { Uri.parse(it) } ?: emptyList()
+        var currentIndex by remember { mutableStateOf(0) }
+
+        LaunchedEffect(adsSecondaryList) {
+            while (adsSecondaryList.isNotEmpty()) {
+                delay(5000L)
+                currentIndex = (currentIndex + 1) % adsSecondaryList.size
+            }
+        }
+
         Column(
             modifier = Modifier
                 .width(screenWidth)
@@ -494,7 +517,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-
             Column(
                 modifier = Modifier
                     .height(0.78 * screenHeight)
@@ -503,22 +525,23 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Image(
-                    painterResource(R.drawable.empty_image),
-                    "ad_2",
-                    modifier = Modifier
-                        .width(screenWidth * 0.3f)
-                        .height(screenWidth * 0.3f)
-                )
-                Text(
-                    text = stringResource(id = R.string.ad2),
-                    style = TextStyle(
-                        fontSize = (screenWidth.value * 0.07f).sp,
-                        fontWeight = FontWeight.Medium,
-                        color = lightGrey
-                    ),
-                    textAlign = TextAlign.Center,
-                )
+                if (adsSecondaryList.isNotEmpty()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(adsSecondaryList[currentIndex]),
+                        contentDescription = "Ad Image",
+                        modifier = Modifier
+                            .width(screenWidth * 0.3f)
+                            .height(screenWidth * 0.3f)
+                    )
+                } else {
+                    Image(
+                        painterResource(R.drawable.empty_image),
+                        contentDescription = "Empty Ad",
+                        modifier = Modifier
+                            .width(screenWidth * 0.3f)
+                            .height(screenWidth * 0.3f)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(0.04 * screenHeight))
 
