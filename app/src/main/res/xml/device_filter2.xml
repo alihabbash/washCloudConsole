@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <usb-device vendor-id="DDD4" product-id="01AB"/>
-    <usb-device vendor-id="1a40" product-id="0201"/>
-    <usb-device vendor-id="0dd4" product-id="01aB"/>/custom engineering S.p.A
-    <usb-device vendor-id="0c2e" product-id="0b61"/>  <!--  Honeywell 3320 barcode reader -->
-    <usb-device vendor-id="0c2e" product-id="07d4"/>
-    <usb-device vendor-id="222a" product-id="0001"/>//ILITEK Screen
-    <usb-device vendor-id="222a" product-id="0fa2"/>
-    <usb-device vendor-id="1d6b" product-id="0002"/>
-    <usb-device vendor-id="1d6b" product-id="0002"/>
-    <usb-device vendor-id="1d6b" product-id="0001"/>
-    <usb-device vendor-id="1d6b" product-id="0002"/>
-    <usb-device vendor-id="0dd4" product-id="07d3"/>
-    <usb-device vendor-id="0dd4" product-id="0fa2"/>//usb/004/002
-    <usb-device vendor-id="222a" product-id="138a"/>//usb/005/002
-    <usb-device vendor-id="222a" product-id="138a"/>//2-1
-    <usb-device vendor-id="1d6b" product-id="0002"/>//4-1
-    <usb-device vendor-id="222a" product-id="0001"/>//5-1
-    <usb-device vendor-id="1d6b" product-id="0002"/>//usb1
-    <usb-device vendor-id="1d6b" product-id="0001"/>//usb2
-    <usb-device vendor-id="1d6b" product-id="0001"/>//usb3
-    <usb-device vendor-id="1d6b" product-id="0002"/>//usb4
-    <usb-device vendor-id="1d6b" product-id="07d3"/>//usb5
+<!--    <usb-device vendor-id="DDD4" product-id="01AB"/>-->
+<!--    <usb-device vendor-id="1a40" product-id="0201"/>-->
+<!--    <usb-device vendor-id="0dd4" product-id="01aB"/>/custom engineering S.p.A-->
+<!--    <usb-device vendor-id="0c2e" product-id="0b61"/>  &lt;!&ndash;  Honeywell 3320 barcode reader &ndash;&gt;-->
+    <usb-device vendor-id="0c2e" product-id="07d4"/><!--  Honeywell 3320 barcode reader -->
+<!--    <usb-device vendor-id="222a" product-id="0001"/>//ILITEK Screen-->
+<!--    <usb-device vendor-id="222a" product-id="0fa2"/>-->
+<!--    <usb-device vendor-id="1d6b" product-id="0002"/>-->
+<!--    <usb-device vendor-id="1d6b" product-id="0002"/>-->
+<!--    <usb-device vendor-id="1d6b" product-id="0001"/>-->
+<!--    <usb-device vendor-id="1d6b" product-id="0002"/>-->
+<!--    <usb-device vendor-id="0dd4" product-id="07d3"/>-->
+<!--    <usb-device vendor-id="0dd4" product-id="0fa2"/>//usb/004/002-->
+<!--    <usb-device vendor-id="222a" product-id="138a"/>//usb/005/002-->
+<!--    <usb-device vendor-id="222a" product-id="138a"/>//2-1-->
+<!--    <usb-device vendor-id="1d6b" product-id="0002"/>//4-1-->
+<!--    <usb-device vendor-id="222a" product-id="0001"/>//5-1-->
+<!--    <usb-device vendor-id="1d6b" product-id="0002"/>//usb1-->
+<!--    <usb-device vendor-id="1d6b" product-id="0001"/>//usb2-->
+<!--    <usb-device vendor-id="1d6b" product-id="0001"/>//usb3-->
+<!--    <usb-device vendor-id="1d6b" product-id="0002"/>//usb4-->
+<!--    <usb-device vendor-id="1d6b" product-id="07d3"/>//usb5-->
 
 
 

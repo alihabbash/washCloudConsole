@@ -24,6 +24,7 @@ class SerialPortService : Service() {
     private lateinit var serialHelper: SerialHelper
     private lateinit var serialHelperConveyor: SerialHelper
     private  lateinit var serialHelperConveyorDoor: SerialHelper
+    private  lateinit var serialHelperScanner: SerialHelper
     private  var position: Int = 0
     private  val holeNumber: Int = 201
 
@@ -61,6 +62,7 @@ class SerialPortService : Service() {
     private fun initializeSerialPorts(startId: Int) {
         serialHelper = createSerialHelper("dev/ttyS1", 9600, startId) { handleSerialData(it) }
         serialHelperConveyorDoor = createSerialHelper("dev/ttyS0", 9600, startId) { handleConveyorDoorData(it) }
+        serialHelperScanner = createSerialHelper("dev/ttyS4", 115200, startId) { handleScanner(it) }
         serialHelperConveyor = createSerialHelperForConveyor("dev/ttyS3", 19200, startId) { handleConveyorData(it) }
 
     }
@@ -85,7 +87,7 @@ class SerialPortService : Service() {
                     "SerialPortService",
                     "Port $port opened, sending initial command"
                 )
-                sendHex("01066203025866E8")
+                sendHex("01066203070866E8")
                 GlobalScope.launch {
                     delay(100)
                     sendHex("01066002002037D2")
@@ -174,14 +176,14 @@ class SerialPortService : Service() {
     private fun handleOpenBox(intent: Intent, context: Context) {
         val stationId = intent.getStringExtra("stationId") ?: return
         val boxId = intent.getStringExtra("boxId") ?: return
-        FileLogger.log(context, "SerialPortService", "Opening box $boxId at station $stationId")
+        FileLogger.log(context, "SerialPortService", "Opening box ${decimalToTwoDigitHex(boxId.toInt())} at station ${decimalToTwoDigitHex(stationId.toInt())}")
         openBox(boxId, stationId)
     }
 
     private fun handleCheckBox(intent: Intent, context: Context) {
         val stationId = intent.getStringExtra("stationId") ?: return
         val boxId = intent.getStringExtra("boxId") ?: return
-        FileLogger.log(context, "SerialPortService", "Checking box $boxId at station $stationId")
+        FileLogger.log(context, "SerialPortService", "Checking box ${decimalToTwoDigitHex(boxId.toInt())} at station ${decimalToTwoDigitHex(stationId.toInt())}")
         checkBox(boxId, stationId)
     }
 
@@ -201,12 +203,12 @@ class SerialPortService : Service() {
 
     private fun handleDoorStatus(data: String, intent: Intent,ischeck: Boolean = false) {
         FileLogger.log(applicationContext, "SerialPortService", "Received data: $data")
-        intent.putExtra("stationId", data.substring(6, 8))
+        intent.putExtra("stationId", hexToDecimal(data.substring(6, 8)).toString())
         if(!ischeck){
-            intent.putExtra("boxId", data.substring(8, 10))
+            intent.putExtra("boxId", hexToDecimal(data.substring(8, 10)).toString())
             intent.putExtra("status", data.substring(10, 12) == "01")
         }else{
-            intent.putExtra("boxId", data.substring(10, 12))
+            intent.putExtra("boxId", hexToDecimal(data.substring(10, 12)).toString())
             intent.putExtra("status", data.substring(8, 10) == "01")
         }
 
@@ -215,16 +217,16 @@ class SerialPortService : Service() {
 
     private fun openBox(boxId: String, stationId: String) {
         FileLogger.log(applicationContext, "openBox", "open box send data: 900605$stationId${boxId}03")
-        sendCommand(serialHelper, "900605${String.format(Locale.US,"%02d", stationId.toInt())}${String.format(Locale.US,"%02d", boxId.toInt())}03")
+        sendCommand(serialHelper, "900605${decimalToTwoDigitHex(stationId.toInt())}${decimalToTwoDigitHex(boxId.toInt())}03")
     }
 
     private fun checkBox(boxId: String, stationId: String) {
         FileLogger.log(applicationContext, "checkBox", "check box send data: 900612$stationId${boxId}03")
-        sendCommand(serialHelper, "900612${String.format(Locale.US,"%02d", stationId.toInt())}${String.format(Locale.US,"%02d", boxId.toInt())}03")
+        sendCommand(serialHelper, "900612${decimalToTwoDigitHex(stationId.toInt())}${decimalToTwoDigitHex(boxId.toInt())}03")
     }
 
     private fun moveConveyorToZero() {
-        sendCommand(serialHelperConveyor, "01066203025866E8")
+        sendCommand(serialHelperConveyor, "01066203070866E8")
         sendCommand(serialHelperConveyor, "01066002002037D2")
     }
 
@@ -241,6 +243,14 @@ class SerialPortService : Service() {
         }
         helper.sendHex(command)
     }
+
+    private fun handleScanner(comBean: ComBean) {
+        FileLogger.log(applicationContext, "SerialPortService", "Scanner data: ${String(comBean.bRec, Charsets.UTF_8)}")
+        val broadcastIntent = Intent("com.washcloud.scanner_data")
+        broadcastIntent.putExtra("scannerData", String(comBean.bRec, Charsets.UTF_8))
+        sendBroadcast(broadcastIntent)
+    }
+
 
     private fun handleConveyorDoorData(comBean: ComBean) {
         val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
@@ -275,6 +285,15 @@ class SerialPortService : Service() {
             sendBroadcast(broadcastIntent)
         }
     }
+
+    private fun decimalToTwoDigitHex(value: Int): String {
+        return String.format("%02X", value)
+    }
+
+    private fun hexToDecimal(hex: String): Int {
+        return hex.toInt(16)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         serialHelper.close()
