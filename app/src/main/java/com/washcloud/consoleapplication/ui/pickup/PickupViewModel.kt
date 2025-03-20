@@ -3,6 +3,7 @@ package com.washcloud.consoleapplication.ui.pickup
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -29,6 +30,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 @HiltViewModel
@@ -36,8 +38,8 @@ class PickupViewModel @Inject constructor(
     private val transactionDao: TransactionDao,
     private val staffPickupUseCase: StaffPickupUseCase,
     private val boxDao: BoxDao,
-    application: Application,
-    private val broadcastReceiverRepository: BroadcastReceiverRepository
+    private val broadcastReceiverRepository: BroadcastReceiverRepository,
+    application: Application
 ) : AndroidViewModel(application)  {
 
     private  val context: Context = getApplication<Application>().applicationContext
@@ -61,9 +63,34 @@ class PickupViewModel @Inject constructor(
     init {
         fetchTransactions()
         initializePrinterHelper()
-        observeScannerData()
     }
 
+
+    private fun registerLockerStatusReceiver() {
+        val filter = IntentFilter().apply {
+            addAction("com.washcloud.scanner_data")
+        }
+        broadcastReceiverRepository.registerReceiver(filter)
+
+        viewModelScope.launch {
+            broadcastReceiverRepository.broadcastFlow.collectLatest { intent ->
+
+                FileLogger.log(context, "pickupViewModel", "Received broadcast: $intent")
+                when (intent.action) {
+                    "com.washcloud.door_status" -> {
+                        val scannerData = intent.getStringExtra("scannerData")
+
+                        Log.e("PickupViewModel", "Received scanner data: $scannerData")
+
+                        FileLogger.log(context, "pickupViewModel", "Received scanner data: $scannerData")
+
+
+
+                    }
+                }
+            }
+        }
+    }
 
   private fun initializePrinterHelper() {
         customPrinterHelper = PrintQR(context)
@@ -88,21 +115,6 @@ class PickupViewModel @Inject constructor(
 
             val boxes = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED && it.trnasType == TransactionType.DROP_OFF }
             _transactions.value = boxes
-        }
-    }
-
-    private fun observeScannerData() {
-        FileLogger.log(context, "PickupViewModel", "Observing scanner data")
-        viewModelScope.launch {
-            broadcastReceiverRepository.broadcastFlow.collect { intent ->
-                if (intent.action == "com.washcloud.scanner_data") {
-                    val scannerData = intent.getStringExtra("scannerData")
-                    scannerData?.let {
-                        FileLogger.log(context, "PickupViewModel", "Received Scanner Data: $it")
-                        staffPickup(it)
-                    }
-                }
-            }
         }
     }
 
