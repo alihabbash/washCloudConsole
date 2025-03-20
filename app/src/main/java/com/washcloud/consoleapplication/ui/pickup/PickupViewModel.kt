@@ -23,6 +23,7 @@ import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupRequest
 import com.washcloud.consoleapplication.remote.model.pickup.StaffPickupResponse
 import com.washcloud.consoleapplication.remote.usecase.StaffPickupUseCase
+import com.washcloud.consoleapplication.repository.BroadcastReceiverRepository
 import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +36,8 @@ class PickupViewModel @Inject constructor(
     private val transactionDao: TransactionDao,
     private val staffPickupUseCase: StaffPickupUseCase,
     private val boxDao: BoxDao,
-    application: Application
+    application: Application,
+    private val broadcastReceiverRepository: BroadcastReceiverRepository
 ) : AndroidViewModel(application)  {
 
     private  val context: Context = getApplication<Application>().applicationContext
@@ -59,6 +61,7 @@ class PickupViewModel @Inject constructor(
     init {
         fetchTransactions()
         initializePrinterHelper()
+        observeScannerData()
     }
 
 
@@ -85,6 +88,21 @@ class PickupViewModel @Inject constructor(
 
             val boxes = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED && it.trnasType == TransactionType.DROP_OFF }
             _transactions.value = boxes
+        }
+    }
+
+    private fun observeScannerData() {
+        FileLogger.log(context, "PickupViewModel", "Observing scanner data")
+        viewModelScope.launch {
+            broadcastReceiverRepository.broadcastFlow.collect { intent ->
+                if (intent.action == "com.washcloud.scanner_data") {
+                    val scannerData = intent.getStringExtra("scannerData")
+                    scannerData?.let {
+                        FileLogger.log(context, "PickupViewModel", "Received Scanner Data: $it")
+                        staffPickup(it)
+                    }
+                }
+            }
         }
     }
 

@@ -112,6 +112,26 @@ class MainAdActivity : ComponentActivity() {
     private var isRebootEnabled: Boolean = false
 
 
+    private val scannerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            FileLogger.log(context, "MainAdActivity", "Received scanner data broadcast")
+
+            if (intent.action == "com.washcloud.scanner_data") {
+                val scannerData = intent.getStringExtra("scannerData")
+                scannerData?.let {
+                    FileLogger.log(context, "MainAdActivity", "Scanner Data: $it")
+                    Toast.makeText(context, "Scanned Data: $it", Toast.LENGTH_SHORT).show()
+
+                    viewModel.handleBarcode(it)
+                }
+            }
+        }
+    }
+
+
+
+
+
     private val dataReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             FileLogger.log(context,  "onReceive"   ,"onReceive intent: ${intent.action}")
@@ -141,6 +161,12 @@ class MainAdActivity : ComponentActivity() {
                 viewModel.handCheckDoorStatusResponse(isOpen = isOpen);
             }
         }
+    }
+
+    private fun registerScannerReceiver() {
+        val filter = IntentFilter("com.washcloud.scanner_data")
+        registerReceiver(scannerReceiver, filter)
+        FileLogger.log(this, "MainAdActivity", "Scanner receiver registered")
     }
 
     private  fun registerConveyorReceiver() {
@@ -182,6 +208,10 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        unregisterReceiver(scannerReceiver)
+        unregisterReceiver(dataReceiver)
+        unregisterReceiver(converyReceiver)
+        FileLogger.log(this, "MainAdActivity onDestroy", "Receivers unregistered")
     }
 
 
@@ -293,6 +323,7 @@ class MainAdActivity : ComponentActivity() {
 
         registerConveyorReceiver()
         registerReceiver()
+        registerScannerReceiver()
         startPortService()
 
         requestPermissionsIfNeeded()

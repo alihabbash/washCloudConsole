@@ -249,6 +249,7 @@ class SerialPortService : Service() {
         val broadcastIntent = Intent("com.washcloud.scanner_data")
         broadcastIntent.putExtra("scannerData", String(comBean.bRec, Charsets.UTF_8))
         sendBroadcast(broadcastIntent)
+        FileLogger.log(applicationContext, "SerialPortService", "sendBroadcast: ${String(comBean.bRec, Charsets.UTF_8)}");
     }
 
 

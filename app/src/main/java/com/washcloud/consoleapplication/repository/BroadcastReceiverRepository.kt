@@ -25,6 +25,7 @@ class BroadcastReceiverRepository(private val context: Context) {
     }
 
     fun registerReceiver(intentFilter: IntentFilter) {
+
         context.applicationContext.registerReceiver(myBroadcastReceiver, intentFilter)
     }
 
