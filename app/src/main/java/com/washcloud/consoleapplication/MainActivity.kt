@@ -1,10 +1,12 @@
 package com.washcloud.consoleapplication
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.ContextThemeWrapper
@@ -25,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,13 +41,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.preference.PreferenceManager
@@ -77,7 +73,6 @@ import com.washcloud.consoleapplication.ui.pickup.PickupView
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
-import com.washcloud.consoleapplication.utils.lightGrey
 import com.washcloud.consoleapplication.utils.screenBackground
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -119,6 +114,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setAdminPassword()
         loadPhoneNumber()
+        startSystemAlertWindowPermission()
 
         window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -232,6 +228,28 @@ class MainActivity : ComponentActivity() {
             barcodeData.append(event.unicodeChar.toChar())
             FileLogger.log(this, "MainActivity", "barcodeData: ${barcodeData.toString()}")
             super.onKeyDown(keyCode, event)
+        }
+    }
+
+    private fun startSystemAlertWindowPermission() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.canDrawOverlays(this)) {
+                    Log.i(
+                        TAG,
+                        "[startSystemAlertWindowPermission] requesting system alert window permission."
+                    )
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse(
+                                "package:$packageName"
+                            )
+                        )
+                    )
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            Log.e(TAG, "[startSystemAlertWindowPermission] error:", e)
         }
     }
 
