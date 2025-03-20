@@ -1,5 +1,9 @@
 package com.washcloud.consoleapplication.ui.pickup
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import android.view.KeyEvent
 import android.webkit.URLUtil
@@ -33,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,11 +116,33 @@ fun PickupView(
     val keyboardController = LocalSoftwareKeyboardController.current
     var isKeyboardVisible by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-  //  var isInputEnabled by remember { mutableStateOf(true) }
-     LaunchedEffect(Unit) {
+    //  var isInputEnabled by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
         focusRequester.requestFocus()
-         delay(10L)
-         keyboardController?.hide();
+        delay(10L)
+        keyboardController?.hide();
+    }
+
+    val scannerDataReceiver = rememberUpdatedState { data: String ->
+        wayBillNo = data.trim()
+        FileLogger.log(context, "PickupView", "Received Scanner Data: $wayBillNo")
+    }
+
+
+    LaunchedEffect(Unit) {
+        FileLogger.log(context, "PickupView", "Registering Scanner Data Receiver");
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == "com.washcloud.scanner_data") {
+                    val scannedData = intent.getStringExtra("scannerData") ?: return
+                    scannerDataReceiver.value(scannedData)
+                }
+            }
+        }
+
+        val filter = IntentFilter("com.washcloud.scanner_data")
+        context.registerReceiver(receiver, filter)
+
     }
 
 //    LaunchedEffect(Unit) {

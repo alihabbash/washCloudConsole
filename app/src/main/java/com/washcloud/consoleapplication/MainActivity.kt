@@ -1,6 +1,8 @@
 package com.washcloud.consoleapplication
 
+import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -12,6 +14,7 @@ import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.KeyEvent
 import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -85,6 +88,29 @@ class MainActivity : ComponentActivity() {
     private var screenWidth = 0.0.dp
     private val barcodeData = StringBuilder()
     private var phoneNumber by mutableStateOf("")
+
+
+    private val scannerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            FileLogger.log(context, "MainActivity", "Received scanner data broadcast")
+
+            if (intent.action == "com.washcloud.scanner_data") {
+                val scannerData = intent.getStringExtra("scannerData")
+                scannerData?.let {
+                    FileLogger.log(context, "MainActivity", "Scanner Data: $it")
+                    Toast.makeText(context, "Scanned Data: $it", Toast.LENGTH_SHORT).show()
+
+                    if (it.startsWith("https")) {
+                        val adIntent = Intent(context, MainAdActivity::class.java).apply {
+                            putExtra("barcode", it)
+                        }
+                        context.startActivity(adIntent)
+                        finish()
+                    }
+                }
+            }
+        }
+    }
 
 
 
