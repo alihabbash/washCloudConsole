@@ -357,6 +357,7 @@ class MainAdViewModel @Inject constructor(
                                 } == BoxType.CONVEYOR.name){
                                 openConveyor(("0"+it.data?.firstOrNull()?.doorNo));
                             }else{
+                                FileLogger.log(context,  "handleBarcode"   ,"sendCommand: 0${it.data?.firstOrNull()?.doorNo}")
                                 sendCommand( "0"+it.data?.firstOrNull()?.doorNo)
                             }
 
@@ -453,13 +454,15 @@ class MainAdViewModel @Inject constructor(
 
    private fun sendCommand(boxId: String) {
 
+       FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: ${_apiResponse.value?.data?.firstOrNull()?.terminalSn}, boxId: $boxId");
+
         viewModelScope.launch {
 
             val box = boxDao.getBoxById(boxId.toLong(), BoxType.BOX.name)
-            delay(1000L)
             FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: ${box?.stationId}, boxId: $boxId")
             val intent = Intent("com.washcloud.open_door").apply {
-                putExtra("stationId", box?.stationId)
+                FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: ${box?.stationId}, boxId: $boxId")
+                putExtra("stationId", box?.stationId ?: "01")
                 putExtra("boxId", boxId)
             }
 
