@@ -2,6 +2,7 @@ package com.washcloud.consoleapplication.ui.dropoff
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -21,11 +22,13 @@ import com.washcloud.consoleapplication.remote.model.dropoff.StaffRecallRequest
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffRecallResponse
 import com.washcloud.consoleapplication.remote.usecase.StaffDropoffUseCase
 import com.washcloud.consoleapplication.remote.usecase.StaffRecallUseCase
+import com.washcloud.consoleapplication.repository.BroadcastReceiverRepository
 import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 @HiltViewModel
@@ -34,6 +37,7 @@ class DropOffViewModel @Inject constructor(
     private val staffDropoffUseCase: StaffDropoffUseCase,
     private val staffRecallUseCase: StaffRecallUseCase,
     private val boxDao: BoxDao,
+    private val broadcastReceiverRepository: BroadcastReceiverRepository,
     application: Application
 ) : AndroidViewModel(application)  {
 
@@ -56,6 +60,9 @@ class DropOffViewModel @Inject constructor(
     val isSuccessed: StateFlow<Boolean> get() = _isSuccessed
 
 
+    private val _scannedWaybill = MutableStateFlow("")
+    val scannedWaybill: StateFlow<String> get() = _scannedWaybill
+
 
     private val _showAlert = MutableStateFlow(false)
     val showAlert: StateFlow<Boolean> get() = _showAlert
@@ -64,8 +71,38 @@ class DropOffViewModel @Inject constructor(
     init {
         fetchTransactions()
         fetchLockers()
+        registerScannerDataReceiver()
 
     }
+
+    private fun registerScannerDataReceiver() {
+        val filter = IntentFilter().apply {
+            addAction("com.washcloud.scanner_data")
+        }
+        broadcastReceiverRepository.registerReceiver(filter)
+
+        viewModelScope.launch {
+            broadcastReceiverRepository.broadcastFlow.collectLatest { intent ->
+
+                FileLogger.log(context, "pickupViewModel", "Received broadcast: $intent")
+                when (intent.action) {
+                    "com.washcloud.scanner_data" -> {
+                        val scannerData = intent.getStringExtra("scannerData")
+
+                        FileLogger.log(context, "DropoffViewModel", "Received scanner data: $scannerData")
+                         _scannedWaybill.value = scannerData ?: ""
+
+                    }
+                }
+            }
+        }
+    }
+
+
+    fun clearScannedWaybill() {
+        _scannedWaybill.value = ""
+    }
+
 
     fun setShowAlert(show: Boolean = true) {
 
@@ -85,6 +122,7 @@ class DropOffViewModel @Inject constructor(
             _transactions.value = transactionsList
         }
     }
+
 
     fun dropoff(orderSerial: String, boxID: String, boxType: String, stationId: String){
 

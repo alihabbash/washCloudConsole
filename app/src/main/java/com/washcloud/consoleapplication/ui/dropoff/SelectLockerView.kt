@@ -84,7 +84,7 @@ fun SelectLockerView(
     val focusRequester = remember { FocusRequester() }
     var showTimer by remember { mutableStateOf(false) }
     var timerValue by remember { mutableStateOf(30) }
-
+    val scannedWaybill by viewModel.scannedWaybill.collectAsState()
 
 
     val timerViewModel: TimerViewModel = hiltViewModel()
@@ -127,6 +127,13 @@ fun SelectLockerView(
             }
         }
 
+
+    LaunchedEffect(scannedWaybill) {
+        if (scannedWaybill.isNotBlank()) {
+            wayBillNoHidden = scannedWaybill
+            viewModel.setShowAlert(false)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchLockers()
@@ -180,6 +187,7 @@ fun SelectLockerView(
             alertMessage = selectLockerText
             viewModel.setShowAlert()
             wayBillNoHidden = ""
+            viewModel.clearScannedWaybill()
             showTimer = true
             timerValue = 30
         } else {
@@ -187,6 +195,7 @@ fun SelectLockerView(
             alertMessage = dropOffMessageTemplate.format(selectedLocker!!.boxId)
             viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
             wayBillNoHidden = ""
+            viewModel.clearScannedWaybill()
             selectedLocker = null
         }
 

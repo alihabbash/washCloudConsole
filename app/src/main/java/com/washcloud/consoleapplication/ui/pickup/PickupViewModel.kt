@@ -63,11 +63,11 @@ class PickupViewModel @Inject constructor(
     init {
         fetchTransactions()
         initializePrinterHelper()
-        registerLockerStatusReceiver()
+        registerScannerDataReceiver()
     }
 
 
-    private fun registerLockerStatusReceiver() {
+    private fun registerScannerDataReceiver() {
         val filter = IntentFilter().apply {
             addAction("com.washcloud.scanner_data")
         }
