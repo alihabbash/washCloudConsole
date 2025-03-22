@@ -16,7 +16,7 @@ object FileLogger {
 
     private const val LOG_TAG = "FileLogger"
     private const val LOG_FILE_NAME = "app_log.txt"
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
 
     fun log(context: Context, tag: String, message: String) {
         val logMessage = "${dateFormat.format(Date())} $tag: $message\n"
