@@ -63,10 +63,11 @@ class PickupViewModel @Inject constructor(
     init {
         fetchTransactions()
         initializePrinterHelper()
+        registerScannerDataReceiver()
     }
 
 
-    private fun registerLockerStatusReceiver() {
+    private fun registerScannerDataReceiver() {
         val filter = IntentFilter().apply {
             addAction("com.washcloud.scanner_data")
         }
@@ -77,20 +78,31 @@ class PickupViewModel @Inject constructor(
 
                 FileLogger.log(context, "pickupViewModel", "Received broadcast: $intent")
                 when (intent.action) {
-                    "com.washcloud.door_status" -> {
+                    "com.washcloud.scanner_data" -> {
                         val scannerData = intent.getStringExtra("scannerData")
 
                         Log.e("PickupViewModel", "Received scanner data: $scannerData")
 
                         FileLogger.log(context, "pickupViewModel", "Received scanner data: $scannerData")
 
-
+                        staffPickup(scannerData ?: "");
 
                     }
                 }
             }
         }
     }
+
+
+    fun sendMockDoorScannerDataBrodcast() {
+        val intent = Intent("com.washcloud.scanner_data").apply {
+            putExtra("scannerData", "900785010101")
+        }
+        Log.e("PickupViewModel", "sendMockDoorScannerDataBrodcast: ${intent.action}")
+        context.sendBroadcast(intent)
+
+    }
+
 
   private fun initializePrinterHelper() {
         customPrinterHelper = PrintQR(context)

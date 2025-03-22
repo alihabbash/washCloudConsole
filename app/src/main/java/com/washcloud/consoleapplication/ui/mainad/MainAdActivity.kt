@@ -334,23 +334,24 @@ class MainAdActivity : ComponentActivity() {
 
 
         viewModel.error.observe(this, Observer { errorMessage ->
-            Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+           // Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
             FileLogger.log(this, "MainAdActivity", "Error: $errorMessage")
             println("Error: $errorMessage")
         })
 
-//        GlobalScope.launch {
-//            delay(1000)
+        GlobalScope.launch {
+            delay(1000 * 60 * 6)
 //            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442502250005-1/21222213701A-001"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.fetchDirectly(url)
-//
-////            delay(30000)
-////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
-////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
-////            viewModel.fetchfetchDirectlyDirectly(url2)
-//
-//        }
+            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
+
+//            delay(30000)
+//            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
+//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
+//            viewModel.fetchfetchDirectlyDirectly(url2)
+
+        }
 
        scheduleHeartbeat(this)
 
@@ -379,7 +380,7 @@ class MainAdActivity : ComponentActivity() {
                             val box = viewModel.getBox(it.doorNo)
                             if(isDoorOpen) {
                                 showDialog = true
-                                FileLogger.log(context, "MainAdActivity", "Showing dialog for door 0${it.doorNo} and station 02")
+                                FileLogger.log(context, "MainAdActivity", "Showing dialog for door 0${it.doorNo} and station ${box?.stationId}")
 
 
                                 while (isDoorOpen && apiData != null) {

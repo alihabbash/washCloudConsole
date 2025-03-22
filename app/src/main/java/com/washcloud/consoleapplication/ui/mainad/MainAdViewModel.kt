@@ -149,6 +149,12 @@ class MainAdViewModel @Inject constructor(
     private val _isDoorOpen = MutableStateFlow(false)
     val isDoorOpen: StateFlow<Boolean> = _isDoorOpen.asStateFlow()
 
+    private val _isloading = MutableStateFlow(false)
+
+    private var lastScannedBarcode: String? = null
+    private var lastScannedTime: Long = 0L
+    private val debounceInterval = 5000L
+
    /* private val handler = Handler(Looper.getMainLooper())
     private lateinit var checkDoorRunnable: Runnable
 
@@ -326,56 +332,75 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun handleBarcode(barcode: String) {
+        val currentTime = System.currentTimeMillis()
 
-
-       /* if(isDoorOpen.value){
-            FileLogger.log(context,  "handleBarcode"   ,"rejected handleBarcode: $barcode")
+        if (_isloading.value) {
+            FileLogger.log(context, "handleBarcode", "rejected (isLoading) handleBarcode: $barcode")
             return
-        }*/
+        }
 
-        FileLogger.log(context,  "handleBarcode"   ,"handleBarcode: $barcode")
-        if (URLUtil.isValidUrl(barcode)) {
-            viewModelScope.launch {
-                try {
+        if (barcode == lastScannedBarcode && currentTime - lastScannedTime < debounceInterval) {
+            FileLogger.log(context, "handleBarcode", "rejected (debounce) handleBarcode: $barcode")
+            return
+        }
+
+        lastScannedBarcode = barcode
+        lastScannedTime = currentTime
+
+        _isloading.value = true
+
+        viewModelScope.launch {
+            try {
+
+                FileLogger.log(context, "handleBarcode", "handleBarcode: $barcode")
+
+                if (URLUtil.isValidUrl(barcode)) {
                     val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
+                    FileLogger.log(context, "handleBarcode", "Fetching data from $fullUrl")
 
-
-
-                    FileLogger.log(context,  "handleBarcode"   ,"Fetching data from $fullUrl")
                     val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
+
                     if (response.isSuccessful) {
-                        Log.d("MainAdViewModel", "Response: ${response.body()}")
-                        FileLogger.log(context,  "handleBarcode"   ,"Response: ${response.body()}")
-                        response.body()?.let {
+                        val body = response.body()
+                        Log.d("MainAdViewModel", "Response: $body")
+                        FileLogger.log(context, "MainAdViewModel handleBarcode", "Response: $body")
+
+                        body?.let {
                             _apiResponse.value = it
                             _showDialog.value = it.data?.firstOrNull()
                             _isDoorOpen.value = true
-                            if(it.data?.firstOrNull()?.type?.replaceFirstChar {
-                                    if (it.isLowerCase())
-                                        it.titlecase(Locale.getDefault())
-                                    else it.toString()
-                                } == BoxType.CONVEYOR.name){
-                                openConveyor(("0"+it.data?.firstOrNull()?.doorNo));
-                            }else{
-                                FileLogger.log(context,  "handleBarcode"   ,"sendCommand: 0${it.data?.firstOrNull()?.doorNo}")
-                                sendCommand( "0"+it.data?.firstOrNull()?.doorNo)
+
+                            val boxType = it.data?.firstOrNull()?.type?.replaceFirstChar { ch ->
+                                if (ch.isLowerCase()) ch.titlecase(Locale.getDefault()) else ch.toString()
                             }
 
+                            val doorNo = "0${it.data?.firstOrNull()?.doorNo}"
+
+                            if (boxType == BoxType.CONVEYOR.name) {
+                                FileLogger.log(context, "MainAdViewModel handleBarcode", "openConveyor: $doorNo")
+                                openConveyor(doorNo)
+                            } else {
+                                FileLogger.log(context, "MainAdViewModel handleBarcode", "sendCommand: $doorNo")
+                                sendCommand(doorNo)
+                            }
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
                         _error.value = "Error fetching data from $fullUrl: $errorBody"
-                        FileLogger.log(context,  "handleBarcode"   ,"Error fetching data from $fullUrl: $errorBody")
+                        FileLogger.log(context, "handleBarcode", "Error fetching data from $fullUrl: $errorBody")
                     }
-                } catch (e: Exception) {
-                    val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
-                    _error.value = "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
-                    FileLogger.log(context,  "handleBarcode"   ,"Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}")
+                } else {
+                    _error.value = "Invalid URL"
+                    FileLogger.log(context, "handleBarcode", "Invalid URL")
                 }
+
+            } catch (e: Exception) {
+                val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
+                _error.value = "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
+                FileLogger.log(context, "handleBarcode", "Exception: ${e.message}")
+            } finally {
+                _isloading.value = false
             }
-        } else {
-            _error.value = "Invalid URL"
-            FileLogger.log(context,  "handleBarcode"   ,"Invalid URL")
         }
     }
 
@@ -454,15 +479,15 @@ class MainAdViewModel @Inject constructor(
 
    private fun sendCommand(boxId: String) {
 
-       FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: ${_apiResponse.value?.data?.firstOrNull()?.terminalSn}, boxId: $boxId");
+//       FileLogger.log(context,  "sendCommand fun"   ,"sendCommand stationId: ${_apiResponse.value?.data?.firstOrNull()?.wayBillNo}, boxId: $boxId");
 
         viewModelScope.launch {
 
             val box = boxDao.getBoxById(boxId.toLong(), BoxType.BOX.name)
-            FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: ${box?.stationId}, boxId: $boxId")
+            FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: 0${box?.stationId}, boxId: $boxId")
             val intent = Intent("com.washcloud.open_door").apply {
-                FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: ${box?.stationId}, boxId: $boxId")
-                putExtra("stationId", box?.stationId ?: "01")
+                FileLogger.log(context,  "MainAdViewModel"  ,"sendCommand stationId: 0${box?.stationId}, boxId: $boxId")
+                putExtra("stationId", "0" + box?.stationId.toString())
                 putExtra("boxId", boxId)
             }
 
