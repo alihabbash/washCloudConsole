@@ -104,14 +104,99 @@ fun ExitAdminView(
 
         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, showAd2)
 
-        if (showDialog) {
-            CustomAlertDialog(
-                onConfirm = {
-                    dialogAction()
-                    showDialog = false
-                },
-                onDismiss = { showDialog = false }
-            )
+
+    }
+
+    if (showDialog) {
+
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .width(screenWidth)
+                .height(screenHeight)
+                .background(dimBackground)
+        ) {
+            Box(
+                modifier =
+                Modifier
+                    .clip(
+                        RoundedCornerShape(0.02 * screenWidth)
+                    )
+                    .background(color = Color.White)
+                    .width(0.8 * screenWidth)
+                    .height(0.15 * screenHeight)
+                    .padding(start = 16.dp, end = 16.dp),
+
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.confirmation_message),
+                        style = TextStyle(
+                            fontSize = 32.sp,
+                            color = primaryDark
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Custom Confirm & Cancel Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(secondaryColor)
+                                .clickable {
+                                    dialogAction()
+                                    showDialog = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.yes),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Gray)
+                                .clickable {
+                                    showDialog = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.no),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -261,97 +346,6 @@ fun MenuItem(
         )
     }
 
-
-}
-
-@Composable
-fun CustomAlertDialog(
-
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-
-        val configuration = LocalConfiguration.current
-        val screenWidth = configuration.screenWidthDp.dp
-        val screenHeight = configuration.screenHeightDp.dp
-
-        AlertDialog(
-            onDismissRequest = { onDismiss() },
-            title = {
-                Text(
-                    text = stringResource(id = R.string.confirmation),
-                    style = TextStyle(
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryDark
-                    )
-                )
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.confirmation_message),
-                        style = TextStyle(
-                            fontSize = 32.sp,
-                            color = primaryDark
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Custom Confirm & Cancel Buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(secondaryColor)
-                                .clickable { onConfirm() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.yes),
-                                style = TextStyle(
-                                    color = Color.White,
-                                    fontSize = (screenWidth.value * 0.024f).sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier.padding(12.dp)
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.Gray)
-                                .clickable { onDismiss() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.no),
-                                style = TextStyle(
-                                    color = Color.White,
-                                    fontSize = (screenWidth.value * 0.024f).sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier.padding(12.dp)
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {}, // Remove default confirm button
-            dismissButton = {} // Remove default dismiss button
-        )
 
 }
 

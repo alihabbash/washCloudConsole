@@ -14,25 +14,25 @@ class PrintQR(context: Context?) {
     private lateinit var fntPrinterNormal: PrinterFont
     private var context: Context? = null
 
-//    init {
-//        try {
-//            this.context = context
-//             fntPrinterNormal = PrinterFont()
-//            //Fill class: NORMAL
-//            fntPrinterNormal.setCharHeight(PrinterFont.FONT_SIZE_X2) //Height x2
-//            fntPrinterNormal.setCharWidth(PrinterFont.FONT_SIZE_X2) //Width x2
-//            fntPrinterNormal.setEmphasized(true) //Bold
-//            fntPrinterNormal.setItalic(false) //No Italic
-//            fntPrinterNormal.setUnderline(false) //No Underline
-//            fntPrinterNormal.setJustification(PrinterFont.FONT_JUSTIFICATION_CENTER) //Center
-//            fntPrinterNormal.setInternationalCharSet(PrinterFont.FONT_CS_DEFAULT) //Default International Chars
-//            usbDeviceList = CustomAndroidAPI.EnumUsbDevices(context)
-//            prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
-//        } catch (e: CustomException) {
-//            context?.let { FileLogger.log(it, "Init PrintQR", e.message.toString()) };
-//
-//        }
-//    }
+    init {
+        try {
+            this.context = context
+             fntPrinterNormal = PrinterFont()
+            //Fill class: NORMAL
+            fntPrinterNormal.setCharHeight(PrinterFont.FONT_SIZE_X2) //Height x2
+            fntPrinterNormal.setCharWidth(PrinterFont.FONT_SIZE_X2) //Width x2
+            fntPrinterNormal.setEmphasized(true) //Bold
+            fntPrinterNormal.setItalic(false) //No Italic
+            fntPrinterNormal.setUnderline(false) //No Underline
+            fntPrinterNormal.setJustification(PrinterFont.FONT_JUSTIFICATION_CENTER) //Center
+            fntPrinterNormal.setInternationalCharSet(PrinterFont.FONT_CS_DEFAULT) //Default International Chars
+            usbDeviceList = CustomAndroidAPI.EnumUsbDevices(context)
+            prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
+        } catch (e: CustomException) {
+            context?.let { FileLogger.log(it, "Init PrintQR", e.message.toString()) };
+
+        }
+    }
 
     fun OpenDevice(): Boolean {
         if (prnDevice == null) {

@@ -130,7 +130,7 @@ fun SelectLockerView(
 
     LaunchedEffect(scannedWaybill) {
         if (scannedWaybill.isNotBlank()) {
-            wayBillNoHidden = scannedWaybill
+            wayBillNo = scannedWaybill
             viewModel.setShowAlert(false)
         }
     }
@@ -146,10 +146,10 @@ fun SelectLockerView(
             viewModel.setShowAlert()
         }
     }
-    /*LaunchedEffect(Unit) {
-    delay(10000L)
-        wayBillNo = "4442408250004-1"
-   }*/
+//    LaunchedEffect(Unit) {
+//    delay(10000L)
+//        wayBillNo = "4442408250004-1"
+//   }
 
     LaunchedEffect(wayBillNo) {
      if (isValidSerialNumber(wayBillNo)) {
