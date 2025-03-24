@@ -38,11 +38,12 @@ class PrintQR(context: Context?) {
         if (prnDevice == null) {
             try {
                 //Open and connect it
-                context?.let { FileLogger.log(it, "PrintQR", "Device was opened successfully") };
+                context?.let { FileLogger.log(it, "PrintQR", "Device was opened successfully") }
+                context?.let { FileLogger.log(it, "PrintQR", "${usbDeviceList?.size}") }
                 prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
                 return true
             } catch (e: CustomException) {
-                context?.let { FileLogger.log(it, "CustomException-PrintQR",  e.message.toString()) };
+                context?.let { FileLogger.log(it, "CustomException-PrintQR",  e.message.toString() + e.stackTrace.toString()) };
                 return false
             } catch (e: Exception) {
 
