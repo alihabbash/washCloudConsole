@@ -64,9 +64,18 @@ class LockerViewModel @Inject constructor(
     val lockerStatuses: StateFlow<List<Pair<String, Boolean>>> = _lockerStatuses.asStateFlow()
 
 
+
+    private var conveyorStatusReceived: Boolean = false
+    private var isConveyorDoorOpen: Boolean = false
+
+
+
+
     init {
         fetchLockers()
         registerLockerStatusReceiver()
+        registerConveyorStatusReceiver()
+        registerConveyorDoorStatus()
 
     }
 
@@ -81,6 +90,37 @@ class LockerViewModel @Inject constructor(
                 handleBroadcastIntent(intent)
             }
         }
+    }
+
+    private  fun registerConveyorStatusReceiver() {
+        val filter = IntentFilter().apply {
+            addAction("com.washcloud.conveyor_move")
+        }
+        broadcastReceiverRepository.registerReceiver(filter)
+
+        viewModelScope.launch {
+            broadcastReceiverRepository.broadcastFlow.collectLatest { intent ->
+                handleBroadcastIntent(intent)
+               // status
+            }
+        }
+    }
+
+
+    private fun registerConveyorDoorStatus() {
+
+        val filter = IntentFilter().apply {
+            addAction("com.washcloud.conveyor_door_status")
+        }
+        broadcastReceiverRepository.registerReceiver(filter)
+
+        viewModelScope.launch {
+            broadcastReceiverRepository.broadcastFlow.collectLatest { intent ->
+                handleBroadcastIntent(intent)
+                // status
+            }
+        }
+
     }
 
     private fun handleBroadcastIntent(intent: Intent) {
@@ -100,7 +140,29 @@ class LockerViewModel @Inject constructor(
                 }
 
             }
+            "com.washcloud.conveyor_move" -> {
+                val status = intent.getStringExtra("status")
+                println("LockerViewModel: Conveyor status: $status")
+                FileLogger.log(context, "LockerViewModel", "Conveyor status: $status")
+
+                conveyorStatusReceived = true
+
+                if (status == "open") {
+                    openConveyorDoor()
+                }
+            }
+            "com.washcloud.conveyor_door_status" -> {
+                val status = intent.getStringExtra("status")
+                FileLogger.log(context, "LockerViewModel", "Received conveyor_door_status: $status")
+                println("LockerViewModel: Received conveyor_door_status: $status")
+
+                if (status == "open") {
+                    isConveyorDoorOpen = true
+                    FileLogger.log(context, "LockerViewModel", "Conveyor door is now open.")
+                }
+            }
         }
+
     }
 
     override fun onCleared() {
@@ -129,11 +191,11 @@ class LockerViewModel @Inject constructor(
 
             FileLogger.log(context, "LockerViewModel", "Checking all locker statuses: ${allLockers.size} lockers  ${allLockers.map { it.boxId }}")
             for (locker in allLockers) {
-                delay(100)
+                delay(1000)
                 sendCommand("com.washcloud.check_door", locker.boxId.toString())
-
-                delay(2000)
-                sendMockDoorStatusBrodcast(locker.boxId.toString());
+//
+//                delay(2000)
+//                sendMockDoorStatusBrodcast(locker.boxId.toString());
             }
 
 
@@ -323,6 +385,7 @@ class LockerViewModel @Inject constructor(
     fun openAllEmptyLockers() {
         viewModelScope.launch {
             lockers.value.filter { it.boxState == BoxState.AVAILABLE && it.boxType == BoxType.BOX}.forEach { locker ->
+                delay(1000)
                 sendCommand("com.washcloud.open_door", locker.boxId.toString())
             }
         }
@@ -331,6 +394,7 @@ class LockerViewModel @Inject constructor(
     fun openAllOccupiedLockers() {
         viewModelScope.launch {
             lockers.value.filter { it.boxState == BoxState.OCCUPIED && it.boxType == BoxType.BOX }.forEach { locker ->
+                delay(1000)
                 sendCommand("com.washcloud.open_door", locker.boxId.toString())
             }
         }
@@ -338,12 +402,23 @@ class LockerViewModel @Inject constructor(
 
 
      fun openConveyor(boxID: String) {
-     FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+     FileLogger.log(context, "LockerViewModel", "Sending command to open conveyor")
+
+         conveyorStatusReceived = false
         val intent = Intent("com.washcloud.conveyor_open").apply {
             putExtra("conveyorNumber","0${boxID}");
         }
 
         context.sendBroadcast(intent)
+         viewModelScope.launch {
+             delay(10_000)
+             if (conveyorStatusReceived != true) {
+                 FileLogger.log(context, "LockerViewModel", "No conveyor_move response received, retrying for boxID $boxID")
+                 openConveyor(boxID)
+             } else {
+                 FileLogger.log(context, "LockerViewModel", "Received conveyor_move response within 10s for boxID $boxID")
+             }
+         }
     }
 
     fun openConveyorDoor() {
@@ -352,6 +427,16 @@ class LockerViewModel @Inject constructor(
         }
 
         context.sendBroadcast(intent)
+
+        viewModelScope.launch {
+            while (!isConveyorDoorOpen) {
+                delay(3000)
+                if (!isConveyorDoorOpen) {
+                    FileLogger.log(context, "LockerViewModel", "Retrying openConveyorDoor()")
+                    context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+                }
+            }
+        }
     }
 
     fun closeConveyorDoor() {

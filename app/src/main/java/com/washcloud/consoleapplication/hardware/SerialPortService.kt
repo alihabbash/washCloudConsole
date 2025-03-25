@@ -260,13 +260,14 @@ class SerialPortService : Service() {
             val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
             when (dataReceive) {
                 "FEFA8E070105000000010175B6" -> {
+                    FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: open")
                     broadcastIntent.putExtra("status", "open")
-                    openConveyorDoor()
+
                 }
 
                 "FEFA8E030205012F0B" -> {
+                    FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: close")
                     broadcastIntent.putExtra("status", "close")
-                    closeConveyorDoor()
                 }
             }
             sendBroadcast(broadcastIntent)
