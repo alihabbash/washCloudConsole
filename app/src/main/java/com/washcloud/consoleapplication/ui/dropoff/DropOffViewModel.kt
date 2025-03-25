@@ -26,6 +26,7 @@ import com.washcloud.consoleapplication.repository.BroadcastReceiverRepository
 import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -66,33 +67,72 @@ class DropOffViewModel @Inject constructor(
 
     private val _showAlert = MutableStateFlow(false)
     val showAlert: StateFlow<Boolean> get() = _showAlert
+    private var conveyorStatusReceived: Boolean = false
+    private var isConveyorDoorOpen: Boolean = false
 
 
     init {
         fetchTransactions()
         fetchLockers()
-        registerScannerDataReceiver()
+        registerBroadcasts()
 
     }
 
-    private fun registerScannerDataReceiver() {
+
+    private fun registerBroadcasts() {
         val filter = IntentFilter().apply {
             addAction("com.washcloud.scanner_data")
+            addAction("com.washcloud.conveyor_move")
+            addAction("com.washcloud.conveyor_door_status")
         }
         broadcastReceiverRepository.registerReceiver(filter)
 
         viewModelScope.launch {
             broadcastReceiverRepository.broadcastFlow.collectLatest { intent ->
+                FileLogger.log(context, "DropOffViewModel", "Received broadcast: $intent")
 
-                FileLogger.log(context, "pickupViewModel", "Received broadcast: $intent")
                 when (intent.action) {
                     "com.washcloud.scanner_data" -> {
                         val scannerData = intent.getStringExtra("scannerData")
-
-                        FileLogger.log(context, "DropoffViewModel", "Received scanner data: $scannerData")
-                         _scannedWaybill.value = scannerData ?: ""
-
+                        FileLogger.log(context, "DropOffViewModel", "Received scanner data: $scannerData")
+                        _scannedWaybill.value = scannerData ?: ""
                     }
+
+                    "com.washcloud.conveyor_move" -> {
+                        val status = intent.getStringExtra("status")
+                        FileLogger.log(context, "DropOffViewModel", "Conveyor move status: $status")
+                        conveyorStatusReceived = true
+
+                        if (status == "open") {
+                            openConveyorDoor()
+                        }
+                    }
+
+                    "com.washcloud.conveyor_door_status" -> {
+                        val status = intent.getStringExtra("status")
+                        FileLogger.log(context, "DropOffViewModel", "Conveyor door status: $status")
+                        if (status == "open") {
+                            isConveyorDoorOpen = true
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    private fun openConveyorDoor() {
+        FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor door")
+        isConveyorDoorOpen = false
+        context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+
+        viewModelScope.launch {
+            while (!isConveyorDoorOpen) {
+                delay(3000)
+                if (!isConveyorDoorOpen) {
+                    FileLogger.log(context, "DropOffViewModel", "Retrying openConveyorDoor()")
+                    context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
                 }
             }
         }
