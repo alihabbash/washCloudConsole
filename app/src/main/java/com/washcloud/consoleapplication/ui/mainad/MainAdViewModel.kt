@@ -272,7 +272,7 @@ class MainAdViewModel @Inject constructor(
                 val response: Response<ApiResponse> = apiService.customerDropOff(
                     apiKey = PrefsManager.getApiKey(context),
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
-                    terminalSn = PrefsManager.getTerminalSN(context),
+                    terminalSn =  PrefsManager.getTerminalSN(context),
                     doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
                     type = 1
                 )

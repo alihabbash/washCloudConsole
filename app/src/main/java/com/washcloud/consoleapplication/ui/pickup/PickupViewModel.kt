@@ -85,7 +85,7 @@ class PickupViewModel @Inject constructor(
 
                         FileLogger.log(context, "pickupViewModel", "Received scanner data: $scannerData")
 
-                        staffPickup(scannerData ?: "");
+                        staffPickup(scannerData?.trim() ?: "");
 
                     }
                 }
@@ -135,6 +135,7 @@ class PickupViewModel @Inject constructor(
         println("orderSerial: $orderSerial")
         println("transactions: ${_transactions.value}")
         FileLogger.log(context, "PickupViewModel", "confirm Staff Pickup button clicked: $orderSerial")
+        FileLogger.log(context, "PickupViewModel", "transactions: ${_transactions.value}")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId}")
         val doorNo = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId

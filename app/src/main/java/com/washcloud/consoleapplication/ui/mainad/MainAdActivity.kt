@@ -324,7 +324,7 @@ class MainAdActivity : ComponentActivity() {
         registerConveyorReceiver()
         registerReceiver()
         registerScannerReceiver()
-        startPortService()
+         startPortService()
 
         requestPermissionsIfNeeded()
         checkRebootStatus()
@@ -332,26 +332,25 @@ class MainAdActivity : ComponentActivity() {
             handleApiResponse(response)
         })
 
-
         viewModel.error.observe(this, Observer { errorMessage ->
            // Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
             FileLogger.log(this, "MainAdActivity", "Error: $errorMessage")
             println("Error: $errorMessage")
         })
 
-        GlobalScope.launch {
-            delay(1000 * 60 * 6)
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442502250005-1/21222213701A-001"
+//        GlobalScope.launch {
+//            delay(1000 * 5 )
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112503260003-1/555554444"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.fetchDirectly(url)
-            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
-
-//            delay(30000)
-//            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
-//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
-//            viewModel.fetchfetchDirectlyDirectly(url2)
-
-        }
+//            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
+//
+////            delay(30000)
+////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
+////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
+////            viewModel.fetchfetchDirectlyDirectly(url2)
+//
+//        }
 
        scheduleHeartbeat(this)
 
