@@ -95,7 +95,7 @@ class DropOffViewModel @Inject constructor(
                     "com.washcloud.scanner_data" -> {
                         val scannerData = intent.getStringExtra("scannerData")
                         FileLogger.log(context, "DropOffViewModel", "Received scanner data: $scannerData")
-                        _scannedWaybill.value = scannerData ?: ""
+                        _scannedWaybill.value = scannerData?.trim() ?: ""
                     }
 
                     "com.washcloud.conveyor_move" -> {
