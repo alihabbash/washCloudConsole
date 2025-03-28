@@ -72,6 +72,7 @@ import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.local.database.utils.BoxSeeder
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 
 import com.washcloud.consoleapplication.local.preferences.IS_REBOOT_ENABLED_KEY
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
@@ -340,9 +341,9 @@ class MainAdActivity : ComponentActivity() {
 
 //        GlobalScope.launch {
 //            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112503260003-1/555554444"
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112503280003-1/555554444"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-//            viewModel.fetchDirectly(url)
+//            viewModel.handleBarcode(url)
 //            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
 //
 ////            delay(30000)
@@ -377,13 +378,16 @@ class MainAdActivity : ComponentActivity() {
                     LaunchedEffect(apiData) {
                         apiData?.let {
                             val box = viewModel.getBox(it.doorNo)
+                            val boxType = it.type.uppercase(Locale.ENGLISH)
                             if(isDoorOpen) {
                                 showDialog = true
                                 FileLogger.log(context, "MainAdActivity", "Showing dialog for door 0${it.doorNo} and station ${box?.stationId}")
 
 
-                                while (isDoorOpen && apiData != null) {
+                                while (isDoorOpen && apiData != null && boxType == BoxType.BOX.name) {
                                     delay(3000L)
+
+
                                     viewModel.sendCheckDoorStatusCommand(box?.stationId.toString(), "0${it.doorNo}")
                                     FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${it.doorNo} and station ${box?.stationId}")
                                 }
@@ -408,18 +412,23 @@ class MainAdActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onDoubleTap = {
-                                       // finish()
-                                        MainActivity.dLocale = Locale("ar")
+                            .clickable {
+                                MainActivity.dLocale = Locale("ar")
                                         val intent = Intent(context, MainActivity::class.java)
                                         context.startActivity(intent)
-
-
-                                    }
-                                )
                             }
+//                            .pointerInput(Unit) {
+//                                detectTapGestures(
+//                                    onDoubleTap = {
+//                                       // finish()
+//                                        MainActivity.dLocale = Locale("ar")
+//                                        val intent = Intent(context, MainActivity::class.java)
+//                                        context.startActivity(intent)
+//
+//
+//                                    }
+//                                )
+//                            }
                     ) {
 
                         AdDisplay(adsList, context, screenWidth, screenHeight)
@@ -459,6 +468,8 @@ class MainAdActivity : ComponentActivity() {
                             )*/
 
 
+                            val boxType = data.type.uppercase(Locale.ENGLISH);
+
                             var timer by remember { mutableStateOf(60) }
 
                             LaunchedEffect(isDoorOpen) {
@@ -467,10 +478,13 @@ class MainAdActivity : ComponentActivity() {
                                     timer--
                                 }
 
-                                if(isDoorOpen){
+                                if(isDoorOpen && boxType == BoxType.BOX.name){
                                     FileLogger.log(context, "MainAdActivity", "Door is still open after 60 seconds")
                                     viewModel.insertTransaction(data)
                                     showDialog = false
+                                    viewModel.checkOperationType()
+                                }else{
+                                    viewModel.closeConveyorDoor()
                                     viewModel.checkOperationType()
                                 }
 
@@ -514,7 +528,8 @@ class MainAdActivity : ComponentActivity() {
 
 
                                             Text(
-                                                text = if (data.operationType == "PickUp")  stringResource(id = R.string.locker_pickup_message, data.doorNo) else  stringResource(id = R.string.locker_dropoff_message, data.doorNo) ,
+                                                text = if (data.operationType == "PickUp" && boxType == BoxType.BOX.name)  stringResource(id = R.string.locker_pickup_message, data.doorNo) else if(data.operationType == "PickUp" && boxType == BoxType.CONVEYOR.name) stringResource(
+                                                    id =  R.string.conveyor_moving_customer) else  stringResource(id = R.string.locker_dropoff_message, data.doorNo) ,
                                                 style = TextStyle(
                                                     fontSize = (screenWidth.value * 0.025f).sp,
                                                     fontWeight = FontWeight.Bold

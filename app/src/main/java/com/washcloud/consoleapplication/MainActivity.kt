@@ -600,7 +600,7 @@ class MainActivity : ComponentActivity() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val storedPassword = sharedPreferences.getString(ADMIN_PASSWORD, "")
         if (storedPassword == "") {
-            sharedPreferences.edit().putString(ADMIN_PASSWORD, "123321").apply()
+            sharedPreferences.edit().putString(ADMIN_PASSWORD, "589188").apply()
         }
     }
 

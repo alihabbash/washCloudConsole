@@ -31,7 +31,7 @@
     <string name="verify_wait">جاري التحقق, الرجاء الإنتظار</string>
     <string name="print">طباعة</string>
     <string name="order_number">طلب رقم:</string>
-    <string name="box_number">صندةق رقم:</string>
+    <string name="box_number">صندوق رقم:</string>
     <string name="scan_order_number">قراءة رقم الطلب</string>
     <string name="pick_up_and_close_door">التقط وأغلق الباب</string>
     <string name="mobile">: الجوال</string>
@@ -136,4 +136,7 @@
     <string name="secondary_ad">إعلان ثانوي</string>
     <string name="add_primary_ad">إضافة إعلان أساسي</string>
     <string name="add_secondary_ad">إضافة إعلان ثانوي</string>
+    <string name="finsih">إنهاء</string>
+    <string name="conveyor_moving">الكونفاير يتحرك. يرجى الضغط على زر "إنهاء" عند الانتهاء</string>
+    <string name="conveyor_moving_customer">الكونفاير يتحرك. يرجى أخذ طلبك عند فتح الباب</string>
 s</resources>

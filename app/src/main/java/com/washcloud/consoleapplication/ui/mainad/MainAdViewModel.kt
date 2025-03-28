@@ -15,6 +15,7 @@ import android.util.Log
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.toUpperCase
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -250,17 +251,17 @@ class MainAdViewModel @Inject constructor(
 
     fun checkOperationType() {
         setCloseDoor()
-        if (_apiResponse.value?.data?.firstOrNull()?.operationType == "PickUp") {
-            requestCustomerPickup(_apiResponse.value?.data?.firstOrNull()?.type?.replaceFirstChar {
-                if (it.isLowerCase())
-                    it.titlecase(Locale.getDefault())
-                else it.toString()
-            } ?: BoxType.BOX.name)
-        } else {
 
+        val data = _apiResponse.value?.data?.firstOrNull()
+
+        if (data?.operationType == "PickUp") {
+            val type = data.type.uppercase(Locale.ENGLISH)
+            requestCustomerPickup(type)
+        } else {
             requestCustomerDropOff()
         }
     }
+
 
     private fun requestCustomerDropOff() {
 
@@ -308,7 +309,7 @@ class MainAdViewModel @Inject constructor(
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
                     terminalSn = PrefsManager.getTerminalSN(context),
                     doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
-                    type = 1
+                    type = if(boxType == BoxType.CONVEYOR.name) 2 else 1
                 )
 
                 if (response.isSuccessful) {
@@ -370,15 +371,17 @@ class MainAdViewModel @Inject constructor(
                             _showDialog.value = it.data?.firstOrNull()
                             _isDoorOpen.value = true
 
-                            val boxType = it.data?.firstOrNull()?.type?.replaceFirstChar { ch ->
-                                if (ch.isLowerCase()) ch.titlecase(Locale.getDefault()) else ch.toString()
-                            }
+
+
+                            val boxType = it.data?.firstOrNull()?.type?.uppercase(Locale.ENGLISH);
+
 
                             val doorNo = "0${it.data?.firstOrNull()?.doorNo}"
 
                             if (boxType == BoxType.CONVEYOR.name) {
                                 FileLogger.log(context, "MainAdViewModel handleBarcode", "openConveyor: $doorNo")
                                 openConveyor(doorNo)
+
                             } else {
                                 FileLogger.log(context, "MainAdViewModel handleBarcode", "sendCommand: $doorNo")
                                 sendCommand(doorNo)
@@ -409,6 +412,12 @@ class MainAdViewModel @Inject constructor(
         _isDoorOpen.value = false
     }
 
+
+    fun closeConveyorDoor() {
+        FileLogger.log(context, "DropOffViewModel", "Sending command to close conveyor door")
+        context.sendBroadcast(Intent("com.washcloud.conveyor_close"))
+
+    }
 
     fun fetchDirectly(url: String) {
         viewModelScope.launch {
@@ -503,6 +512,12 @@ class MainAdViewModel @Inject constructor(
         }
 
         context.sendBroadcast(intent)
+
+
+        viewModelScope.launch {
+            delay(10000)
+            context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+        }
     }
 
 
@@ -526,6 +541,13 @@ class MainAdViewModel @Inject constructor(
         context.sendBroadcast(intent)
 
     }
+
+    fun sendMockConveyorStatusBroadcast(context: Context) {
+        val intent = Intent("com.washcloud.conveyor_door_status")
+        intent.putExtra("status", "open")
+        context.sendBroadcast(intent)
+    }
+
 
 
 
