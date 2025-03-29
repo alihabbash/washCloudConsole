@@ -38,7 +38,10 @@ import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.utils.*
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun DropOffView(
@@ -271,6 +274,8 @@ fun DropOffItem(screenWidth: Dp, screenHeight: Dp,transaction: BoxDto ,isSelecte
 
 @Composable
 fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: BoxDto) {
+    val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH)
+    val formattedDate = formatter.format(transaction.trnasDate)
     Row {
         Column {
             Text(
@@ -316,7 +321,7 @@ fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: BoxDto) {
 //            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(id = R.string.time),
+                text = (stringResource(id = R.string.time)),
                 style = TextStyle(
                     color = textColor,
                     fontSize = (screenWidth.value * 0.03f).sp
@@ -333,7 +338,7 @@ fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: BoxDto) {
 //            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = transaction.trnasDate.toString(),
+                text = " " + formattedDate,
                 style = TextStyle(
                     color = textColor,
                     fontSize = (screenWidth.value * 0.03f).sp

@@ -135,4 +135,7 @@
     <string name="secondary_ad">Secondary Ad</string>
     <string name="add_primary_ad">Add Primary Ad</string>
     <string name="add_secondary_ad">Add Secondary Ad</string>
+    <string name="finsih">Finish</string>
+    <string name="conveyor_moving">The conveyor is moving. Please press the "Finish" button when you are done</string>
+    <string name="conveyor_moving_customer">The conveyor is moving. Please take your order when the door opens</string>
 </resources>

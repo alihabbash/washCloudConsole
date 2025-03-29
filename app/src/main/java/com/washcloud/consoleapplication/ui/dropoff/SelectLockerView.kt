@@ -83,6 +83,7 @@ fun SelectLockerView(
     var selectedLocker by remember { mutableStateOf<BoxDto?>(null) }
     val focusRequester = remember { FocusRequester() }
     var showTimer by remember { mutableStateOf(false) }
+    var showConveyorDialog by remember { mutableStateOf(false) }
     var timerValue by remember { mutableStateOf(30) }
     val scannedWaybill by viewModel.scannedWaybill.collectAsState()
 
@@ -131,7 +132,6 @@ fun SelectLockerView(
     LaunchedEffect(scannedWaybill) {
         if (scannedWaybill.isNotBlank()) {
             wayBillNo = scannedWaybill
-            viewModel.setShowAlert(false)
         }
     }
 
@@ -148,7 +148,7 @@ fun SelectLockerView(
     }
 //    LaunchedEffect(Unit) {
 //    delay(10000L)
-//        wayBillNo = "4442408250004-1"
+//        wayBillNo = "O112503280003-1"
 //   }
 
     LaunchedEffect(wayBillNo) {
@@ -169,8 +169,16 @@ fun SelectLockerView(
              alertTitle = dropOffClothesText
              alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
              viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
+             if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
+                 showConveyorDialog = true
+                 viewModel.setShowAlert(false)
+             }else{
+                 selectedLocker = null
+             }
+
+
              wayBillNo = ""
-             selectedLocker = null
+
 
 
 
@@ -194,9 +202,15 @@ fun SelectLockerView(
             alertTitle = dropOffClothesText
             alertMessage = dropOffMessageTemplate.format(selectedLocker!!.boxId)
             viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
+            if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
+                showConveyorDialog = true
+                viewModel.setShowAlert(false)
+            }else{
+                selectedLocker = null
+            }
             wayBillNoHidden = ""
             viewModel.clearScannedWaybill()
-            selectedLocker = null
+
         }
 
             }
@@ -295,12 +309,18 @@ fun SelectLockerView(
 
                         } else if (isValidSerialNumber(wayBillNo)) {
                             Log.e("DropOffViewModel", "Drop off clothes in locker ${selectedLocker!!.boxId}.")
-                            viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
+                           viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
 
                             alertTitle = dropOffClothesText
                             alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
+
+                            if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
+                                showConveyorDialog = true
+                                viewModel.setShowAlert(false)
+                            }else{
+                                selectedLocker = null
+                            }
                             wayBillNo = ""
-                            selectedLocker = null
 
 
                         } else {
@@ -422,6 +442,84 @@ fun SelectLockerView(
                         ) {
                             Text(
                                 text = stringResource(id = R.string.confirm),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(16.dp)
+
+                            )
+                        }
+
+                    }
+                }
+
+            }
+        }
+
+        if (showConveyorDialog) {
+
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(screenWidth)
+                    .height(screenHeight)
+                    .background(dimBackground)
+            ) {
+                Box(
+                    modifier =
+                    Modifier
+                        .clip(
+                            RoundedCornerShape(0.02 * screenWidth)
+                        )
+                        .background(color = Color.White)
+                        .width(0.8 * screenWidth)
+                        .height(0.15 * screenHeight)
+                        .padding(start = 16.dp, end = 16.dp),
+
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+
+
+                        Spacer(modifier = Modifier.height(64.dp))
+
+                        Text(
+                            text = stringResource(id = R.string.conveyor_moving),
+                            style = TextStyle(
+                                fontSize = (screenWidth.value * 0.04f).sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp)
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(
+                                            blueGradient,
+                                            secondaryColor,
+                                        ),
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable {
+                                    showConveyorDialog = false
+                                    selectedLocker = null
+                                    viewModel.closeConveyorDoor();
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.finsih),
                                 style = TextStyle(
                                     color = Color.White,
                                     fontSize = (screenWidth.value * 0.024f).sp,

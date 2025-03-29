@@ -138,6 +138,13 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
+     fun closeConveyorDoor() {
+       FileLogger.log(context, "DropOffViewModel", "Sending command to close conveyor door")
+        context.sendBroadcast(Intent("com.washcloud.conveyor_close"))
+
+    }
+
+
 
     fun clearScannedWaybill() {
         _scannedWaybill.value = ""
@@ -177,7 +184,7 @@ class DropOffViewModel @Inject constructor(
             apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
             terminalSn = PrefsManager.getApiKey(context),
-            type = 1,
+            type = if(boxType == BoxType.BOX.name) 1 else 2,
             doorNo = boxID.toInt()
         )
 
@@ -189,10 +196,10 @@ class DropOffViewModel @Inject constructor(
                 Log.e("drop-off", response.status.toString());
                 _staffDropoffResponse.value = response
                 _isSuccessed.value = true
-                setShowAlert()
+
 
                 if(boxType == BoxType.BOX.name){
-
+                    setShowAlert()
                     sendCommand(stationId, "0$boxID")
                 }else{
                     openConveyor(boxID)

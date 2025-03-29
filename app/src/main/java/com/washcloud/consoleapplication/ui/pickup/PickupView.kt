@@ -120,7 +120,7 @@ fun PickupView(
 
 //    LaunchedEffect(Unit) {
 //       delay(10000L)
-//      //  wayBillNo = "4442502250004-1"
+//        wayBillNo = "O112503280003-1"
 //        viewModel.sendMockDoorScannerDataBrodcast()
 //    }
 
