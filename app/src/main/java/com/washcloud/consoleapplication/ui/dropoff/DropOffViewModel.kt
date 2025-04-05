@@ -103,7 +103,9 @@ class DropOffViewModel @Inject constructor(
                         FileLogger.log(context, "DropOffViewModel", "Conveyor move status: $status")
                         conveyorStatusReceived = true
 
+
                         if (status == "open") {
+                            FileLogger.log(context, "DropOffViewModel", "Conveyor is arrived to DES Please open the door and status is  ${status}")
                             openConveyorDoor()
                         }
                     }
@@ -113,6 +115,10 @@ class DropOffViewModel @Inject constructor(
                         FileLogger.log(context, "DropOffViewModel", "Conveyor door status: $status")
                         if (status == "open") {
                             isConveyorDoorOpen = true
+                            FileLogger.log(context, "DropOffViewModel", "Conveyor door is open AND isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
+                        }else if (status == "close") {
+                            isConveyorDoorOpen = false
+                            FileLogger.log(context, "DropOffViewModel", "Conveyor door is closed AND isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
                         }
                     }
                 }
@@ -124,7 +130,7 @@ class DropOffViewModel @Inject constructor(
 
     private fun openConveyorDoor() {
         FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor door")
-        isConveyorDoorOpen = false
+        FileLogger.log(context, "DropOffViewModel", "isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
         context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
 
         viewModelScope.launch {
@@ -257,6 +263,8 @@ class DropOffViewModel @Inject constructor(
 
     private fun openConveyor(boxID: String) {
      FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+        isConveyorDoorOpen = false
+        FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
         val intent = Intent("com.washcloud.conveyor_open").apply {
             putExtra("conveyorNumber","0${boxID}");
         }
