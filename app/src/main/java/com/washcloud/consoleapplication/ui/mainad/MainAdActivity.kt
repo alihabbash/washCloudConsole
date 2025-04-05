@@ -536,7 +536,7 @@ class MainAdActivity : ComponentActivity() {
                                                 ),
                                             )
 
-                                            Spacer(modifier = Modifier.height(0.02 * screenHeight))
+                                            Spacer(modifier = Modifier.height(0.03 * screenHeight))
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -565,6 +565,45 @@ class MainAdActivity : ComponentActivity() {
                                                     ),
                                                     modifier = Modifier.padding(16.dp)
                                                 )
+
+                                                Spacer(modifier = Modifier.height(16.dp))
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(start = 16.dp, end = 16.dp)
+                                                        .background(
+                                                            brush = Brush.horizontalGradient(
+                                                                colors = listOf(
+                                                                    blueGradient,
+                                                                    secondaryColor,
+                                                                ),
+                                                            ),
+                                                            shape = RoundedCornerShape(8.dp)
+                                                        )
+                                                        .clickable {
+                                                            if(isDoorOpen && boxType == BoxType.BOX.name){
+
+                                                                viewModel.insertTransaction(data)
+                                                                showDialog = false
+                                                                viewModel.checkOperationType()
+                                                            }else{
+                                                                viewModel.closeConveyorDoor()
+                                                                viewModel.checkOperationType()
+                                                            }
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = stringResource(id = R.string.finsih),
+                                                        style = TextStyle(
+                                                            color = Color.White,
+                                                            fontSize = (screenWidth.value * 0.024f).sp,
+                                                            fontWeight = FontWeight.Bold
+                                                        ),
+                                                        modifier = Modifier.padding(16.dp)
+
+                                                    )
+                                                }
                                             }
                                         }
                                     }
