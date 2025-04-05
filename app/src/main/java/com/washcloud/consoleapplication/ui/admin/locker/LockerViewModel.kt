@@ -148,7 +148,7 @@ class LockerViewModel @Inject constructor(
                 conveyorStatusReceived = true
 
                 if (status == "open") {
-                    openConveyorDoor()
+                   // openConveyorDoor()
                 }
             }
             "com.washcloud.conveyor_door_status" -> {
@@ -410,7 +410,7 @@ class LockerViewModel @Inject constructor(
         }
 
         context.sendBroadcast(intent)
-         viewModelScope.launch {
+      /*   viewModelScope.launch {
              delay(10_000)
              if (conveyorStatusReceived != true) {
                  FileLogger.log(context, "LockerViewModel", "No conveyor_move response received, retrying for boxID $boxID")
@@ -418,7 +418,7 @@ class LockerViewModel @Inject constructor(
              } else {
                  FileLogger.log(context, "LockerViewModel", "Received conveyor_move response within 10s for boxID $boxID")
              }
-         }
+         }*/
     }
 
     fun openConveyorDoor() {
@@ -428,7 +428,7 @@ class LockerViewModel @Inject constructor(
 
         context.sendBroadcast(intent)
 
-        viewModelScope.launch {
+      /*  viewModelScope.launch {
             while (!isConveyorDoorOpen) {
                 delay(3000)
                 if (!isConveyorDoorOpen) {
@@ -436,7 +436,7 @@ class LockerViewModel @Inject constructor(
                     context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
                 }
             }
-        }
+        }*/
     }
 
     fun closeConveyorDoor() {

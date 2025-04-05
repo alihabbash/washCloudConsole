@@ -515,7 +515,7 @@ class MainAdViewModel @Inject constructor(
 
 
         viewModelScope.launch {
-            delay(10000)
+            delay(20000)
             context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
         }
     }
