@@ -168,10 +168,21 @@ fun SelectLockerView(
              //viewModel.setShowAlert()
              alertTitle = dropOffClothesText
              alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
-             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
+             viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString()){
+                 if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
+                     val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                     if (firstAvailableLocker != null) {
+                         selectedLocker = firstAvailableLocker
+                     }
+                 }
+             }
              if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                  showConveyorDialog = true
                  viewModel.setShowAlert(false)
+                 val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                 if (firstAvailableLocker != null) {
+                     selectedLocker = firstAvailableLocker
+                 }
              }else{
                  selectedLocker = null
              }
@@ -201,7 +212,14 @@ fun SelectLockerView(
         } else {
             alertTitle = dropOffClothesText
             alertMessage = dropOffMessageTemplate.format(selectedLocker!!.boxId)
-            viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
+            viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString()){
+                if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
+                    val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                    if (firstAvailableLocker != null) {
+                        selectedLocker = firstAvailableLocker
+                    }
+                }
+            }
             if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                 showConveyorDialog = true
                 viewModel.setShowAlert(false)
@@ -309,7 +327,14 @@ fun SelectLockerView(
 
                         } else if (isValidSerialNumber(wayBillNo)) {
                             Log.e("DropOffViewModel", "Drop off clothes in locker ${selectedLocker!!.boxId}.")
-                           viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString())
+                           viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString()){
+                               if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
+                                   val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                                   if (firstAvailableLocker != null) {
+                                       selectedLocker = firstAvailableLocker
+                                   }
+                               }
+                           }
 
                             alertTitle = dropOffClothesText
                             alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
@@ -317,6 +342,10 @@ fun SelectLockerView(
                             if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                                 showConveyorDialog = true
                                 viewModel.setShowAlert(false)
+                                val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                                if (firstAvailableLocker != null) {
+                                   selectedLocker = firstAvailableLocker
+                                }
                             }else{
                                 selectedLocker = null
                             }

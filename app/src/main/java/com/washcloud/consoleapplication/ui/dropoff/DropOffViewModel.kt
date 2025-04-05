@@ -131,16 +131,20 @@ class DropOffViewModel @Inject constructor(
     private fun openConveyorDoor() {
         FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor door")
         FileLogger.log(context, "DropOffViewModel", "isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
-        context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+
 
         viewModelScope.launch {
-            while (!isConveyorDoorOpen) {
+          /*  while (!isConveyorDoorOpen) {
                 delay(3000)
                 if (!isConveyorDoorOpen) {
                     FileLogger.log(context, "DropOffViewModel", "Retrying openConveyorDoor()")
                     context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
                 }
-            }
+            }*/
+            delay(3000)
+            context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+
+
         }
     }
 
@@ -177,7 +181,7 @@ class DropOffViewModel @Inject constructor(
     }
 
 
-    fun dropoff(orderSerial: String, boxID: String, boxType: String, stationId: String){
+    fun dropoff(orderSerial: String, boxID: String, boxType: String, stationId: String, onSuccess: () -> Unit){
 
         println("orderSerial: $orderSerial")
         FileLogger.log(context, "DropOffViewModel", "confirm Staff Drop-off button clicked: $orderSerial")
@@ -214,6 +218,8 @@ class DropOffViewModel @Inject constructor(
 
                 FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
                 updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType)
+                delay(3000)
+                onSuccess()
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "DropOffViewModel", "Error in Staff Dropoff: ${e.message}")
@@ -231,7 +237,7 @@ class DropOffViewModel @Inject constructor(
             apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
             terminalSn = PrefsManager.getTerminalSN(context),
-            type = 2,
+            type =   if(boxType == BoxType.BOX.name) 1 else 2,
             doorNo = boxID.toInt()
         )
 
@@ -244,6 +250,7 @@ class DropOffViewModel @Inject constructor(
                 sendCommand(stationId, "0$boxID")
                 FileLogger.log(context, "DropOffViewModel", "Staff Recall successful: $response")
                 updateBoxState(boxID, orderSerial, BoxState.AVAILABLE, TransactionType.DROP_OFF, boxType)
+
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "DropOffViewModel", "Error in Staff Recall: ${e.message}")
@@ -273,7 +280,7 @@ class DropOffViewModel @Inject constructor(
     }
 
 
-    private fun updateBoxState(boxId: String, orderSerial: String, boxState: BoxState, trnasType: TransactionType, boxType: String) {
+    private fun  updateBoxState(boxId: String, orderSerial: String, boxState: BoxState, trnasType: TransactionType, boxType: String) {
 
         viewModelScope.launch(Dispatchers.IO) {
 
