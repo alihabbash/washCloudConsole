@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import com.washcloud.consoleapplication.MainActivity
+import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.utils.FileLogger
 
 class BootReceiver : BroadcastReceiver() {
@@ -17,10 +18,10 @@ class BootReceiver : BroadcastReceiver() {
 
             Handler(Looper.getMainLooper()).postDelayed({
                 FileLogger.log(context,"BootReceiver", "onReceive: Starting MainActivity");
-                val i = Intent(context, MainActivity::class.java)
+                val i = Intent(context, MainAdActivity::class.java)
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(i)
-            }, 3000) // Delay for 2 seconds
+            }, 5000) // Delay for 2 seconds
 
         }
     }

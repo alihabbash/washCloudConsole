@@ -170,7 +170,7 @@ fun SelectLockerView(
              alertMessage = dropOffMessageTemplate.format(selectedLocker?.boxId ?: "None")
              viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString()){
                  if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
-                     val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                     val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE && it.boxType == BoxType.CONVEYOR }
                      if (firstAvailableLocker != null) {
                          selectedLocker = firstAvailableLocker
                      }
@@ -179,10 +179,6 @@ fun SelectLockerView(
              if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                  showConveyorDialog = true
                  viewModel.setShowAlert(false)
-                 val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
-                 if (firstAvailableLocker != null) {
-                     selectedLocker = firstAvailableLocker
-                 }
              }else{
                  selectedLocker = null
              }
@@ -214,7 +210,7 @@ fun SelectLockerView(
             alertMessage = dropOffMessageTemplate.format(selectedLocker!!.boxId)
             viewModel.dropoff(wayBillNoHidden, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString()){
                 if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
-                    val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                    val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE && it.boxType == BoxType.CONVEYOR}
                     if (firstAvailableLocker != null) {
                         selectedLocker = firstAvailableLocker
                     }
@@ -329,7 +325,7 @@ fun SelectLockerView(
                             Log.e("DropOffViewModel", "Drop off clothes in locker ${selectedLocker!!.boxId}.")
                            viewModel.dropoff(wayBillNo, selectedLocker!!.boxId.toString(), selectedLocker!!.boxType.name, selectedLocker!!.stationId.toString()){
                                if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
-                                   val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                                   val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE && it.boxType == BoxType.CONVEYOR }
                                    if (firstAvailableLocker != null) {
                                        selectedLocker = firstAvailableLocker
                                    }
@@ -342,10 +338,6 @@ fun SelectLockerView(
                             if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                                 showConveyorDialog = true
                                 viewModel.setShowAlert(false)
-                                val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
-                                if (firstAvailableLocker != null) {
-                                   selectedLocker = firstAvailableLocker
-                                }
                             }else{
                                 selectedLocker = null
                             }
@@ -643,7 +635,7 @@ fun LockerListGrouped(
                         availableNumber = lockers.count { it.boxState == BoxState.AVAILABLE },
                         itemWidth = itemWidth,
                         onSelect = {
-                            val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE }
+                            val firstAvailableLocker = lockers.firstOrNull { it.boxState == BoxState.AVAILABLE && boxType == it.boxType}
                             if (firstAvailableLocker != null) {
                                 onLockerSelect(firstAvailableLocker)
                             }

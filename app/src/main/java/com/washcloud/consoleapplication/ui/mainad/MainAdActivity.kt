@@ -339,11 +339,11 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-//        GlobalScope.launch {
-//            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112503280003-1/555554444"
-//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-//            viewModel.handleBarcode(url)
+        GlobalScope.launch {
+            delay(1000 * 5 )
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112504060001-1/555554444"
+            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+            viewModel.handleBarcode(url)
 //            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
 //
 ////            delay(30000)
@@ -351,7 +351,7 @@ class MainAdActivity : ComponentActivity() {
 ////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
 ////            viewModel.fetchfetchDirectlyDirectly(url2)
 //
-//        }
+        }
 
        scheduleHeartbeat(this)
 
@@ -506,7 +506,7 @@ class MainAdActivity : ComponentActivity() {
                                             )
                                             .background(color = Color.White)
                                             .width(0.8 * screenWidth)
-                                            .height(0.15 * screenHeight)
+                                            .height(0.22 * screenHeight)
                                             .padding(start = 16.dp, end = 16.dp),
 
                                         contentAlignment = Alignment.Center,
@@ -565,45 +565,44 @@ class MainAdActivity : ComponentActivity() {
                                                     ),
                                                     modifier = Modifier.padding(16.dp)
                                                 )
-
-                                                Spacer(modifier = Modifier.height(16.dp))
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(start = 16.dp, end = 16.dp)
-                                                        .background(
-                                                            brush = Brush.horizontalGradient(
-                                                                colors = listOf(
-                                                                    blueGradient,
-                                                                    secondaryColor,
-                                                                ),
+                                            }
+                                            Spacer(modifier = Modifier.height(16.dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(start = 16.dp, end = 16.dp)
+                                                    .background(
+                                                        brush = Brush.horizontalGradient(
+                                                            colors = listOf(
+                                                                blueGradient,
+                                                                secondaryColor,
                                                             ),
-                                                            shape = RoundedCornerShape(8.dp)
-                                                        )
-                                                        .clickable {
-                                                            if(isDoorOpen && boxType == BoxType.BOX.name){
-
-                                                                viewModel.insertTransaction(data)
-                                                                showDialog = false
-                                                                viewModel.checkOperationType()
-                                                            }else{
-                                                                viewModel.closeConveyorDoor()
-                                                                viewModel.checkOperationType()
-                                                            }
-                                                        },
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = stringResource(id = R.string.finsih),
-                                                        style = TextStyle(
-                                                            color = Color.White,
-                                                            fontSize = (screenWidth.value * 0.024f).sp,
-                                                            fontWeight = FontWeight.Bold
                                                         ),
-                                                        modifier = Modifier.padding(16.dp)
-
+                                                        shape = RoundedCornerShape(8.dp)
                                                     )
-                                                }
+                                                    .clickable {
+                                                        if(isDoorOpen && boxType == BoxType.BOX.name){
+
+                                                            viewModel.insertTransaction(data)
+                                                            showDialog = false
+                                                            viewModel.checkOperationType()
+                                                        }else{
+                                                            viewModel.closeConveyorDoor()
+                                                            viewModel.checkOperationType()
+                                                        }
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = stringResource(id = R.string.finsih),
+                                                    style = TextStyle(
+                                                        color = Color.White,
+                                                        fontSize = (screenWidth.value * 0.024f).sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    modifier = Modifier.padding(16.dp)
+
+                                                )
                                             }
                                         }
                                     }
