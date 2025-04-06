@@ -34,6 +34,7 @@ import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
+import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
@@ -287,7 +288,7 @@ fun OrderDetails(screenWidth: Dp, textColor: Color, transaction: BoxDto) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(id = R.string.box_number),
+                text = if (transaction.boxType == BoxType.BOX) stringResource(id = R.string.box_number) else (stringResource(id = R.string.conveyor) + ":"),
                 style = TextStyle(
                     color = textColor,
                     fontSize = (screenWidth.value * 0.03f).sp
