@@ -141,7 +141,7 @@ class DropOffViewModel @Inject constructor(
                     context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
                 }
             }*/
-            delay(3000)
+            delay(200)
             context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
 
 
