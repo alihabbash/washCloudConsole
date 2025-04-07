@@ -175,8 +175,9 @@ class DropOffViewModel @Inject constructor(
 
      fun fetchTransactions() {
         viewModelScope.launch(Dispatchers.IO) {
-            val transactionsList = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED  } // && it.trnasType == TransactionType.PICKUP
+            val transactionsList = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED  && it.trnasType == TransactionType.PICKUP }
             _transactions.value = transactionsList
+
         }
     }
 
