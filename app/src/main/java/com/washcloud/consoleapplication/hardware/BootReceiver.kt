@@ -21,7 +21,7 @@ class BootReceiver : BroadcastReceiver() {
                 val i = Intent(context, MainAdActivity::class.java)
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(i)
-            }, 5000) // Delay for 2 seconds
+            }, 100)
 
         }
     }
