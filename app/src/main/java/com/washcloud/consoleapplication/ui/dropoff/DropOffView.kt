@@ -225,7 +225,7 @@ fun DropOffList(screenWidth: Dp, screenHeight: Dp, transactions: List<BoxDto>,se
             .fillMaxWidth()
             .height(0.7 * screenHeight.value.dp)
     ) {
-        LazyRow(modifier = Modifier.padding(top = 0.006 * screenHeight.value.dp)) {
+        LazyColumn(modifier = Modifier.padding(top = 0.006 * screenHeight.value.dp)) {
             items(transactions.size) { index ->
                 Column {
                     DropOffItem(
