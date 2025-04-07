@@ -175,7 +175,7 @@ class DropOffViewModel @Inject constructor(
 
      fun fetchTransactions() {
         viewModelScope.launch(Dispatchers.IO) {
-            val transactionsList = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED && it.trnasType == TransactionType.PICKUP }
+            val transactionsList = boxDao.getAllBoxes().filter { it.boxState == BoxState.OCCUPIED  } // && it.trnasType == TransactionType.PICKUP
             _transactions.value = transactionsList
         }
     }
@@ -247,7 +247,12 @@ class DropOffViewModel @Inject constructor(
                 val response = staffRecallUseCase(request)
                 _staffRecallResponse.value = response
                 _isSuccessed.value = true
-                sendCommand(stationId, "0$boxID")
+
+                if(boxType == BoxType.BOX.name){
+                    sendCommand(stationId, "0$boxID")
+                }else{
+                    openConveyor(boxID)
+                }
                 FileLogger.log(context, "DropOffViewModel", "Staff Recall successful: $response")
                 updateBoxState(boxID, orderSerial, BoxState.AVAILABLE, TransactionType.DROP_OFF, boxType)
 

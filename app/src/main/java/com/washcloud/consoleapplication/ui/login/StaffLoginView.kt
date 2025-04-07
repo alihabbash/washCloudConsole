@@ -268,7 +268,11 @@ fun LoginForm(
                                         }
                                 ) {
                                     Text(
-                                        text = passwordLoginForm.ifEmpty { "XXXX-XXXX-XXXX" },
+                                        text =  if (passwordLoginForm.isEmpty()) {
+                                            "XXXX-XXXX-XXXX"
+                                        } else {
+                                            "*".repeat(passwordLoginForm.length)
+                                        },
                                         style = TextStyle(
                                             color = hints,
                                             fontSize = (screenWidth.value * 0.025f).sp
