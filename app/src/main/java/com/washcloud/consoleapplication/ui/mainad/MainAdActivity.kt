@@ -160,6 +160,15 @@ class MainAdActivity : ComponentActivity() {
                 FileLogger.log(context,  "MainActivity onReceive com.washcloud.conveyor_door_status"   ,"status: $status");
                 val isOpen = status == "open"
                 viewModel.handCheckDoorStatusResponse(isOpen = isOpen);
+            }else if (intent.action ==    "com.washcloud.conveyor_move"){
+                    val status = intent.getStringExtra("status")
+                    FileLogger.log(context, "MainAdActivity", "Conveyor move status: $status")
+
+                    if (status == "open") {
+                        FileLogger.log(context, "MainAdActivity", "Conveyor is arrived to DES Please open the door and status is  ${status}")
+                         viewModel.openConveyorDoor()
+                    }
+
             }
         }
     }
@@ -172,7 +181,11 @@ class MainAdActivity : ComponentActivity() {
 
     private  fun registerConveyorReceiver() {
         println("registerReceiver com.washcloud.conveyor_door_status")
-        val filter = IntentFilter("com.washcloud.conveyor_door_status")
+
+        val filter = IntentFilter().apply {
+            addAction("com.washcloud.conveyor_move")
+            addAction("com.washcloud.conveyor_door_status")
+        }
         FileLogger.log(this,  "registerReceiver"   ,"registerReceiver com.washcloud.conveyor_door_status")
         registerReceiver(converyReceiver, filter)
     }
@@ -183,7 +196,6 @@ class MainAdActivity : ComponentActivity() {
         FileLogger.log(this,  "registerReceiver"   ,"registerReceiver com.washcloud.door_status")
         registerReceiver(dataReceiver, filter)
     }
-
 
 
     companion object {
