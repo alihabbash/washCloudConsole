@@ -514,12 +514,23 @@ class MainAdViewModel @Inject constructor(
         context.sendBroadcast(intent)
 
 
-        viewModelScope.launch {
+        /*viewModelScope.launch {
             delay(20000)
             context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
-        }
+        }*/
     }
 
+
+    fun openConveyorDoor() {
+
+        FileLogger.log(context,  "MainAdViewModel"   ,"openConveyorDoor")
+
+        viewModelScope.launch {
+            delay(200)
+            context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+
+        }
+    }
 
     fun sendCheckDoorStatusCommand(stationId: String, boxId: String) {
         val intent = Intent("com.washcloud.check_door").apply {
@@ -547,8 +558,6 @@ class MainAdViewModel @Inject constructor(
         intent.putExtra("status", "open")
         context.sendBroadcast(intent)
     }
-
-
 
 
 
