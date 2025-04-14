@@ -87,7 +87,7 @@ class SerialPortService : Service() {
                     "SerialPortService",
                     "Port $port opened, sending initial command"
                 )
-                sendHex("01066203070866E8")
+                sendHex("0106600F0708A43F")
                 GlobalScope.launch {
                     delay(100)
                     sendHex("01066002002037D2")
@@ -145,18 +145,34 @@ class SerialPortService : Service() {
         val crc: Int = compute(data)
         val command = prefix + toHex(crc)
 
-        FileLogger.log(
-            applicationContext,
-            "moveConveyor",
-            "Moving conveyor to $targetPoint -> $command"
-        )
-        serialHelperConveyor.sendHex(command)
+
+
+        serialHelperConveyor.sendHex("0106620307086584")
         GlobalScope.launch {
-            delay(100)
+            delay(150)
+            FileLogger.log(
+                applicationContext,
+                "moveConveyor",
+                "Moving conveyor to $targetPoint -> $command"
+            )
+            serialHelperConveyor.sendHex(command)
+        }
+        GlobalScope.launch {
+            delay(500)
             FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor 01066002001037C6")
             serialHelperConveyor.sendHex("01066002001037C6")
         }
 
+
+        GlobalScope.launch {
+            delay(750)
+            FileLogger.log(
+                applicationContext,
+                "checkConveyor",
+                "Checking conveyor to $targetPoint -> 0103600200013BCA"
+            )
+            serialHelperConveyor.sendHex("0103600200013BCA")
+        }
     }
     private fun calculatePulseNumber(targetPoint: Int): String =
         String.format(Locale.US,"%08X", 20000 * targetPoint)
@@ -277,10 +293,21 @@ class SerialPortService : Service() {
     private fun handleConveyorData(comBean: ComBean) {
         val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
         FileLogger.log(applicationContext, "SerialPortService", "Conveyor data: $dataReceive")
+        if(dataReceive.startsWith("010302")){
+            if(dataReceive.substring(6, 10) != "0000"){
+                GlobalScope.launch {
+                    delay(1000)
+                    serialHelperConveyor.sendHex("0103600200013BCA")
+                }
+            }else{
+                val broadcastIntent = Intent("com.washcloud.conveyor_move")
+                broadcastIntent.putExtra("status", "open")
+                sendBroadcast(broadcastIntent)
+            }
+        }
         if(dataReceive.startsWith("01066002001037")) {
             val broadcastIntent = Intent("com.washcloud.conveyor_move")
             when (dataReceive) {
-                "01066002001037C6" -> broadcastIntent.putExtra("status", "open")
                 "01066002002037D2" -> broadcastIntent.putExtra("status", "close")
                     .also { position = 0 }
             }
