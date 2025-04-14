@@ -294,13 +294,36 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        Log.e("MainAdActivity", "onPause");
         FileLogger.log(this, "MainAdActivity", "onPause")
+
+
+        unregisterReceiverSafe(scannerReceiver)
+        unregisterReceiverSafe(dataReceiver)
+        unregisterReceiverSafe(converyReceiver)
     }
 
     override fun onResume() {
         super.onResume()
+
+        FileLogger.log(this, "MainAdActivity", "onResume - Registering receivers again")
+
+        registerScannerReceiver()
+        registerReceiver()
+        registerConveyorReceiver()
+
         viewModel.loadAdsFromStorage()
+        Log.e("MainAdActivity", "onResume");
         FileLogger.log(this, "MainAdActivity", "Loading ads from storage ")
+    }
+
+    private fun unregisterReceiverSafe(receiver: BroadcastReceiver) {
+        try {
+            unregisterReceiver(receiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver was not registered
+            FileLogger.log(this,"MainAdActivity", "Receiver not registered: ${receiver.javaClass.simpleName}")
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -334,9 +357,9 @@ class MainAdActivity : ComponentActivity() {
 
         }
 
-        registerConveyorReceiver()
+       /* registerConveyorReceiver()
         registerReceiver()
-        registerScannerReceiver()
+        registerScannerReceiver()*/
          startPortService()
 
         requestPermissionsIfNeeded()
