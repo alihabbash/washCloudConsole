@@ -216,6 +216,7 @@ class LockerViewModel @Inject constructor(
 
     fun addLocker(
         boxId: Long,
+        boxNumber: Long,
         branchId: Long,
         stationId: Long,
         portId: String,
@@ -232,6 +233,7 @@ class LockerViewModel @Inject constructor(
                     orderSerial = "",
                     orderId = 0L,
                     boxId = boxId,
+                    boxNumber = boxNumber,
                     trnasDate = Date(),
                     branchId = branchId,
                     trnasType = TransactionType.DROP_OFF,
@@ -324,6 +326,7 @@ class LockerViewModel @Inject constructor(
                                     orderSerial = "",
                                     orderId = 0L,
                                     boxId = boxId,
+                                    boxNumber = columns[12].toLong(),
                                     trnasDate = Date(),
                                     branchId = columns[5].toLong(),
                                     trnasType = TransactionType.valueOf(columns[6]),
@@ -332,6 +335,7 @@ class LockerViewModel @Inject constructor(
                                     boxState = BoxState.valueOf(columns[9]),
                                     stationId = columns[10].toLong(),
                                     portId = columns[11]
+
                                 )
                                 boxes.add(box)
                             } else {
@@ -375,9 +379,14 @@ class LockerViewModel @Inject constructor(
                 .filter { it.boxId == boxId.toLong() }
                 .map { it.stationId }
                 .firstOrNull()
+            val boxNumber = lockers.value
+                .filter {it.boxType == BoxType.BOX}
+                .filter { it.boxId == boxId.toLong() }
+                .map { it.boxNumber }
+                .firstOrNull()
             FileLogger.log(context, "LockerViewModel", "Sending command to open door: stationId: 0$stationId, boxId: 0$boxId")
             putExtra("stationId", "0"+stationId.toString())
-            putExtra("boxId", "0"+boxId)
+            putExtra("boxId", "0"+boxNumber)
         }
         context.sendBroadcast(intent)
     }

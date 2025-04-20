@@ -250,7 +250,7 @@ class DropOffViewModel @Inject constructor(
                 _isSuccessed.value = true
 
                 if(boxType == BoxType.BOX.name){
-                    sendCommand(stationId, "0$boxID")
+                   sendCommand(stationId, "0$boxID")
                 }else{
                     openConveyor(boxID)
                 }
@@ -265,11 +265,13 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
-    private fun sendCommand(stationId: String, boxId: String) {
+    private suspend fun  sendCommand(stationId: String, boxId: String) {
+
+        val box = boxDao.getBoxById(boxId.toLong(), boxType = BoxType.BOX.name);
         FileLogger.log(context, "DropOffViewModel", "Sending command to open door: stationId: $stationId, boxId: $boxId")
         val intent = Intent("com.washcloud.open_door").apply {
             putExtra("stationId", stationId)
-            putExtra("boxId", boxId)
+            putExtra("boxId", box?.boxNumber)
         }
         context.sendBroadcast(intent)
     }

@@ -15,6 +15,7 @@ data class BoxDto(
     @ColumnInfo(name = "order_serial") val orderSerial: String,
     @ColumnInfo(name = "order_id") val orderId: Long,
     @ColumnInfo(name = "box_id") val boxId: Long,//or conveyor id
+    @ColumnInfo(name = "box_number") val boxNumber: Long,
     @ColumnInfo(name = "trans_date") val trnasDate: Date,
     @ColumnInfo(name = "branch_id") val branchId: Long,
     @ColumnInfo(name = "trans_type") val trnasType: TransactionType,//drop off - pickup
@@ -28,6 +29,7 @@ data class BoxDto(
         orderSerial: String,
         orderId: Long,
         boxId: Long,
+        boxNumber: Long,
         trnasDate: Date,
         branchId: Long,
         trnasType: TransactionType,
@@ -35,7 +37,8 @@ data class BoxDto(
         boxType: BoxType,
         boxState: BoxState,
         stationId: Long,
-        portId: String
-    ): this(0, orderSerial, orderId, boxId, trnasDate, branchId,
+        portId: String,
+
+    ): this(0, orderSerial, orderId, boxId, boxNumber, trnasDate, branchId,
         trnasType, boxSize, boxType, boxState, stationId, portId)
 }

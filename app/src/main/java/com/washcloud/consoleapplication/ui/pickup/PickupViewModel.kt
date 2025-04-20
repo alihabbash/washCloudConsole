@@ -176,11 +176,13 @@ class PickupViewModel @Inject constructor(
         }
     }
 
-    private fun sendCommand(stationId: String, boxId: String) {
-        FileLogger.log(context, "PickupViewModel", "Sending command to open door: stationId: $stationId, boxId: $boxId")
+   private suspend fun sendCommand(stationId: String, boxId: String) {
+
+        val box = boxDao.getBoxById(boxId.toLong(), boxType = BoxType.BOX.name);
+        FileLogger.log(context, "PickupViewModel", "Sending command to open door: stationId: $stationId, boxId: ${box?.boxNumber}")
         val intent = Intent("com.washcloud.open_door").apply {
             putExtra("stationId", stationId)
-            putExtra("boxId", boxId)
+            putExtra("boxId", box?.boxNumber.toString())
         }
         context.sendBroadcast(intent)
     }
