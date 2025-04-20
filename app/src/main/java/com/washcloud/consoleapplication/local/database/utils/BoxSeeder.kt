@@ -21,6 +21,7 @@ object BoxSeeder {
                     orderSerial = "order_serial_$it",
                     orderId = it.toLong(),
                     boxId =  it.toLong() + 1,
+                    boxNumber =  it.toLong() + 2,
                     trnasDate = Date(),
                     branchId = 1L,
                     trnasType = TransactionType.DROP_OFF,

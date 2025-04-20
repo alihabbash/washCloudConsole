@@ -289,6 +289,7 @@ fun AddLockerScreen(
                         if (boxId.isNotEmpty() && branchId.isNotEmpty() && stationId.isNotEmpty() && portId.isNotEmpty()) {
                             viewModel.addLocker(
                                 boxId = boxId.toLong(),
+                                boxNumber = boxId.toLong(),
                                 branchId = branchId.toLong(),
                                 stationId = stationId.toLong(),
                                 portId = portId,

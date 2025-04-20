@@ -421,7 +421,7 @@ class MainAdViewModel @Inject constructor(
 
     }
 
-    fun fetchDirectly(url: String) {
+ /*   fun fetchDirectly(url: String) {
         viewModelScope.launch {
             try {
                 val fullUrl = "$url?apiKey=${PrefsManager.getApiKey(context)}"
@@ -447,7 +447,7 @@ class MainAdViewModel @Inject constructor(
                 _error.value = "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
             }
         }
-    }
+    }*/
 
     fun insertTransaction(data: ApiData) {
 
@@ -499,7 +499,7 @@ class MainAdViewModel @Inject constructor(
             val intent = Intent("com.washcloud.open_door").apply {
                 FileLogger.log(context,  "MainAdViewModel"  ,"sendCommand stationId: 0${box?.stationId}, boxId: $boxId")
                 putExtra("stationId", "0" + box?.stationId.toString())
-                putExtra("boxId", boxId)
+                putExtra("boxId", box?.boxNumber.toString())
             }
 
             context.sendBroadcast(intent)
