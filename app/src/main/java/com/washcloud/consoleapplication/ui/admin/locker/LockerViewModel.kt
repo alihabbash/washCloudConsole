@@ -223,7 +223,7 @@ class LockerViewModel @Inject constructor(
         boxType: BoxType
     ) {
 
-        val existingLocker = _lockers.value.find { it.boxId == boxId }
+        val existingLocker = _lockers.value.find { it.boxId == boxId && it.stationId == stationId && it.boxType == boxType }
 
         viewModelScope.launch(Dispatchers.IO) {
 
