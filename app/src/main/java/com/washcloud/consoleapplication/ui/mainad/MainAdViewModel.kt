@@ -155,6 +155,7 @@ class MainAdViewModel @Inject constructor(
     private var lastScannedBarcode: String? = null
     private var lastScannedTime: Long = 0L
     private val debounceInterval = 5000L
+    private var isConveyorDoorOpen: Boolean = false
 
    /* private val handler = Handler(Looper.getMainLooper())
     private lateinit var checkDoorRunnable: Runnable
@@ -416,6 +417,7 @@ class MainAdViewModel @Inject constructor(
     fun closeConveyorDoor() {
         FileLogger.log(context, "DropOffViewModel", "Sending command to close conveyor door")
         context.sendBroadcast(Intent("com.washcloud.conveyor_close"))
+        isConveyorDoorOpen = false
 
     }
 
@@ -523,10 +525,16 @@ class MainAdViewModel @Inject constructor(
 
     fun openConveyorDoor() {
 
+        if(isConveyorDoorOpen) {
+            Log.e("MainAdViewModel", "Conveyor door is already open")
+            FileLogger.log(context,  "MainAdViewModel"   ,"Conveyor door is already open")
+            return
+        }
         FileLogger.log(context,  "MainAdViewModel"   ,"openConveyorDoor")
 
         viewModelScope.launch {
             delay(200)
+            isConveyorDoorOpen = true
             context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
 
         }
