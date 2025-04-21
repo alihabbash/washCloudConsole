@@ -318,7 +318,7 @@ class LockerViewModel @Inject constructor(
                 lines.drop(1)
                     .forEach { line ->
                         val columns = line.split(";")
-                        if (columns.size == 12) {
+                        if (columns.size == 13) {
                             val boxId = columns[3].toLong()
 
                             if (boxId !in existingBoxIds) {
