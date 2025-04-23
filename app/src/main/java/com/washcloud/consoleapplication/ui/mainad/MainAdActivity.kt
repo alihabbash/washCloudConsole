@@ -360,7 +360,7 @@ class MainAdActivity : ComponentActivity() {
        /* registerConveyorReceiver()
         registerReceiver()
         registerScannerReceiver()*/
-      //   startPortService()
+         startPortService()
 
         requestPermissionsIfNeeded()
         checkRebootStatus()
@@ -505,7 +505,7 @@ class MainAdActivity : ComponentActivity() {
 
                             val boxType = data.type.uppercase(Locale.ENGLISH);
 
-                            var timer by remember { mutableStateOf(60) }
+                            var timer by remember { mutableStateOf(120) }
 
                             LaunchedEffect(isDoorOpen) {
                                 while (timer > 0 && isDoorOpen) {

@@ -11,6 +11,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -620,10 +622,13 @@ fun LockerListGrouped(
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(8.dp))
-        LazyRow(
+        LazyVerticalGrid(
             modifier = Modifier
                 .padding(16.dp)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            columns = GridCells.Fixed(3),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             lockersGrouped.forEach { (key, lockers) ->
 

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -573,9 +574,10 @@ class MainActivity : ComponentActivity() {
                     Image(
                         painter = rememberAsyncImagePainter(adsSecondaryList[currentIndex]),
                         contentDescription = "Ad Image",
-                        modifier = Modifier
-                            .width(screenWidth * 0.3f)
-                            .height(screenWidth * 0.3f)
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillWidth
+
+
                     )
                 } else {
                     Image(
