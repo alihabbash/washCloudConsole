@@ -575,7 +575,7 @@ class MainActivity : ComponentActivity() {
                         painter = rememberAsyncImagePainter(adsSecondaryList[currentIndex]),
                         contentDescription = "Ad Image",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.FillWidth
+                        contentScale = ContentScale.FillBounds
 
 
                     )

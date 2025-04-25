@@ -66,6 +66,8 @@ class PCSettingsViewModel @Inject constructor(
 
 
     fun saveAllSettings() {
+
+        println("serverOption: " + serverOption.value);
         with(sharedPreferences.edit()) {
             putString(LOCKER_NAME_KEY, lockerName.value)
             putString(REBOOT_TIME_KEY, rebootTime.value)

@@ -1,11 +1,13 @@
 package com.washcloud.consoleapplication.di
 
+import android.app.Application
+import android.content.Context
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.washcloud.consoleapplication.BuildConfig
-import com.washcloud.consoleapplication.remote.config.BASE_URL
 import com.washcloud.consoleapplication.remote.config.HeadersInterceptors
 import com.washcloud.consoleapplication.remote.config.IRetrofitService
+import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,19 +44,20 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofit(
-        client: OkHttpClient
+        client: OkHttpClient,
+        application: Application
     ): Retrofit {
+        val baseUrl = MainAdActivity.getBaseUrl(application)
+
         val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
 
-        return Retrofit.Builder().apply {
-            baseUrl(BASE_URL)
-            client(client)
-            addConverterFactory(
-                MoshiConverterFactory.create(moshi)
-            )
-        }.build()
+        return Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(client)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
     }
 
     @Provides
@@ -62,5 +65,4 @@ object NetworkModule {
     fun providerRetrofitService(retrofit: Retrofit): IRetrofitService {
         return retrofit.create(IRetrofitService::class.java)
     }
-
 }

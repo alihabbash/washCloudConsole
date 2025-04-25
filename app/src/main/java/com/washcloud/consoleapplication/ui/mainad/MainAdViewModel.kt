@@ -38,7 +38,6 @@ import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.ADS_ARRAY
 import com.washcloud.consoleapplication.local.preferences.BRANCH_ID
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
-import com.washcloud.consoleapplication.remote.config.BASE_URL
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_DROP_OFF
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_PICKUP
 import com.washcloud.consoleapplication.utils.FileLogger
@@ -66,25 +65,34 @@ import javax.inject.Inject
 
 
 object RetrofitClient {
-    private val moshi = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
+    private var apiServiceInstance: ApiService? = null
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
+    fun getApiService(context: Context): ApiService {
+        if (apiServiceInstance == null) {
+            val moshi = Moshi.Builder()
+                .add(KotlinJsonAdapterFactory())
+                .build()
 
-    private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .build()
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
 
-    val apiService: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .client(okHttpClient)
-            .build()
-            .create(ApiService::class.java)
+            val okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .build()
+
+            val baseUrl = MainAdActivity.getBaseUrl(context)
+
+            val retrofit = Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(MoshiConverterFactory.create(moshi))
+                .client(okHttpClient)
+                .build()
+
+            apiServiceInstance = retrofit.create(ApiService::class.java)
+        }
+
+        return apiServiceInstance!!
     }
 }
 
@@ -136,7 +144,8 @@ class MainAdViewModel @Inject constructor(
 ) : AndroidViewModel(application)  {
 
     private  val context: Context = getApplication<Application>().applicationContext
-    private val apiService: ApiService = RetrofitClient.apiService
+    private val apiService: ApiService = RetrofitClient.getApiService(context)
+
     private val _apiResponse = MutableLiveData<ApiResponse>()
     val apiResponse: LiveData<ApiResponse> get() = _apiResponse
 
