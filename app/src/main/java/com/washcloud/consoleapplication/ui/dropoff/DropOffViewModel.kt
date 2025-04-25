@@ -42,6 +42,7 @@ class DropOffViewModel @Inject constructor(
     application: Application
 ) : AndroidViewModel(application)  {
 
+
     private  val context: Context = getApplication<Application>().applicationContext
     private val _transactions = MutableStateFlow<List<BoxDto>>(emptyList())
     val transactions: StateFlow<List<BoxDto>> get() = _transactions

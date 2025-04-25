@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.remote.config.JsonMapper
+import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import javax.inject.Inject
 
 class PrefsManager constructor(
@@ -73,13 +74,20 @@ class PrefsManager constructor(
     }
     companion object {
         fun getApiKey(context: Context): String {
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            return sharedPreferences.getString(API_KEY_KEY, "") ?: ""
+//            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+//            return sharedPreferences.getString(API_KEY_KEY, "") ?: ""
+            return  "cb71aa3387256986324"
         }
 
         fun getTerminalSN(context: Context): String {
+//            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+//            return sharedPreferences.getString(TERMINAL_SN_KEY, "") ?: ""
+            return  "24222213703-003"
+        }
+
+        fun getBaseURL(context: Context): String {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            return sharedPreferences.getString(TERMINAL_SN_KEY, "") ?: ""
+            return sharedPreferences.getString(SERVER_OPTION, "") ?: ""
         }
     }
 

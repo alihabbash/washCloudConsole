@@ -77,7 +77,6 @@ import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.preferences.IS_REBOOT_ENABLED_KEY
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.local.preferences.REBOOT_TIME_KEY
-import com.washcloud.consoleapplication.remote.config.BASE_URL
 import com.washcloud.consoleapplication.remote.config.LOCKER_API
 import com.washcloud.consoleapplication.remote.config.PREFIX
 import com.washcloud.consoleapplication.remote.config.VERIFICATION
@@ -200,6 +199,13 @@ class MainAdActivity : ComponentActivity() {
 
     companion object {
         public var dLocale: Locale? = Locale("ar")
+
+        fun getBaseUrl(context: Context): String {
+            val url = PrefsManager.getBaseURL(context)
+            return url.ifBlank {
+                "https://devwashcloud.azurewebsites.net/" // default fallback
+            }
+        }
     }
 
     init {
@@ -708,9 +714,10 @@ class MainAdActivity : ComponentActivity() {
         }
     }*/
 
+
     private  fun handleSerialOrder(serialOrder: String){
 
-        val url = BASE_URL+ LOCKER_API + VERIFICATION + serialOrder + "/" + PrefsManager.getTerminalSN(this);
+        val url = getBaseUrl(this) + LOCKER_API + VERIFICATION + serialOrder + "/" + PrefsManager.getTerminalSN(this);
 
         FileLogger.log(this, "MainActivity", "Open box quick way using data from $url")
         viewModel.handleBarcode(url)
