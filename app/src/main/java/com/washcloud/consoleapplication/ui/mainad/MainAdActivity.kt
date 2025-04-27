@@ -396,7 +396,6 @@ class MainAdActivity : ComponentActivity() {
 
        scheduleHeartbeat(this)
 
-     //   insertBoxes()
 
         setContent {
 
@@ -439,15 +438,6 @@ class MainAdActivity : ComponentActivity() {
                         }
                     }
 
-                  /*  LaunchedEffect(showDialog) {
-                        while (showDialog && isDoorOpen) {
-                            delay(3000L)
-                            apiData?.let { data ->
-                                FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${data.doorNo} and station 02")
-                                viewModel.sendCheckDoorStatusCommand("02", "0" + data.doorNo)
-                            }
-                        }
-                    }*/
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,

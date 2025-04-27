@@ -74,15 +74,15 @@ class PrefsManager constructor(
     }
     companion object {
         fun getApiKey(context: Context): String {
-//            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-//            return sharedPreferences.getString(API_KEY_KEY, "") ?: ""
-            return  "cb71aa3387256986324"
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getString(API_KEY_KEY, "") ?: ""
+
         }
 
         fun getTerminalSN(context: Context): String {
-//            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-//            return sharedPreferences.getString(TERMINAL_SN_KEY, "") ?: ""
-            return  "24222213703-003"
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getString(TERMINAL_SN_KEY, "") ?: ""
+
         }
 
         fun getBaseURL(context: Context): String {
