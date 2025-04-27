@@ -160,24 +160,6 @@ class MainActivity : ComponentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
 
-       /* val p = Runtime.getRuntime().exec("su")
-        val os = DataOutputStream(p.outputStream)
-
-       // os.writeBytes("yourCommand\n")
-
-        //os.writeBytes("exit\n")
-
-        os.flush()
-        os.close()
-        try {
-            p.waitFor()
-        } catch (e: InterruptedException) {
-        }*/
-
-       /* Handler(Looper.getMainLooper()).postDelayed({
-            simulateKeyPressSequence("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250005-1/21222213701A-001")
-        }, 3000)*/
-
 
         setContent {
             ConsoleApplicationTheme {
