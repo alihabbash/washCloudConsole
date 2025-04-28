@@ -720,7 +720,6 @@ class MainAdActivity : ComponentActivity() {
             Log.e("MainActivity", "Error starting SerialPortService", e)
             FileLogger.log(this, "MainActivity", "Error starting SerialPortService: ${e.message}")
         }
-
     }
     private fun handleApiResponse(response: ApiResponse) {
 
@@ -773,11 +772,10 @@ class MainAdActivity : ComponentActivity() {
 
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
             System.currentTimeMillis(),
-            60 * 5000,
+            60 * 2000,
             pendingIntent
         )
     }
