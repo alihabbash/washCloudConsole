@@ -195,7 +195,7 @@ class DropOffViewModel @Inject constructor(
         val request = StaffDropoffRequest(
             apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
-            terminalSn = PrefsManager.getApiKey(context),
+            terminalSn = PrefsManager.getTerminalSN(context),
             type = if(boxType == BoxType.BOX.name) 1 else 2,
             doorNo = boxID.toInt()
         )

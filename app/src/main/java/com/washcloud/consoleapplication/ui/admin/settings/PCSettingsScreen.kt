@@ -40,6 +40,7 @@ import com.washcloud.consoleapplication.remote.config.BASE_URL_DEV
 import com.washcloud.consoleapplication.remote.config.BASE_URL_PROD
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
+import java.util.Locale
 
 @Composable
 fun PCSettingsScreen(
@@ -334,7 +335,8 @@ fun PCSettingsScreen(
                                             val minute = timeParts[1].toInt()
 
                                             TimePickerDialog(context, { _: TimePicker, selectedHour: Int, selectedMinute: Int ->
-                                                viewModel.rebootTime.value = String.format("%02d:%02d", selectedHour, selectedMinute)
+                                                viewModel.rebootTime.value = String.format(Locale.ENGLISH, "%02d:%02d", selectedHour, selectedMinute)
+
 
                                             }, hour, minute, true).show()
                                         }
@@ -564,4 +566,5 @@ fun ServerSettingItem(
 
         }
     }
+
 }
