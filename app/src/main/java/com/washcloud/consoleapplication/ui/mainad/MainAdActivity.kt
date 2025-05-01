@@ -382,7 +382,7 @@ class MainAdActivity : ComponentActivity() {
 
 //        GlobalScope.launch {
 //            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112504070002-1/555554444"
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112504300002-1/555554444"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.handleBarcode(url)
 ////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
@@ -762,7 +762,6 @@ class MainAdActivity : ComponentActivity() {
             requestPermissionsLauncher.launch(permissionsNeeded)
         }
     }
-
 
     private fun scheduleHeartbeat(context: Context) {
         val intent = Intent(context, HeartbeatReceiver::class.java).apply {

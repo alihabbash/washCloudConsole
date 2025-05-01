@@ -288,6 +288,8 @@ class MainAdViewModel @Inject constructor(
                     type = 1
                 )
 
+                FileLogger.log(context,  "setCustomerDropOff"   ,"Fetching data from ${CUSTOMER_DROP_OFF} wayBillNo: ${_apiResponse.value?.data?.firstOrNull()?.wayBillNo} terminalSn: ${PrefsManager.getTerminalSN(context)} doorNo: ${_apiResponse.value?.data?.firstOrNull()?.doorNo} type: 1");
+
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
 
