@@ -366,7 +366,7 @@ class MainAdActivity : ComponentActivity() {
        /* registerConveyorReceiver()
         registerReceiver()
         registerScannerReceiver()*/
-        // startPortService()
+         startPortService()
 
         requestPermissionsIfNeeded()
         checkRebootStatus()
@@ -380,19 +380,19 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        GlobalScope.launch {
-            delay(1000 * 5 )
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112504300002-1/555554444"
-            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-            viewModel.handleBarcode(url)
-//            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
-//
-////            delay(30000)
-////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
-////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
-////            viewModel.fetchfetchDirectlyDirectly(url2)
-//
-        }
+//        GlobalScope.launch {
+//            delay(1000 * 5 )
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112504300002-1/555554444"
+//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+//            viewModel.handleBarcode(url)
+////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
+////
+//////            delay(30000)
+//////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
+//////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
+//////            viewModel.fetchfetchDirectlyDirectly(url2)
+////
+//        }
 
        scheduleHeartbeat(this)
 
