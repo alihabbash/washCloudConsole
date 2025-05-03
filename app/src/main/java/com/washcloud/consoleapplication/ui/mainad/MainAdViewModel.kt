@@ -309,9 +309,10 @@ class MainAdViewModel @Inject constructor(
 
                 FileLogger.log(context, "requestCustomerDropOff", "Response from server: ${response.body()}")
 
+                insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
-                    insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
+
                     _showDialog.value = null
                 } else {
                     val errorBody = response.errorBody()?.string()
