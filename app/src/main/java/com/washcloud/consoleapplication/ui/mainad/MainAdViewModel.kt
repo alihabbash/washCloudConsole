@@ -89,6 +89,9 @@ object RetrofitClient {
                 .client(okHttpClient)
                 .build()
 
+
+            FileLogger.log(context,  "RetrofitClient"   ,"Base URL: $baseUrl")
+
             apiServiceInstance = retrofit.create(ApiService::class.java)
         }
 
@@ -273,40 +276,51 @@ class MainAdViewModel @Inject constructor(
     }
 
 
+
     private fun requestCustomerDropOff() {
 
         setCloseDoor()
 
         viewModelScope.launch {
             try {
-                FileLogger.log(context,  "setCustomerDropOff"   ,"Fetching data from ${CUSTOMER_DROP_OFF}")
+                val wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: ""
+                val terminalSn = PrefsManager.getTerminalSN(context)
+                val doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: ""
+                val type = 1
+                val apiKey = PrefsManager.getApiKey(context)
+                val baseUrl = MainAdActivity.getBaseUrl(context)
+
+                val fullUrl = "$baseUrl$CUSTOMER_DROP_OFF" +
+                        "?Apikey=$apiKey" +
+                        "&WayBillNo=$wayBillNo" +
+                        "&TerminalSn=$terminalSn" +
+                        "&DoorNo=$doorNo" +
+                        "&Type=$type"
+
+                FileLogger.log(context, "requestCustomerDropOff", "FULL URL: $fullUrl")
+
                 val response: Response<ApiResponse> = apiService.customerDropOff(
-                    apiKey = PrefsManager.getApiKey(context),
-                    wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
-                    terminalSn =  PrefsManager.getTerminalSN(context),
-                    doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
-                    type = 1
+                    apiKey = apiKey,
+                    wayBillNo = wayBillNo,
+                    terminalSn = terminalSn,
+                    doorNo = doorNo,
+                    type = type
                 )
 
-                FileLogger.log(context,  "setCustomerDropOff"   ,"Fetching data from ${CUSTOMER_DROP_OFF} wayBillNo: ${_apiResponse.value?.data?.firstOrNull()?.wayBillNo} terminalSn: ${PrefsManager.getTerminalSN(context)} doorNo: ${_apiResponse.value?.data?.firstOrNull()?.doorNo} type: 1");
+                FileLogger.log(context, "requestCustomerDropOff", "Response from server: ${response.body()}")
 
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
-
-                    FileLogger.log(context,  "setCustomerDropOff"   ,"Response: ${response.body()}")
                     insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
                     _showDialog.value = null
-                    response.body()?.let {
-                     //TODO
-                    }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     _error.value = "Error fetching data: $errorBody"
-                    FileLogger.log(context,  "setCustomerDropOff"   ,"Error fetching data: $errorBody")
+                    FileLogger.log(context, "requestCustomerDropOff", "Error fetching data: $errorBody")
                 }
             } catch (e: Exception) {
                 _error.value = "Error fetching data: ${e.message ?: "An error occurred"}"
-                FileLogger.log(context,  "setCustomerDropOff"   ,"Error fetching data: ${e.message ?: "An error occurred"}")
+                FileLogger.log(context, "requestCustomerDropOff", "Exception: ${e.message}")
             }
         }
     }
