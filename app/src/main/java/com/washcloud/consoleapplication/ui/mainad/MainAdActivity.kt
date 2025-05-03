@@ -203,7 +203,7 @@ class MainAdActivity : ComponentActivity() {
         fun getBaseUrl(context: Context): String {
             val url = PrefsManager.getBaseURL(context)
             return url.ifBlank {
-                "https://devwashcloud.azurewebsites.net/" // default fallback
+                "https://api.washcloud.net/"
             }
         }
     }
