@@ -120,7 +120,7 @@ class MainAdActivity : ComponentActivity() {
                 val scannerData = intent.getStringExtra("scannerData")
                 scannerData?.let {
                     FileLogger.log(context, "MainAdActivity", "Scanner Data: $it")
-                    Toast.makeText(context, "Scanned Data: $it", Toast.LENGTH_SHORT).show()
+                 //   Toast.makeText(context, "Scanned Data: $it", Toast.LENGTH_SHORT).show()
 
                     viewModel.handleBarcode(it)
                 }
@@ -282,7 +282,7 @@ class MainAdActivity : ComponentActivity() {
             val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
             FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
             if (barcode.isNotEmpty()) {
-                Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
+              //  Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
                 viewModel.handleBarcode(barcode)
                 barcodeData.setLength(0)
             }

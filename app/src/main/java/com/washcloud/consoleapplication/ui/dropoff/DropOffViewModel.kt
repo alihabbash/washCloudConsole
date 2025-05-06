@@ -32,6 +32,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import retrofit2.HttpException
+import java.io.IOException
+
 @HiltViewModel
 class DropOffViewModel @Inject constructor(
     private val transactionDao: TransactionDao,
@@ -202,31 +205,40 @@ class DropOffViewModel @Inject constructor(
 
         FileLogger.log(context, "DropOffViewModel", "Staff DropOff request: $request")
         viewModelScope.launch {
-            try {
-                val response = staffDropoffUseCase(request)
-
-                Log.e("drop-off", response.status.toString());
-                _staffDropoffResponse.value = response
-                _isSuccessed.value = true
 
 
-                if(boxType == BoxType.BOX.name){
-                    setShowAlert()
-                    sendCommand(stationId, "0$boxID")
-                }else{
-                    openConveyor(boxID)
-                }
 
+                    try {
+                        val response = staffDropoffUseCase(request)
+                        _staffDropoffResponse.value = response
+                        _isSuccessed.value = true
 
-                FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
-                updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType)
-                delay(3000)
-                onSuccess()
-            } catch (e: Exception) {
-                _error.value = e.message
-                FileLogger.log(context, "DropOffViewModel", "Error in Staff Dropoff: ${e.message}")
+                        if(boxType == BoxType.BOX.name){
+                            setShowAlert()
+                            sendCommand(stationId, "0$boxID")
+                        } else {
+                            openConveyor(boxID)
+                        }
 
-            }
+                        FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
+                        updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType)
+                        delay(3000)
+                        onSuccess()
+
+                    } catch (e: HttpException) {
+                        val errorBody = e.response()?.errorBody()?.string()
+                        _error.value = "HTTP ${e.code()}: $errorBody"
+                        FileLogger.log(context, "DropOffViewModel", "HTTP error in Staff Dropoff: $errorBody")
+
+                    } catch (e: IOException) {
+                        _error.value = "Network error: ${e.localizedMessage}"
+                        FileLogger.log(context, "DropOffViewModel", "Network error in Staff Dropoff: ${e.localizedMessage}")
+
+                    } catch (e: Exception) {
+                        _error.value = "Unexpected error: ${e.localizedMessage ?: "Unknown"}"
+                        FileLogger.log(context, "DropOffViewModel", "Unknown error in Staff Dropoff: ${e.localizedMessage}")
+                    }
+
         }
     }
 
@@ -266,13 +278,18 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
-    private suspend fun  sendCommand(stationId: String, boxId: String) {
+     suspend fun  sendCommand(stationId: String, boxId: String) {
 
-        val box = boxDao.getBoxById(boxId.toLong(), boxType = BoxType.BOX.name);
-        FileLogger.log(context, "DropOffViewModel", "Sending command to open door: stationId: $stationId, boxId: $boxId")
+
+        val box = boxDao.getBoxById(boxId.toLong(), BoxType.BOX.name) ?: run {
+            FileLogger.log(context, "DropOffViewModel", "Box not found for ID: $boxId")
+            return
+        }
+
+        FileLogger.log(context, "DropOffViewModel", "Sending command to open door: stationId: $stationId, boxId: ${box.boxNumber}")
         val intent = Intent("com.washcloud.open_door").apply {
-            putExtra("stationId", stationId)
-            putExtra("boxId", box?.boxNumber)
+            putExtra("stationId", "0$stationId")
+            putExtra("boxId", "0${box.boxNumber}")
         }
         context.sendBroadcast(intent)
     }
