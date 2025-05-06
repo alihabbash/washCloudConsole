@@ -32,6 +32,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import retrofit2.HttpException
+import java.io.IOException
+
 @HiltViewModel
 class DropOffViewModel @Inject constructor(
     private val transactionDao: TransactionDao,
@@ -203,32 +206,39 @@ class DropOffViewModel @Inject constructor(
         FileLogger.log(context, "DropOffViewModel", "Staff DropOff request: $request")
         viewModelScope.launch {
 
-            if(boxType == BoxType.BOX.name){
-                setShowAlert()
-                sendCommand(stationId, "0$boxID")
-            }else{
-                openConveyor(boxID)
-            }
-            try {
-                val response = staffDropoffUseCase(request)
-
-                Log.e("drop-off", response.status.toString());
-                _staffDropoffResponse.value = response
-                _isSuccessed.value = true
 
 
+                    try {
+                        val response = staffDropoffUseCase(request)
+                        _staffDropoffResponse.value = response
+                        _isSuccessed.value = true
 
+                        if(boxType == BoxType.BOX.name){
+                            setShowAlert()
+                            sendCommand(stationId, "0$boxID")
+                        } else {
+                            openConveyor(boxID)
+                        }
 
+                        FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
+                        updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType)
+                        delay(3000)
+                        onSuccess()
 
-                FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
-                updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType)
-                delay(3000)
-                onSuccess()
-            } catch (e: Exception) {
-                _error.value = e.message
-                FileLogger.log(context, "DropOffViewModel", "Error in Staff Dropoff: ${e.message}")
+                    } catch (e: HttpException) {
+                        val errorBody = e.response()?.errorBody()?.string()
+                        _error.value = "HTTP ${e.code()}: $errorBody"
+                        FileLogger.log(context, "DropOffViewModel", "HTTP error in Staff Dropoff: $errorBody")
 
-            }
+                    } catch (e: IOException) {
+                        _error.value = "Network error: ${e.localizedMessage}"
+                        FileLogger.log(context, "DropOffViewModel", "Network error in Staff Dropoff: ${e.localizedMessage}")
+
+                    } catch (e: Exception) {
+                        _error.value = "Unexpected error: ${e.localizedMessage ?: "Unknown"}"
+                        FileLogger.log(context, "DropOffViewModel", "Unknown error in Staff Dropoff: ${e.localizedMessage}")
+                    }
+
         }
     }
 
