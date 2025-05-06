@@ -202,6 +202,13 @@ class DropOffViewModel @Inject constructor(
 
         FileLogger.log(context, "DropOffViewModel", "Staff DropOff request: $request")
         viewModelScope.launch {
+
+            if(boxType == BoxType.BOX.name){
+                setShowAlert()
+                sendCommand(stationId, "0$boxID")
+            }else{
+                openConveyor(boxID)
+            }
             try {
                 val response = staffDropoffUseCase(request)
 
@@ -210,12 +217,7 @@ class DropOffViewModel @Inject constructor(
                 _isSuccessed.value = true
 
 
-                if(boxType == BoxType.BOX.name){
-                    setShowAlert()
-                    sendCommand(stationId, "0$boxID")
-                }else{
-                    openConveyor(boxID)
-                }
+
 
 
                 FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
@@ -266,13 +268,18 @@ class DropOffViewModel @Inject constructor(
         }
     }
 
-    private suspend fun  sendCommand(stationId: String, boxId: String) {
+     suspend fun  sendCommand(stationId: String, boxId: String) {
 
-        val box = boxDao.getBoxById(boxId.toLong(), boxType = BoxType.BOX.name);
-        FileLogger.log(context, "DropOffViewModel", "Sending command to open door: stationId: $stationId, boxId: $boxId")
+
+        val box = boxDao.getBoxById(boxId.toLong(), BoxType.BOX.name) ?: run {
+            FileLogger.log(context, "DropOffViewModel", "Box not found for ID: $boxId")
+            return
+        }
+
+        FileLogger.log(context, "DropOffViewModel", "Sending command to open door: stationId: $stationId, boxId: ${box.boxNumber}")
         val intent = Intent("com.washcloud.open_door").apply {
-            putExtra("stationId", stationId)
-            putExtra("boxId", box?.boxNumber)
+            putExtra("stationId", "0$stationId")
+            putExtra("boxId", "0${box.boxNumber}")
         }
         context.sendBroadcast(intent)
     }

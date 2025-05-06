@@ -174,8 +174,21 @@ class SerialPortService : Service() {
 
 
     private fun handleOpenBox(intent: Intent, context: Context) {
-        val stationId = intent.getStringExtra("stationId") ?: return
-        val boxId = intent.getStringExtra("boxId") ?: return
+        val stationId = intent.getStringExtra("stationId")
+
+        if (stationId.isNullOrEmpty()) {
+            FileLogger.log(context, "SerialPortService", "Station ID is null")
+            return
+        }
+
+
+        val boxId = intent.getStringExtra("boxId")
+
+        if (boxId.isNullOrEmpty()) {
+            FileLogger.log(context, "SerialPortService", "Box ID is null")
+            return
+        }
+
         FileLogger.log(context, "SerialPortService", "Opening box ${decimalToTwoDigitHex(boxId.toInt())} at station ${decimalToTwoDigitHex(stationId.toInt())}")
         openBox(boxId, stationId)
     }
