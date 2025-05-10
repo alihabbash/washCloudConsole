@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                 val scannerData = intent.getStringExtra("scannerData")
                 scannerData?.let {
                     FileLogger.log(context, "MainActivity", "Scanner Data: $it")
-                    Toast.makeText(context, "Scanned Data: $it", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(context, "Scanned Data: $it", Toast.LENGTH_SHORT).show()
 
                     if (it.startsWith("https")) {
                         val adIntent = Intent(context, MainAdActivity::class.java).apply {

@@ -143,7 +143,7 @@ class PickupViewModel @Inject constructor(
 
         if (doorNo == null) {
             _error.value = "Door number not found"
-            Toast.makeText(context, "Order number not found", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(context, "Order number not found", Toast.LENGTH_SHORT).show()
             FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: Door number not found")
             return
         }
