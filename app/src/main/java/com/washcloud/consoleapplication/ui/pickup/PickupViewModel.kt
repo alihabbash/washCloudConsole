@@ -138,8 +138,26 @@ class PickupViewModel @Inject constructor(
         FileLogger.log(context, "PickupViewModel", "transactions: ${_transactions.value}")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId}")
-        val doorNo = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId
-        val stationId = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.stationId
+        val transaction = _transactions.value.firstOrNull { tx ->
+            tx.orderSerial == orderSerial
+                    || tx.orderSerial.startsWith("$orderSerial-")
+        }
+
+        if (transaction == null) {
+            _error.value = "Transaction not found"
+            FileLogger.log(
+                context,
+                "PickupViewModel",
+                "Error in Staff Pickup: Transaction not found"
+            );
+
+            return;
+        }
+            FileLogger.log(context, "PickupViewModel", "Transaction found: $transaction")
+
+        val doorNo    = transaction.boxId
+        val stationId = transaction.stationId
+
 
         if (doorNo == null) {
             _error.value = "Door number not found"
