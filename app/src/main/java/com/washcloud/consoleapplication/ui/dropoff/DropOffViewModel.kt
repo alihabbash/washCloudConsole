@@ -227,15 +227,15 @@ class DropOffViewModel @Inject constructor(
 
                     } catch (e: HttpException) {
                         val errorBody = e.response()?.errorBody()?.string()
-                        _error.value = "HTTP ${e.code()}: $errorBody"
+                       // _error.value = "HTTP ${e.code()}: $errorBody"
                         FileLogger.log(context, "DropOffViewModel", "HTTP error in Staff Dropoff: $errorBody")
 
                     } catch (e: IOException) {
-                        _error.value = "Network error: ${e.localizedMessage}"
+                      //  _error.value = "Network error: ${e.localizedMessage}"
                         FileLogger.log(context, "DropOffViewModel", "Network error in Staff Dropoff: ${e.localizedMessage}")
 
                     } catch (e: Exception) {
-                        _error.value = "Unexpected error: ${e.localizedMessage ?: "Unknown"}"
+                      //  _error.value = "Unexpected error: ${e.localizedMessage ?: "Unknown"}"
                         FileLogger.log(context, "DropOffViewModel", "Unknown error in Staff Dropoff: ${e.localizedMessage}")
                     }
 

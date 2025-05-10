@@ -356,14 +356,18 @@ fun PickupView(
                                     if (!URLUtil.isValidUrl(wayBillNo)) {
                                         viewModel.staffPickup(wayBillNo)
                                         wayBillNo = ""
-                                    } else
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                "Invalid order number",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                    } else {
+//                                        Toast
+//                                            .makeText(
+//                                                context,
+//                                                "Invalid order number",
+//                                                Toast.LENGTH_SHORT
+//                                            )
+//                                            .show()
+
+                                        FileLogger.log(context, "PickupView", "Invalid order number: $wayBillNo")
+
+                                    }
 
 
                                 }
