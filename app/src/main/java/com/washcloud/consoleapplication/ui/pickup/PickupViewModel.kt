@@ -159,12 +159,12 @@ class PickupViewModel @Inject constructor(
         val stationId = transaction.stationId
 
 
-        if (doorNo == null) {
+        /*if (doorNo == null) {
             _error.value = "Door number not found"
 //            Toast.makeText(context, "Order number not found", Toast.LENGTH_SHORT).show()
             FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: Door number not found")
             return
-        }
+        }*/
         val request = StaffPickupRequest(
             apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
