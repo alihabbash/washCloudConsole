@@ -3,6 +3,7 @@ package com.washcloud.consoleapplication.ui.common
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -63,11 +65,16 @@ fun BottomNavigation(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable {
-                        if (!isHelpFormShown) {
-                            showHelpForm()
-                        }
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = {
+                                if (!isHelpFormShown) {
+                                    showHelpForm()
+                                }
+                            },
+                        )
                     },
+
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -136,8 +143,13 @@ fun BottomNavigation(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable {
-                        changeLanguage()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = {
+                                changeLanguage()
+                            },
+
+                        )
                     },
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally

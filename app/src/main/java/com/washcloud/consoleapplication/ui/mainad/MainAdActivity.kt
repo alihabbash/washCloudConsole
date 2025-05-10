@@ -275,12 +275,12 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
 
-        FileLogger.log(this, "MainActivity", "keyCode $keyCode")
+        FileLogger.log(this, "MainAdActivity", "keyCode $keyCode")
 
         return if (keyCode == KeyEvent.KEYCODE_ENTER) {
-            FileLogger.log(this, "MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+            FileLogger.log(this, "MainAdActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
             val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
-            FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
+            FileLogger.log(this, "MainAdActivity", "Barcode scanned: $barcode")
             if (barcode.isNotEmpty()) {
               //  Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
                 viewModel.handleBarcode(barcode)
@@ -366,7 +366,7 @@ class MainAdActivity : ComponentActivity() {
        /* registerConveyorReceiver()
         registerReceiver()
         registerScannerReceiver()*/
-         startPortService()
+        startPortService()
 
         requestPermissionsIfNeeded()
         checkRebootStatus()
@@ -443,23 +443,18 @@ class MainAdActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .clickable {
-                                MainActivity.dLocale = Locale("ar")
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onDoubleTap = {
+                                       // finish()
+                                        MainActivity.dLocale = Locale("ar")
                                         val intent = Intent(context, MainActivity::class.java)
                                         context.startActivity(intent)
+
+
+                                    }
+                                )
                             }
-//                            .pointerInput(Unit) {
-//                                detectTapGestures(
-//                                    onDoubleTap = {
-//                                       // finish()
-//                                        MainActivity.dLocale = Locale("ar")
-//                                        val intent = Intent(context, MainActivity::class.java)
-//                                        context.startActivity(intent)
-//
-//
-//                                    }
-//                                )
-//                            }
                     ) {
 
                         AdDisplay(adsList, context, screenWidth, screenHeight)
@@ -709,16 +704,16 @@ class MainAdActivity : ComponentActivity() {
 
         val url = getBaseUrl(this) + LOCKER_API + VERIFICATION + serialOrder + "/" + PrefsManager.getTerminalSN(this);
 
-        FileLogger.log(this, "MainActivity", "Open box quick way using data from $url")
+        FileLogger.log(this, "MainAdActivity", "Open box quick way using data from $url")
         viewModel.handleBarcode(url)
     }
     private fun startPortService() {
         try {
             startService(Intent(this, SerialPortService::class.java))
-            FileLogger.log(this, "MainActivity", "SerialPortService started successfully")
+            FileLogger.log(this, "MainAdActivity", "SerialPortService started successfully")
         } catch (e: Exception) {
-            Log.e("MainActivity", "Error starting SerialPortService", e)
-            FileLogger.log(this, "MainActivity", "Error starting SerialPortService: ${e.message}")
+            Log.e("MainAdActivity", "Error starting SerialPortService", e)
+            FileLogger.log(this, "MainAdActivity", "Error starting SerialPortService: ${e.message}")
         }
     }
     private fun handleApiResponse(response: ApiResponse) {
