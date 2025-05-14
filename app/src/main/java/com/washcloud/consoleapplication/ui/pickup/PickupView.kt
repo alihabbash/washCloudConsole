@@ -75,6 +75,7 @@ import com.washcloud.consoleapplication.utils.OutlinedInputField
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.borderColor
 import com.washcloud.consoleapplication.utils.clearText
+import com.washcloud.consoleapplication.utils.dimBackground
 import com.washcloud.consoleapplication.utils.fieldsTitles
 import com.washcloud.consoleapplication.utils.hints
 import com.washcloud.consoleapplication.utils.numbersColor
@@ -94,6 +95,8 @@ fun PickupView(
     val staffPickupResponse by viewModel.staffPickupResponse.collectAsState()
     val error by viewModel.error.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
+    var transactionToDelete by remember { mutableStateOf<BoxDto?>(null) }
     var wayBillNo by remember { mutableStateOf("") }
     var wayBillNoHidden by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -158,6 +161,8 @@ fun PickupView(
             if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN || event.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
                 val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
 
+                FileLogger.log(context, "PickupView", "try to scan unicodeChar: $unicodeChar }")
+
                 if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
                     Log.e("PickupView", "Barcode data: $barcodeData")
 
@@ -219,7 +224,17 @@ fun PickupView(
                     items(transactions.size) { index ->
                         val transaction = transactions[index]
                         Column {
-                            pickUpItem(screenWidth, screenHeight, transaction, viewModel)
+                            pickUpItem(
+                                screenWidth = screenWidth,
+                                screenHeight = screenHeight,
+                                transaction = transaction,
+                                viewModel = viewModel,
+                                onLongPress = {
+                                    transactionToDelete = transaction
+                                    showDialog = true
+                                }
+                            )
+
                             if (index != transactions.size - 1) {
                                 Box(
                                     modifier = Modifier
@@ -429,6 +444,100 @@ fun PickupView(
     if(isLoading){
         PickupDialog(screenWidth = screenWidth, screenHeight = screenHeight);
     }
+
+    if (showDialog) {
+
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .width(screenWidth)
+                .height(screenHeight)
+                .background(dimBackground)
+        ) {
+            Box(
+                modifier =
+                Modifier
+                    .clip(
+                        RoundedCornerShape(0.02 * screenWidth)
+                    )
+                    .background(color = Color.White)
+                    .width(0.8 * screenWidth)
+                    .height(0.15 * screenHeight)
+                    .padding(start = 16.dp, end = 16.dp),
+
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.confirmation_message),
+                        style = TextStyle(
+                            fontSize = 32.sp,
+                            color = primaryDark
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Custom Confirm & Cancel Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(secondaryColor)
+                                .clickable {
+                                    transactionToDelete?.let { viewModel.deleteTransactionsByOrderSerial(it) }
+                                    showDialog = false
+
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.yes),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Gray)
+                                .clickable {
+                                    showDialog = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.no),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.024f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -437,9 +546,18 @@ fun pickUpItem(
     screenHeight: Dp,
     transaction: BoxDto,
     viewModel: PickupViewModel,
+    onLongPress: () -> Unit,
+
 ) {
     Row(
         modifier = Modifier
+            .pointerInput(Unit) {
+            detectTapGestures(
+                onLongPress = {
+                    onLongPress()
+                }
+            )
+        }
             .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -599,7 +717,7 @@ fun PickUpListDivider(
 
 fun isValidSerialNumber(serial: String): Boolean {
     //  "4442408120002-1"
-    val serialPattern = Regex("^[A-Za-z0-9]{13}(-\\d{1})?$")
+    val serialPattern = Regex("^\\d{13}(-\\d)?$")
     return serial.matches(serialPattern)
 }
 

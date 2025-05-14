@@ -205,7 +205,7 @@ class PickupViewModel @Inject constructor(
         context.sendBroadcast(intent)
     }
 
-    private fun deleteTransactionsByOrderSerial(order: BoxDto) {
+     fun deleteTransactionsByOrderSerial(order: BoxDto) {
         viewModelScope.launch {
             transactionDao.deleteTransaction(order.id);
             updateBoxState(order.boxId, order.boxType.name)

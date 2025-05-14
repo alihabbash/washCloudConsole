@@ -525,7 +525,7 @@ class MainAdViewModel @Inject constructor(
             val box = boxDao.getBoxById(boxId.toLong(), BoxType.BOX.name)
             FileLogger.log(context,  "sendCommand"   ,"sendCommand stationId: 0${box?.stationId}, boxId: $boxId")
             val intent = Intent("com.washcloud.open_door").apply {
-                FileLogger.log(context,  "MainAdViewModel"  ,"sendCommand stationId: 0${box?.stationId}, boxId: $boxId")
+                FileLogger.log(context,  "MainAdViewModel"  ,"sendCommand stationId: 0${box?.stationId}, boxId: $boxId  && the box number is  ${box?.boxNumber.toString()}")
                 putExtra("stationId", "0" + box?.stationId.toString())
                 putExtra("boxId", box?.boxNumber.toString())
             }

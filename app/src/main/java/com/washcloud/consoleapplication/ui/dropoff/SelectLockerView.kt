@@ -113,6 +113,8 @@ fun SelectLockerView(
             if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN || event.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
                 val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
 
+                FileLogger.log(context, "DropOffView", "try to scan unicodeChar: $unicodeChar }")
+
                 if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
                     Log.e("DropOffView", "Barcode data: $barcodeData")
 
