@@ -56,6 +56,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Url
+import tp.xmaihh.serialport.bean.ComBean
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Date
@@ -251,6 +252,7 @@ class MainAdViewModel @Inject constructor(
 
     fun handCheckDoorStatusResponse(stationId: String? = "", boxId: String? = "",  isOpen: Boolean) {
         _isDoorOpen.value = isOpen
+        isConveyorDoorOpen = isOpen
         FileLogger.log(context,  "handCheckDoorStatusResponse with order"   ,"apiResponse.value?.data?.firstOrNull() ${apiResponse.value?.data?.firstOrNull()}")
         FileLogger.log(context,  "onReceive"   ,"Door status: ${_isDoorOpen.value}")
        // Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
@@ -299,6 +301,10 @@ class MainAdViewModel @Inject constructor(
 
                 FileLogger.log(context, "requestCustomerDropOff", "FULL URL: $fullUrl")
 
+             //   insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
+
+
+
                 val response: Response<ApiResponse> = apiService.customerDropOff(
                     apiKey = apiKey,
                     wayBillNo = wayBillNo,
@@ -309,7 +315,7 @@ class MainAdViewModel @Inject constructor(
 
                 FileLogger.log(context, "requestCustomerDropOff", "Response from server: ${response.body()}")
 
-                insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
+
 
 
                 if (response.isSuccessful) {
@@ -436,6 +442,8 @@ class MainAdViewModel @Inject constructor(
         }
     }
 
+
+
     fun setCloseDoor() {
         FileLogger.log(context,  "setCloseDoor"   ,"setCloseDoor")
         _isDoorOpen.value = false
@@ -558,12 +566,31 @@ class MainAdViewModel @Inject constructor(
             FileLogger.log(context,  "MainAdViewModel"   ,"Conveyor door is already open")
             return
         }
-        FileLogger.log(context,  "MainAdViewModel"   ,"openConveyorDoor")
+        FileLogger.log(context, "MainAdViewModel", "openConveyorDoor initial broadcast")
+        context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
 
         viewModelScope.launch {
-            delay(200)
-            isConveyorDoorOpen = true
-            context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+
+            var attempt = 1
+            val maxAttempts = 5
+            val delayMillis = 3000L
+
+            while (attempt <= maxAttempts) {
+                delay(delayMillis)
+
+                if (isConveyorDoorOpen) {
+                    FileLogger.log(context, "MainAdViewModel", "Conveyor door opened on attempt $attempt")
+                    break
+                }
+
+                FileLogger.log(context, "MainAdViewModel", "Retrying conveyor door open, attempt $attempt")
+                context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+                attempt++
+            }
+
+            if (!isConveyorDoorOpen) {
+                FileLogger.log(context, "MainAdViewModel", "Failed to open conveyor door after $maxAttempts attempts")
+            }
 
         }
     }

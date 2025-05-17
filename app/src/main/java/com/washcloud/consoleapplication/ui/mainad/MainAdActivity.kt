@@ -284,6 +284,8 @@ class MainAdActivity : ComponentActivity() {
             if (barcode.isNotEmpty()) {
               //  Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
                 viewModel.handleBarcode(barcode)
+                FileLogger.log(this, "MainAdActivity", "Sending barcode to DropOffAndPickup: $barcode")
+                sendBarcodeToDropOffAndPickup(barcode)
                 barcodeData.setLength(0)
             }
             true
@@ -332,6 +334,14 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
+    private fun sendBarcodeToDropOffAndPickup(barcode: String) {
+        val broadcastIntent = Intent("com.washcloud.scanner_data")
+        broadcastIntent.putExtra("scannerData", barcode)
+        sendBroadcast(broadcastIntent)
+    }
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -363,9 +373,18 @@ class MainAdActivity : ComponentActivity() {
 
         }
 
-       /* registerConveyorReceiver()
-        registerReceiver()
-        registerScannerReceiver()*/
+
+        /*CoroutineScope(Dispatchers.Main).launch {
+            delay(50_000L)
+            val testBarcode = "O112505170001-1"
+            FileLogger.log(this@MainAdActivity, "MainAdActivity", "Auto-calling sendBarcodToDropOffAndPickup after 50s with barcode: $testBarcode")
+            sendBarcodeToDropOffAndPickup(testBarcode)
+        }*/
+
+
+        /* registerConveyorReceiver()
+         registerReceiver()
+         registerScannerReceiver()*/
         startPortService()
 
         requestPermissionsIfNeeded()
@@ -382,7 +401,7 @@ class MainAdActivity : ComponentActivity() {
 
 //        GlobalScope.launch {
 //            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112505140002-1/555554444"
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112505170001-1/555554444"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.handleBarcode(url)
 ////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
@@ -503,18 +522,15 @@ class MainAdActivity : ComponentActivity() {
                                     delay(1000L)
                                     timer--
                                 }
-
+                                FileLogger.log(context, "MainAdActivity", "Door is still open after 60 seconds")
                                 if(isDoorOpen && boxType == BoxType.BOX.name){
-                                    FileLogger.log(context, "MainAdActivity", "Door is still open after 60 seconds")
-                                    viewModel.insertTransaction(data)
                                     showDialog = false
-                                    viewModel.checkOperationType()
                                 }else{
                                     viewModel.closeConveyorDoor()
-                                    viewModel.checkOperationType()
                                 }
 
-
+                                viewModel.insertTransaction(data)
+                                viewModel.checkOperationType()
                             }
                                 Column(
                                     verticalArrangement = Arrangement.Center,
@@ -608,14 +624,14 @@ class MainAdActivity : ComponentActivity() {
                                                     )
                                                     .clickable {
                                                         if(isDoorOpen && boxType == BoxType.BOX.name){
-
-                                                            viewModel.insertTransaction(data)
                                                             showDialog = false
-                                                            viewModel.checkOperationType()
                                                         }else{
                                                             viewModel.closeConveyorDoor()
-                                                            viewModel.checkOperationType()
+
                                                         }
+
+                                                        viewModel.insertTransaction(data)
+                                                        viewModel.checkOperationType()
                                                     },
                                                 contentAlignment = Alignment.Center
                                             ) {

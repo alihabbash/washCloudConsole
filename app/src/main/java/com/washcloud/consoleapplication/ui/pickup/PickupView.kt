@@ -148,7 +148,7 @@ fun PickupView(
         }
     }
 
-    var barcodeData by remember { mutableStateOf("") }
+    /*var barcodeData by remember { mutableStateOf("") }
 
 
     val interactionModifier = Modifier
@@ -179,12 +179,12 @@ fun PickupView(
             } else {
                 false
             }
-        }
+        }*/
     Box {
         Column(
             modifier = Modifier
                 .width(screenWidth)
-                .then(interactionModifier)
+                //.then(interactionModifier)
 
             ,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -642,61 +642,6 @@ fun pickUpItem(
         Box(modifier = Modifier.width(24.dp))
     }
 }
-//
-//@Composable
-//fun BarcodeScannerView(
-//    onBarcodeScanned: (String) -> Unit
-//) {
-//    var barcodeData by remember { mutableStateOf("") }
-//
-//
-//    val serialPattern = Regex("^\\d{13}-\\d{1}\$")
-//
-//    val focusRequester = remember { FocusRequester() }
-//    val context = LocalContext.current
-//
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .focusRequester(focusRequester)
-//            .onKeyEvent { event ->
-//                if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
-//                    val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
-//                    Log.e("unicodeChar", unicodeChar.toString())
-//
-//                    if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-//                        FileLogger.log(context, "BarcodeScannerView barcodeData", "barcodeData: $barcodeData")
-//                        val barcode = "4442408120002-1"
-//                            //barcodeData
-//                           // .trim()
-//
-//
-//                        FileLogger.log(context, "BarcodeScannerView barcode", "barcode: $barcodeData")
-//
-//                        Log.e("barcode", barcode)
-//
-//                        if (serialPattern.matches(barcode)) {
-//
-//                            onBarcodeScanned(barcode)
-//                        }
-//                        barcodeData = ""
-//                    } else {
-//                        barcodeData += unicodeChar
-//                    }
-//                    true
-//                } else {
-//                    false
-//                }
-//            }
-//    ) {
-//
-//    }
-//
-//    LaunchedEffect(Unit) {
-//        focusRequester.requestFocus()
-//    }
-//}
-
 
 @Composable
 fun PickUpListDivider(
