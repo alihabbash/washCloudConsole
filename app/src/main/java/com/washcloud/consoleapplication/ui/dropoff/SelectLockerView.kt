@@ -150,11 +150,6 @@ fun SelectLockerView(
             viewModel.setShowAlert()
         }
     }
-    LaunchedEffect(Unit) {
-    delay(10000L)
-      //  wayBillNo = "O112503280003-1"
-        viewModel.sendCommand("1", "3");
-   }
 
     LaunchedEffect(wayBillNo) {
      if (isValidSerialNumber(wayBillNo)) {
