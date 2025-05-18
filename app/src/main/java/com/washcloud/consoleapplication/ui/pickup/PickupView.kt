@@ -662,7 +662,7 @@ fun PickUpListDivider(
 
 fun isValidSerialNumber(serial: String): Boolean {
     //  "4442408120002-1"
-    val serialPattern = Regex("^\\d{13}(-\\d)?$")
+    val serialPattern = Regex("^[A-Za-z0-9]{13}(-[A-Za-z0-9])?$")
     return serial.matches(serialPattern)
 }
 
