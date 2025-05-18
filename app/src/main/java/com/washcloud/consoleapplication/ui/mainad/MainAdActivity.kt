@@ -529,7 +529,7 @@ class MainAdActivity : ComponentActivity() {
                                     viewModel.closeConveyorDoor()
                                 }
 
-                                viewModel.insertTransaction(data)
+                                    //     viewModel.insertTransaction(data)
                                 viewModel.checkOperationType()
                             }
                                 Column(
@@ -630,7 +630,7 @@ class MainAdActivity : ComponentActivity() {
 
                                                         }
 
-                                                        viewModel.insertTransaction(data)
+                                                  //      viewModel.insertTransaction(data)
                                                         viewModel.checkOperationType()
                                                     },
                                                 contentAlignment = Alignment.Center

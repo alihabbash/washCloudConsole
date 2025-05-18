@@ -267,6 +267,8 @@ class MainAdViewModel @Inject constructor(
     fun checkOperationType() {
         setCloseDoor()
 
+
+        FileLogger.log(context,  "checkOperationType"   ,"Order ${apiResponse.value?.data?.firstOrNull()}");
         val data = _apiResponse.value?.data?.firstOrNull()
 
         if (data?.operationType == "PickUp") {
@@ -280,31 +282,23 @@ class MainAdViewModel @Inject constructor(
 
 
     private fun requestCustomerDropOff() {
-
         setCloseDoor()
-
         viewModelScope.launch {
             try {
+                insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
                 val wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: ""
                 val terminalSn = PrefsManager.getTerminalSN(context)
                 val doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: ""
                 val type = 1
                 val apiKey = PrefsManager.getApiKey(context)
                 val baseUrl = MainAdActivity.getBaseUrl(context)
-
                 val fullUrl = "$baseUrl$CUSTOMER_DROP_OFF" +
                         "?Apikey=$apiKey" +
                         "&WayBillNo=$wayBillNo" +
                         "&TerminalSn=$terminalSn" +
                         "&DoorNo=$doorNo" +
                         "&Type=$type"
-
                 FileLogger.log(context, "requestCustomerDropOff", "FULL URL: $fullUrl")
-
-             //   insertTransaction(apiResponse.value?.data?.firstOrNull()!!)
-
-
-
                 val response: Response<ApiResponse> = apiService.customerDropOff(
                     apiKey = apiKey,
                     wayBillNo = wayBillNo,
@@ -314,10 +308,6 @@ class MainAdViewModel @Inject constructor(
                 )
 
                 FileLogger.log(context, "requestCustomerDropOff", "Response from server: ${response.body()}")
-
-
-
-
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
 
@@ -339,6 +329,7 @@ class MainAdViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 FileLogger.log(context,  "setCustomerPickup"   ,"Fetching data from ${CUSTOMER_PICKUP}")
+                updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE, "-1", boxType)
                 val response: Response<ApiResponse> = apiService.customerPickup(
                     apiKey = PrefsManager.getApiKey(context),
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
@@ -349,11 +340,9 @@ class MainAdViewModel @Inject constructor(
 
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
-                    updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE, "-1", boxType)
                     FileLogger.log(context,  "setCustomerPickup"   ,"Response: ${response.body()}")
                     _showDialog.value = null
                     response.body()?.let {
-
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
