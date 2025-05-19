@@ -313,7 +313,7 @@ class DropOffViewModel @Inject constructor(
         isConveyorDoorOpen = false
         FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
         val intent = Intent("com.washcloud.conveyor_open").apply {
-            putExtra("conveyorNumber","0${boxID}");
+            putExtra("conveyorNumber","${boxID}");
         }
 
         context.sendBroadcast(intent)

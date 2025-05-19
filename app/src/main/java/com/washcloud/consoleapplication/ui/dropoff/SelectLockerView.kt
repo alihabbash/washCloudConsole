@@ -154,8 +154,6 @@ fun SelectLockerView(
     LaunchedEffect(wayBillNo) {
      if (isValidSerialNumber(wayBillNo)) {
 
-
-
          if (selectedLocker == null) {
              viewModel.setShowAlert()
              showTimer = true
