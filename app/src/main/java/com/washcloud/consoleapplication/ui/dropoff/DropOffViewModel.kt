@@ -136,17 +136,31 @@ class DropOffViewModel @Inject constructor(
         FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor door")
         FileLogger.log(context, "DropOffViewModel", "isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
 
-
         viewModelScope.launch {
-          /*  while (!isConveyorDoorOpen) {
-                delay(3000)
-                if (!isConveyorDoorOpen) {
-                    FileLogger.log(context, "DropOffViewModel", "Retrying openConveyorDoor()")
-                    context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
-                }
-            }*/
-            delay(200)
+
+            var attempt = 1
+            val maxAttempts = 5
+            val delayMillis = 3000L
+
             context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+            FileLogger.log(context, "DropOffViewModel", "Initial conveyor_open_door broadcast sent")
+
+            while (attempt <= maxAttempts) {
+                delay(delayMillis)
+
+                if (isConveyorDoorOpen) {
+                    FileLogger.log(context, "DropOffViewModel", "Conveyor door opened on attempt $attempt")
+                    break
+                }
+
+                FileLogger.log(context, "DropOffViewModel", "Retrying conveyor door open, attempt $attempt")
+                context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+                attempt++
+            }
+
+            if (!isConveyorDoorOpen) {
+                FileLogger.log(context, "DropOffViewModel", "Failed to open conveyor door after $maxAttempts attempts")
+            }
 
 
         }
@@ -299,7 +313,7 @@ class DropOffViewModel @Inject constructor(
         isConveyorDoorOpen = false
         FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
         val intent = Intent("com.washcloud.conveyor_open").apply {
-            putExtra("conveyorNumber","0${boxID}");
+            putExtra("conveyorNumber","${boxID}");
         }
 
         context.sendBroadcast(intent)

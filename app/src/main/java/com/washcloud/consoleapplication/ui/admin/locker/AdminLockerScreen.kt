@@ -73,14 +73,18 @@ fun AdminLockerScreen(
     var locker_deleted_success = stringResource(id = R.string.locker_deleted_success)
     var locker_deleted_failed = stringResource(id = R.string.locker_deleted_failed)
     var sure_to_delete = stringResource(id = R.string.are_you_sure_delete)
+    var are_you_sure_to_reset_box = stringResource(id = R.string.are_you_sure_to_reset_box)
+    var locker_reset_success = stringResource(id = R.string.locker_reset_success)
 
-    var userConfirmedDeletion by remember { mutableStateOf(false) }
+
     var lockerToDelete by remember { mutableStateOf<Int?>(null) }
     var confirmationMessage by remember { mutableStateOf("") }
 
 
     var showStatusDialog by remember { mutableStateOf(false) }
     val lockerStatuses by viewModel.lockerStatuses.collectAsState(initial = emptyList())
+    var isResetAction by remember { mutableStateOf(false) }
+
 
 
 
@@ -92,11 +96,11 @@ fun AdminLockerScreen(
         })
     }
 
-    val showConfirmationDialog: (String, Int) -> Unit = { message, lockerNumber ->
+    val showConfirmationDialog: (String, Int, Boolean) -> Unit = { message, lockerNumber, isReset ->
         confirmationMessage = message
-        userConfirmedDeletion = true
         lockerToDelete = lockerNumber
         showAlert = true
+        isResetAction = isReset
     }
 
 
@@ -126,7 +130,6 @@ fun AdminLockerScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(24.dp))
-
         dateAndTimeView(screenWidth = screenWidth)
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -262,11 +265,14 @@ fun AdminLockerScreen(
                                 boxType = box.boxType.name,
                                 isOccupied = box.boxState == BoxState.OCCUPIED,
                                 onDeleteClick = { lockerNumber ->
-                                    showConfirmationDialog(  sure_to_delete + " #$lockerNumber?", lockerNumber)
+                                    showConfirmationDialog(  sure_to_delete + " #$lockerNumber?", lockerNumber,false)
                                 },
                                 showErrorMessage = {->
                                     alertMessage = locker_deleted_failed
                                     showAlert = true
+                                },
+                                onResetClick = { lockerNumber ->
+                                    showConfirmationDialog(are_you_sure_to_reset_box + " #$lockerNumber?", lockerNumber, true)
                                 }
                             )
                         }
@@ -308,6 +314,7 @@ fun AdminLockerScreen(
         Spacer(modifier = Modifier.weight(1f))
         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
     }
+
 
     if (showAlert) {
         Column(
@@ -361,13 +368,19 @@ fun AdminLockerScreen(
                             .clickable {
 
                                 if (lockerToDelete != null) {
-                                    viewModel.deleteLocker(lockerToDelete!!)
+                                    if (isResetAction) {
+                                        viewModel.resetLocker(lockerToDelete!!)
+                                        alertMessage = locker_reset_success
+                                    } else {
+                                        viewModel.deleteLocker(lockerToDelete!!)
+                                        alertMessage = locker_deleted_success
+                                    }
                                     lockerToDelete = null
-                                    alertMessage = locker_deleted_success
                                     showAlert = true
                                 } else {
                                     showAlert = false
                                 }
+
 
 
                             },
@@ -426,7 +439,8 @@ fun LockerGridItem(
     boxType: String,
     isOccupied: Boolean,
     onDeleteClick: (Int) -> Unit,
-    showErrorMessage: () -> Unit
+    showErrorMessage: () -> Unit,
+    onResetClick: (Int) -> Unit
 ) {
     val backgroundColor = if (isOccupied) Color.Red else Color(0xFFEDEDEF)
     val textColor = if (isOccupied) Color.White else secondaryColor
@@ -441,7 +455,8 @@ fun LockerGridItem(
                 detectTapGestures(
                     onLongPress = {
                         if (isOccupied) {
-                            showErrorMessage()
+                           // showErrorMessage()
+                            onResetClick(lockerNumber)
                         } else {
                             onDeleteClick(lockerNumber)
                         }

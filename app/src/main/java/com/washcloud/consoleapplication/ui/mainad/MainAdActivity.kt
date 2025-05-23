@@ -275,15 +275,17 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
 
-        FileLogger.log(this, "MainActivity", "keyCode $keyCode")
+        FileLogger.log(this, "MainAdActivity", "keyCode $keyCode")
 
         return if (keyCode == KeyEvent.KEYCODE_ENTER) {
-            FileLogger.log(this, "MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+            FileLogger.log(this, "MainAdActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
             val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
-            FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
+            FileLogger.log(this, "MainAdActivity", "Barcode scanned: $barcode")
             if (barcode.isNotEmpty()) {
               //  Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
                 viewModel.handleBarcode(barcode)
+                FileLogger.log(this, "MainAdActivity", "Sending barcode to DropOffAndPickup: $barcode")
+                sendBarcodeToDropOffAndPickup(barcode)
                 barcodeData.setLength(0)
             }
             true
@@ -332,6 +334,14 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
+    private fun sendBarcodeToDropOffAndPickup(barcode: String) {
+        val broadcastIntent = Intent("com.washcloud.scanner_data")
+        broadcastIntent.putExtra("scannerData", barcode)
+        sendBroadcast(broadcastIntent)
+    }
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -363,9 +373,18 @@ class MainAdActivity : ComponentActivity() {
 
         }
 
-       /* registerConveyorReceiver()
-        registerReceiver()
-        registerScannerReceiver()*/
+
+        /*CoroutineScope(Dispatchers.Main).launch {
+            delay(50_000L)
+            val testBarcode = "O112505170001-1"
+            FileLogger.log(this@MainAdActivity, "MainAdActivity", "Auto-calling sendBarcodToDropOffAndPickup after 50s with barcode: $testBarcode")
+            sendBarcodeToDropOffAndPickup(testBarcode)
+        }*/
+
+
+        /* registerConveyorReceiver()
+         registerReceiver()
+         registerScannerReceiver()*/
          startPortService()
 
         requestPermissionsIfNeeded()
@@ -382,7 +401,7 @@ class MainAdActivity : ComponentActivity() {
 
 //        GlobalScope.launch {
 //            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112504300002-1/555554444"
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112505230004-1/555554444"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.handleBarcode(url)
 ////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
@@ -443,23 +462,18 @@ class MainAdActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .clickable {
-                                MainActivity.dLocale = Locale("ar")
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onDoubleTap = {
+                                       // finish()
+                                        MainActivity.dLocale = Locale("ar")
                                         val intent = Intent(context, MainActivity::class.java)
                                         context.startActivity(intent)
+
+
+                                    }
+                                )
                             }
-//                            .pointerInput(Unit) {
-//                                detectTapGestures(
-//                                    onDoubleTap = {
-//                                       // finish()
-//                                        MainActivity.dLocale = Locale("ar")
-//                                        val intent = Intent(context, MainActivity::class.java)
-//                                        context.startActivity(intent)
-//
-//
-//                                    }
-//                                )
-//                            }
                     ) {
 
                         AdDisplay(adsList, context, screenWidth, screenHeight)
@@ -508,18 +522,15 @@ class MainAdActivity : ComponentActivity() {
                                     delay(1000L)
                                     timer--
                                 }
-
+                                FileLogger.log(context, "MainAdActivity", "Door is still open after 60 seconds")
                                 if(isDoorOpen && boxType == BoxType.BOX.name){
-                                    FileLogger.log(context, "MainAdActivity", "Door is still open after 60 seconds")
-                                    viewModel.insertTransaction(data)
                                     showDialog = false
-                                    viewModel.checkOperationType()
                                 }else{
                                     viewModel.closeConveyorDoor()
-                                    viewModel.checkOperationType()
                                 }
 
-
+                                    //     viewModel.insertTransaction(data)
+                                viewModel.checkOperationType()
                             }
                                 Column(
                                     verticalArrangement = Arrangement.Center,
@@ -613,14 +624,14 @@ class MainAdActivity : ComponentActivity() {
                                                     )
                                                     .clickable {
                                                         if(isDoorOpen && boxType == BoxType.BOX.name){
-
-                                                            viewModel.insertTransaction(data)
                                                             showDialog = false
-                                                            viewModel.checkOperationType()
                                                         }else{
                                                             viewModel.closeConveyorDoor()
-                                                            viewModel.checkOperationType()
+
                                                         }
+
+                                                  //      viewModel.insertTransaction(data)
+                                                        viewModel.checkOperationType()
                                                     },
                                                 contentAlignment = Alignment.Center
                                             ) {
@@ -709,16 +720,16 @@ class MainAdActivity : ComponentActivity() {
 
         val url = getBaseUrl(this) + LOCKER_API + VERIFICATION + serialOrder + "/" + PrefsManager.getTerminalSN(this);
 
-        FileLogger.log(this, "MainActivity", "Open box quick way using data from $url")
+        FileLogger.log(this, "MainAdActivity", "Open box quick way using data from $url")
         viewModel.handleBarcode(url)
     }
     private fun startPortService() {
         try {
             startService(Intent(this, SerialPortService::class.java))
-            FileLogger.log(this, "MainActivity", "SerialPortService started successfully")
+            FileLogger.log(this, "MainAdActivity", "SerialPortService started successfully")
         } catch (e: Exception) {
-            Log.e("MainActivity", "Error starting SerialPortService", e)
-            FileLogger.log(this, "MainActivity", "Error starting SerialPortService: ${e.message}")
+            Log.e("MainAdActivity", "Error starting SerialPortService", e)
+            FileLogger.log(this, "MainAdActivity", "Error starting SerialPortService: ${e.message}")
         }
     }
     private fun handleApiResponse(response: ApiResponse) {

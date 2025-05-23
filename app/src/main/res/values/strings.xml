@@ -138,4 +138,10 @@
     <string name="finsih">Finish</string>
     <string name="conveyor_moving">The conveyor is moving. Please press the "Finish" button when you are done</string>
     <string name="conveyor_moving_customer">The conveyor is moving. Please take your order when the door opens</string>
+    <string name="are_you_sure_to_reset_box">
+        Are you sure you want to reset the box? This action cannot be undone.</string>
+    <string name="locker_reset_success">
+        Locker reset successfully!
+        <br>All data related to the locker has been deleted.</br>
+    </string>
 </resources>
