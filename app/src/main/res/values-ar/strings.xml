@@ -139,4 +139,13 @@
     <string name="finsih">إنهاء</string>
     <string name="conveyor_moving">الكونفاير يتحرك. يرجى الضغط على زر "إنهاء" عند الانتهاء</string>
     <string name="conveyor_moving_customer">الكونفاير يتحرك. يرجى أخذ طلبك عند فتح الباب</string>
-s</resources>
+    <string name="are_you_sure_to_reset_box">
+        هل أنت متأكد أنك تريد إعادة تعيين الخزنة؟
+    <br>سيؤدي ذلك إلى حذف جميع البيانات المتعلقة بالخزنة. </br>
+    </string>
+    <string name="locker_reset_success">
+        تمت إعادة تعيين الخزنة بنجاح!
+        <br>تم حذف جميع البيانات المتعلقة بالخزنة.</br>
+    </string>
+
+</resources>
