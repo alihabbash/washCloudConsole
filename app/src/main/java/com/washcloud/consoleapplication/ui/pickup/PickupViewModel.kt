@@ -138,15 +138,33 @@ class PickupViewModel @Inject constructor(
         FileLogger.log(context, "PickupViewModel", "transactions: ${_transactions.value}")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId}")
-        val doorNo = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId
-        val stationId = _transactions.value.firstOrNull { it.orderSerial == orderSerial }?.stationId
+        val transaction = _transactions.value.firstOrNull { tx ->
+            tx.orderSerial == orderSerial
+                    || tx.orderSerial.startsWith("$orderSerial-")
+        }
 
-        if (doorNo == null) {
+        if (transaction == null) {
+            _error.value = "Transaction not found"
+            FileLogger.log(
+                context,
+                "PickupViewModel",
+                "Error in Staff Pickup: Transaction not found"
+            );
+
+            return;
+        }
+            FileLogger.log(context, "PickupViewModel", "Transaction found: $transaction")
+
+        val doorNo    = transaction.boxId
+        val stationId = transaction.stationId
+
+
+        /*if (doorNo == null) {
             _error.value = "Door number not found"
 //            Toast.makeText(context, "Order number not found", Toast.LENGTH_SHORT).show()
             FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: Door number not found")
             return
-        }
+        }*/
         val request = StaffPickupRequest(
             apiKey = PrefsManager.getApiKey(context),
             wayBillNo = orderSerial,
@@ -187,7 +205,7 @@ class PickupViewModel @Inject constructor(
         context.sendBroadcast(intent)
     }
 
-    private fun deleteTransactionsByOrderSerial(order: BoxDto) {
+     fun deleteTransactionsByOrderSerial(order: BoxDto) {
         viewModelScope.launch {
             transactionDao.deleteTransaction(order.id);
             updateBoxState(order.boxId, order.boxType.name)

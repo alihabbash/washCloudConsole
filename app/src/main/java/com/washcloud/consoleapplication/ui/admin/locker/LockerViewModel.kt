@@ -255,6 +255,23 @@ class LockerViewModel @Inject constructor(
 
     }
 
+    fun resetLocker(lockerNumber: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val box = boxDao.getBoxById(lockerNumber.toLong(), BoxType.BOX.toString())
+            if (box != null) {
+                val updatedBox = box.copy(
+                    boxState = BoxState.AVAILABLE,
+                    trnasType = TransactionType.DROP_OFF,
+                    orderSerial = "",
+                    orderId = 0L,
+                )
+                boxDao.insertBox(updatedBox)
+                fetchLockers()
+            }
+        }
+    }
+
+
     fun resetInsertBoxes() {
         _boxesToInsert.value = emptyList()
     }

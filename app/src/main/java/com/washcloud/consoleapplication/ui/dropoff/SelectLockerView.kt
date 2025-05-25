@@ -104,31 +104,33 @@ fun SelectLockerView(
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val interactionModifier = Modifier
-        .fillMaxSize()
-        .onKeyEvent { event ->
-
-
-            FileLogger.log(context, "DropOffView", "onKeyEvent: ${event.nativeKeyEvent.keyCode}")
-            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN || event.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
-                val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
-
-                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-                    Log.e("DropOffView", "Barcode data: $barcodeData")
-
-                    FileLogger.log(context, "DropOffView", "Barcode data: ${barcodeData.trim()}")
-
-                    wayBillNoHidden = barcodeData.trim()
-                    barcodeData = ""
-                    true
-                } else {
-                    barcodeData += unicodeChar
-                    false
-                }
-            } else {
-                false
-            }
-        }
+//    val interactionModifier = Modifier
+//        .fillMaxSize()
+//        .onKeyEvent { event ->
+//
+//
+//            FileLogger.log(context, "DropOffView", "onKeyEvent: ${event.nativeKeyEvent.keyCode}")
+//            if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN || event.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
+//                val unicodeChar = event.nativeKeyEvent.unicodeChar.toChar()
+//
+//                FileLogger.log(context, "DropOffView", "try to scan unicodeChar: $unicodeChar }")
+//
+//                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+//                    Log.e("DropOffView", "Barcode data: $barcodeData")
+//
+//                    FileLogger.log(context, "DropOffView", "Barcode data: ${barcodeData.trim()}")
+//
+//                    wayBillNoHidden = barcodeData.trim()
+//                    barcodeData = ""
+//                    true
+//                } else {
+//                    barcodeData += unicodeChar
+//                    false
+//                }
+//            } else {
+//                false
+//            }
+//        }
 
 
     LaunchedEffect(scannedWaybill) {
@@ -148,16 +150,9 @@ fun SelectLockerView(
             viewModel.setShowAlert()
         }
     }
-//    LaunchedEffect(Unit) {
-//    delay(10000L)
-//      //  wayBillNo = "O112503280003-1"
-//        viewModel.sendCommand("1", "3");
-//   }
 
     LaunchedEffect(wayBillNo) {
      if (isValidSerialNumber(wayBillNo)) {
-
-
 
          if (selectedLocker == null) {
              viewModel.setShowAlert()
@@ -255,8 +250,8 @@ fun SelectLockerView(
         Column(
             modifier = Modifier
                 .height(screenHeight)
-                .width(screenWidth)
-                .then(interactionModifier),
+                .width(screenWidth),
+              //  .then(interactionModifier),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {

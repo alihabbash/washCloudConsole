@@ -542,7 +542,11 @@ fun AdminLogInView(
                                     .width(0.2 * screenWidth)
                                     .height(0.08 * screenHeight)
                                     .clickable {
-                                        showAdminScreens()
+
+                                        viewModel.verifyPassword()
+                                        if (isPasswordCorrect) {
+                                            showAdminScreens()
+                                        }
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
