@@ -331,15 +331,7 @@ class SerialPortService : Service() {
         }
 
 
-        if(dataReceive.startsWith("01066002001037")) {
-            val broadcastIntent = Intent("com.washcloud.conveyor_move")
-            when (dataReceive) {
-                "01066002001037C6" -> broadcastIntent.putExtra("status", "open")
-                "01066002002037D2" -> broadcastIntent.putExtra("status", "close")
-                    .also { position = 0 }
-            }
-            sendBroadcast(broadcastIntent)
-        }
+
     }
 
     private fun decimalToTwoDigitHex(value: Int): String {
