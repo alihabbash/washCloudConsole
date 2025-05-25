@@ -87,10 +87,10 @@ class SerialPortService : Service() {
                     "SerialPortService",
                     "Port $port opened, sending initial command"
                 )
-                sendHex("0106600F0708A43F")
+                sendHex("0106620307086584") /// set motor speed 1800
                 GlobalScope.launch {
                     delay(100)
-                    sendHex("01066002002037D2")
+                    sendHex("01066002002037D2").also { position = 0 }//Back to zero position movement
                 }
             }
         }.apply {
@@ -123,12 +123,16 @@ class SerialPortService : Service() {
 
     private fun openConveyorDoor() {
         FileLogger.log(applicationContext, "openConveyorDoor", "Sending open command")
-        sendConveyorDoorCommand("FEFA040A01000105F4012003000068A2")
+        sendConveyorDoorCommand("FEFA040A01000105F4012003000068A2") // open conveyor door
     }
 
     private fun closeConveyorDoor() {
         FileLogger.log(applicationContext, "closeConveyorDoor", "Sending close command")
-        sendConveyorDoorCommand("FEFA040602000105E803E639")
+        sendConveyorDoorCommand("FEFA040602000105E803E639") // close conveyor door
+        GlobalScope.launch {
+            delay(100)
+            serialHelperConveyor.sendHex("01066002002037D2").also { position = 0 }//Back to zero position movement
+        }
     }
 
     private fun openConveyor(conveyorNumber: Int?) {
@@ -145,9 +149,7 @@ class SerialPortService : Service() {
         val crc: Int = compute(data)
         val command = prefix + toHex(crc)
 
-
-
-        serialHelperConveyor.sendHex("0106620307086584")
+        serialHelperConveyor.sendHex("0106620307086584")  /// set motor speed 1800
         GlobalScope.launch {
             delay(150)
             FileLogger.log(
@@ -158,21 +160,22 @@ class SerialPortService : Service() {
             serialHelperConveyor.sendHex(command)
         }
         GlobalScope.launch {
-            delay(500)
+            delay(300)
             FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor 01066002001037C6")
-            serialHelperConveyor.sendHex("01066002001037C6")
+            serialHelperConveyor.sendHex("01066002001037C6") // move to specific position
         }
 
 
         GlobalScope.launch {
-            delay(750)
+            delay(650)
             FileLogger.log(
                 applicationContext,
                 "checkConveyor",
                 "Checking conveyor to $targetPoint -> 0103600200013BCA"
             )
-            serialHelperConveyor.sendHex("0103600200013BCA")
+            serialHelperConveyor.sendHex("0103600200013BCA") // check position
         }
+
     }
     private fun calculatePulseNumber(targetPoint: Int): String =
         String.format(Locale.US,"%08X", 20000 * targetPoint)
@@ -321,6 +324,17 @@ class SerialPortService : Service() {
         if(dataReceive.startsWith("01066002001037")) {
             val broadcastIntent = Intent("com.washcloud.conveyor_move")
             when (dataReceive) {
+                "01066002002037D2" -> broadcastIntent.putExtra("status", "close")
+                    .also { position = 0 }
+            }
+            sendBroadcast(broadcastIntent)
+        }
+
+
+        if(dataReceive.startsWith("01066002001037")) {
+            val broadcastIntent = Intent("com.washcloud.conveyor_move")
+            when (dataReceive) {
+                "01066002001037C6" -> broadcastIntent.putExtra("status", "open")
                 "01066002002037D2" -> broadcastIntent.putExtra("status", "close")
                     .also { position = 0 }
             }
