@@ -72,6 +72,17 @@ fun DropOffView(
         })
     }
 
+
+   /* DisposableEffect(Unit) {
+        onDispose {
+            viewModel.unregisterBroadcasts()
+        }
+    }*/
+
+    LaunchedEffect(Unit) {
+      viewModel.registerBroadcasts()
+    }
+
     LaunchedEffect(Unit) {
         Log.e("DropOffView", "LaunchedEffect")
         viewModel.fetchTransactions()
@@ -80,7 +91,8 @@ fun DropOffView(
         Column(
             modifier = Modifier
                 .height(screenHeight)
-                .width(screenWidth).then(interactionModifier),
+                .width(screenWidth)
+                .then(interactionModifier),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -106,7 +118,11 @@ fun DropOffView(
 
             }
             Spacer(modifier = Modifier.weight(1f))
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel ,showAd2, showStaffStart)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel ,showAd2)
+                {
+                    viewModel.unregisterBroadcasts()
+                    showStaffStart()
+                }
         }
 
         if (showAlert) {

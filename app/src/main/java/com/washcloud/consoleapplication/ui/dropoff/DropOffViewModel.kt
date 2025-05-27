@@ -78,12 +78,17 @@ class DropOffViewModel @Inject constructor(
     init {
         fetchTransactions()
         fetchLockers()
-        registerBroadcasts()
 
     }
 
 
-    private fun registerBroadcasts() {
+    fun unregisterBroadcasts() {
+
+        FileLogger.log(context, "DropOffViewModel", "unregisterBroadcasts");
+        broadcastReceiverRepository.unregisterReceiver()
+    }
+
+    fun registerBroadcasts() {
         val filter = IntentFilter().apply {
             addAction("com.washcloud.scanner_data")
             addAction("com.washcloud.conveyor_move")

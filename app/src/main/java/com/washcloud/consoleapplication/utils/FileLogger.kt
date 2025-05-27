@@ -12,11 +12,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
 object FileLogger {
 
     private const val LOG_TAG = "FileLogger"
-    private const val LOG_FILE_NAME = "app_log.txt"
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
+    private val fileDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
     fun log(context: Context, tag: String, message: String) {
         val logMessage = "${dateFormat.format(Date())} $tag: $message\n"
@@ -35,7 +36,6 @@ object FileLogger {
         }
     }
 
-
     fun clearLogFile(context: Context) {
         val logFile = getLogFile(context)
         if (logFile.exists()) {
@@ -44,12 +44,20 @@ object FileLogger {
     }
 
     private fun getLogFile(context: Context): File {
+        val logFileName = getLogFileName(context)
         return if (isExternalStorageWritable() && isPermissionGranted(context)) {
-            File(context.getExternalFilesDir(null), LOG_FILE_NAME)
+            File(context.getExternalFilesDir(null), logFileName)
         } else {
-            File(context.filesDir, LOG_FILE_NAME)
+            File(context.filesDir, logFileName)
         }
     }
+
+    private fun getLogFileName(context: Context): String {
+        val version = getAppVersionName(context) ?: "unknown"
+        val date = fileDateFormat.format(Date())
+        return "app_log_version-${version}_date-$date.txt"
+    }
+
 
     private fun isPermissionGranted(context: Context): Boolean {
         val permission = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
