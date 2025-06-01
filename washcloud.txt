@@ -1,0 +1,2 @@
+washcloud
+password = washcloud
