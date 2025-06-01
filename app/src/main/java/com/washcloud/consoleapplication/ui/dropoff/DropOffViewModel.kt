@@ -71,7 +71,6 @@ class DropOffViewModel @Inject constructor(
 
     private val _showAlert = MutableStateFlow(false)
     val showAlert: StateFlow<Boolean> get() = _showAlert
-    private var conveyorStatusReceived: Boolean = false
     private var isConveyorDoorOpen: Boolean = false
 
 
@@ -110,7 +109,6 @@ class DropOffViewModel @Inject constructor(
                     "com.washcloud.conveyor_move" -> {
                         val status = intent.getStringExtra("status")
                         FileLogger.log(context, "DropOffViewModel", "Conveyor move status: $status")
-                        conveyorStatusReceived = true
 
 
                         if (status == "open") {
@@ -314,14 +312,24 @@ class DropOffViewModel @Inject constructor(
     }
 
     private fun openConveyor(boxID: String) {
-     FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
-        isConveyorDoorOpen = false
-        FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
-        val intent = Intent("com.washcloud.conveyor_open").apply {
-            putExtra("conveyorNumber","${boxID}");
-        }
 
-        context.sendBroadcast(intent)
+
+
+
+       if(isConveyorDoorOpen){
+           FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor but conveyor is already opened")
+       }else{
+           FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+           isConveyorDoorOpen = false
+           FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
+           val intent = Intent("com.washcloud.conveyor_open").apply {
+               putExtra("conveyorNumber","${boxID}");
+           }
+           context.sendBroadcast(intent)
+       }
+
+
+
     }
 
 

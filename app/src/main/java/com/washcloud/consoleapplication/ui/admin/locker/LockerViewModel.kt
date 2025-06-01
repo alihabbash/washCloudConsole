@@ -147,9 +147,6 @@ class LockerViewModel @Inject constructor(
 
                 conveyorStatusReceived = true
 
-                if (status == "open") {
-                   // openConveyorDoor()
-                }
             }
             "com.washcloud.conveyor_door_status" -> {
                 val status = intent.getStringExtra("status")
