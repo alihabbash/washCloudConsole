@@ -554,7 +554,7 @@ class MainAdViewModel @Inject constructor(
         FileLogger.log(context, "MainAdViewModel", "openConveyorDoor initial broadcast")
         context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
 
-        viewModelScope.launch {
+       /* viewModelScope.launch {
 
             var attempt = 1
             val maxAttempts = 5
@@ -577,7 +577,7 @@ class MainAdViewModel @Inject constructor(
                 FileLogger.log(context, "MainAdViewModel", "Failed to open conveyor door after $maxAttempts attempts")
             }
 
-        }
+        }*/
     }
 
     fun sendCheckDoorStatusCommand(stationId: String, boxId: String) {

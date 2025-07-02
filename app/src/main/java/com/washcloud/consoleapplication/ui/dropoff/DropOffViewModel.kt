@@ -139,7 +139,7 @@ class DropOffViewModel @Inject constructor(
         FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor door")
         FileLogger.log(context, "DropOffViewModel", "isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
 
-        viewModelScope.launch {
+       /* viewModelScope.launch {
 
             var attempt = 1
             val maxAttempts = 5
@@ -166,7 +166,7 @@ class DropOffViewModel @Inject constructor(
             }
 
 
-        }
+        }*/
     }
 
      fun closeConveyorDoor() {

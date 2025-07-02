@@ -449,7 +449,7 @@ class LockerViewModel @Inject constructor(
 
         isConveyorDoorOpen = false
 
-        viewModelScope.launch {
+     /*   viewModelScope.launch {
 
             var attempt = 1
             val maxAttempts = 5
@@ -476,7 +476,7 @@ class LockerViewModel @Inject constructor(
             }
 
 
-        }
+        }*/
 
       /*  viewModelScope.launch {
             while (!isConveyorDoorOpen) {
