@@ -71,19 +71,23 @@ class DropOffViewModel @Inject constructor(
 
     private val _showAlert = MutableStateFlow(false)
     val showAlert: StateFlow<Boolean> get() = _showAlert
-    private var conveyorStatusReceived: Boolean = false
     private var isConveyorDoorOpen: Boolean = false
 
 
     init {
         fetchTransactions()
         fetchLockers()
-        registerBroadcasts()
 
     }
 
 
-    private fun registerBroadcasts() {
+    fun unregisterBroadcasts() {
+
+        FileLogger.log(context, "DropOffViewModel", "unregisterBroadcasts");
+        broadcastReceiverRepository.unregisterReceiver()
+    }
+
+    fun registerBroadcasts() {
         val filter = IntentFilter().apply {
             addAction("com.washcloud.scanner_data")
             addAction("com.washcloud.conveyor_move")
@@ -105,7 +109,6 @@ class DropOffViewModel @Inject constructor(
                     "com.washcloud.conveyor_move" -> {
                         val status = intent.getStringExtra("status")
                         FileLogger.log(context, "DropOffViewModel", "Conveyor move status: $status")
-                        conveyorStatusReceived = true
 
 
                         if (status == "open") {
@@ -136,7 +139,7 @@ class DropOffViewModel @Inject constructor(
         FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor door")
         FileLogger.log(context, "DropOffViewModel", "isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
 
-        viewModelScope.launch {
+       /* viewModelScope.launch {
 
             var attempt = 1
             val maxAttempts = 5
@@ -163,7 +166,7 @@ class DropOffViewModel @Inject constructor(
             }
 
 
-        }
+        }*/
     }
 
      fun closeConveyorDoor() {
@@ -309,14 +312,24 @@ class DropOffViewModel @Inject constructor(
     }
 
     private fun openConveyor(boxID: String) {
-     FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
-        isConveyorDoorOpen = false
-        FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
-        val intent = Intent("com.washcloud.conveyor_open").apply {
-            putExtra("conveyorNumber","${boxID}");
-        }
 
-        context.sendBroadcast(intent)
+
+
+
+       if(isConveyorDoorOpen){
+           FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor but conveyor is already opened")
+       }else{
+           FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+           isConveyorDoorOpen = false
+           FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
+           val intent = Intent("com.washcloud.conveyor_open").apply {
+               putExtra("conveyorNumber","${boxID}");
+           }
+           context.sendBroadcast(intent)
+       }
+
+
+
     }
 
 

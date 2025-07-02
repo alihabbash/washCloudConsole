@@ -440,7 +440,7 @@ class MainAdViewModel @Inject constructor(
 
 
     fun closeConveyorDoor() {
-        FileLogger.log(context, "DropOffViewModel", "Sending command to close conveyor door")
+        FileLogger.log(context, "MainAdViewModel", "Sending command to close conveyor door")
         context.sendBroadcast(Intent("com.washcloud.conveyor_close"))
         isConveyorDoorOpen = false
 
@@ -534,6 +534,7 @@ class MainAdViewModel @Inject constructor(
     }
     private fun openConveyor(boxID: String) {
       FileLogger.log(context,  "openConveyor"   ,"Sending command to open conveyor")
+        isConveyorDoorOpen = false
         val intent = Intent("com.washcloud.conveyor_open").apply {
             putExtra("conveyorNumber", boxID)
         }
@@ -550,15 +551,10 @@ class MainAdViewModel @Inject constructor(
 
     fun openConveyorDoor() {
 
-        if(isConveyorDoorOpen) {
-            Log.e("MainAdViewModel", "Conveyor door is already open")
-            FileLogger.log(context,  "MainAdViewModel"   ,"Conveyor door is already open")
-            return
-        }
         FileLogger.log(context, "MainAdViewModel", "openConveyorDoor initial broadcast")
         context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
 
-        viewModelScope.launch {
+       /* viewModelScope.launch {
 
             var attempt = 1
             val maxAttempts = 5
@@ -581,7 +577,7 @@ class MainAdViewModel @Inject constructor(
                 FileLogger.log(context, "MainAdViewModel", "Failed to open conveyor door after $maxAttempts attempts")
             }
 
-        }
+        }*/
     }
 
     fun sendCheckDoorStatusCommand(stationId: String, boxId: String) {

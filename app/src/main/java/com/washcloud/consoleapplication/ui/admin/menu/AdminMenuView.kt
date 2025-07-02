@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -58,6 +59,9 @@ fun AdminMenuView(
         })
     }
 
+    val context = LocalContext.current
+    val version = getAppVersionName(context)
+
     Column(
         modifier = Modifier
             .width(screenWidth)
@@ -80,7 +84,21 @@ fun AdminMenuView(
 
         Spacer(modifier = Modifier.weight(1f))
 
-       // Footer(screenWidth)
+
+        Text(
+            text = "Version: $version",
+            style = TextStyle(
+                color = Color.White,
+                fontSize = (screenWidth.value * 0.06f).sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        )
+
+        // Footer(screenWidth)
 
         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = true, timerViewModel, showAd2, showAd2)
     }

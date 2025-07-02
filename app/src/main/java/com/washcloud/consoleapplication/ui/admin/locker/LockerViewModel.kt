@@ -147,9 +147,6 @@ class LockerViewModel @Inject constructor(
 
                 conveyorStatusReceived = true
 
-                if (status == "open") {
-                   // openConveyorDoor()
-                }
             }
             "com.washcloud.conveyor_door_status" -> {
                 val status = intent.getStringExtra("status")
@@ -427,7 +424,7 @@ class LockerViewModel @Inject constructor(
     }
 
 
-     fun openConveyor(boxID: String) {
+      fun openConveyor(boxID: String) {
      FileLogger.log(context, "LockerViewModel", "Sending command to open conveyor")
 
          conveyorStatusReceived = false
@@ -436,23 +433,50 @@ class LockerViewModel @Inject constructor(
         }
 
         context.sendBroadcast(intent)
-      /*   viewModelScope.launch {
-             delay(10_000)
-             if (conveyorStatusReceived != true) {
-                 FileLogger.log(context, "LockerViewModel", "No conveyor_move response received, retrying for boxID $boxID")
-                 openConveyor(boxID)
-             } else {
-                 FileLogger.log(context, "LockerViewModel", "Received conveyor_move response within 10s for boxID $boxID")
-             }
-         }*/
+          /*viewModelScope.launch {
+              delay(1200)
+
+              val broadcastIntent = Intent("com.washcloud.conveyor_move")
+              broadcastIntent.putExtra("status", "open")
+              context.sendBroadcast(broadcastIntent)
+
+          }*/
+
     }
 
     fun openConveyorDoor() {
        FileLogger.log(context, "LockerViewModel", "Sending command to open conveyor")
-        val intent = Intent("com.washcloud.conveyor_open_door").apply {
-        }
 
-        context.sendBroadcast(intent)
+        isConveyorDoorOpen = false
+
+     /*   viewModelScope.launch {
+
+            var attempt = 1
+            val maxAttempts = 5
+            val delayMillis = 3000L
+
+            context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+            FileLogger.log(context, "LockerViewModel", "Initial conveyor_open_door broadcast sent")
+
+            while (attempt <= maxAttempts) {
+                delay(delayMillis)
+
+                if (isConveyorDoorOpen) {
+                    FileLogger.log(context, "LockerViewModel", "Conveyor door opened on attempt $attempt")
+                    break
+                }
+
+                FileLogger.log(context, "LockerViewModel", "Retrying conveyor door open, attempt $attempt")
+                context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
+                attempt++
+            }
+
+            if (!isConveyorDoorOpen) {
+                FileLogger.log(context, "LockerViewModel", "Failed to open conveyor door after $maxAttempts attempts")
+            }
+
+
+        }*/
 
       /*  viewModelScope.launch {
             while (!isConveyorDoorOpen) {

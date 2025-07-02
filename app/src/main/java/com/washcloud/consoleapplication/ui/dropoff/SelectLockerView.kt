@@ -133,6 +133,12 @@ fun SelectLockerView(
 //        }
 
 
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.unregisterBroadcasts()
+        }
+    }
+
     LaunchedEffect(scannedWaybill) {
         if (scannedWaybill.isNotBlank()) {
             wayBillNo = scannedWaybill
