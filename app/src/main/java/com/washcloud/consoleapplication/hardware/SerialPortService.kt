@@ -87,7 +87,7 @@ class SerialPortService : Service() {
                     "SerialPortService",
                     "Port $port opened, sending initial command"
                 )
-                sendHex("0106620307086584") /// set motor speed 1800
+                sendHex("0106600F0708A43F") /// set motor speed 1800 For back to zero
                 GlobalScope.launch {
                     delay(100)
                     sendHex("01066002002037D2").also { position = 0 }//Back to zero position movement
@@ -129,10 +129,10 @@ class SerialPortService : Service() {
     private fun closeConveyorDoor() {
         FileLogger.log(applicationContext, "closeConveyorDoor", "Sending close command")
         sendConveyorDoorCommand("FEFA040602000105E803E639") // close conveyor door
-        GlobalScope.launch {
-            delay(100)
-            serialHelperConveyor.sendHex("01066002002037D2").also { position = 0 }//Back to zero position movement
-        }
+//        GlobalScope.launch {
+//            delay(100)
+//            serialHelperConveyor.sendHex("01066002002037D2").also { position = 0 }//Back to zero position movement
+//        }
     }
 
     private fun openConveyor(conveyorNumber: Int?) {
