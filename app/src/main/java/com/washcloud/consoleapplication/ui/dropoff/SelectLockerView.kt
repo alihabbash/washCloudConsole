@@ -182,6 +182,7 @@ fun SelectLockerView(
              }
              if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                  showConveyorDialog = true
+                 viewModel.updateConveyorDoorStatus(false);
                  viewModel.setShowAlert(false)
              }else{
                  selectedLocker = null
@@ -222,6 +223,7 @@ fun SelectLockerView(
             }
             if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                 showConveyorDialog = true
+                viewModel.updateConveyorDoorStatus(false);
                 viewModel.setShowAlert(false)
             }else{
                 selectedLocker = null
@@ -341,6 +343,7 @@ fun SelectLockerView(
 
                             if(selectedLocker!!.boxType.name === BoxType.CONVEYOR.name){
                                 showConveyorDialog = true
+                                viewModel.updateConveyorDoorStatus(false);
                                 viewModel.setShowAlert(false)
                             }else{
                                 selectedLocker = null

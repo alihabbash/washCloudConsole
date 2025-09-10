@@ -175,6 +175,11 @@ class DropOffViewModel @Inject constructor(
          isConveyorDoorOpen = false
     }
 
+    fun updateConveyorDoorStatus(isOpen: Boolean) {
+        isConveyorDoorOpen = isOpen
+        FileLogger.log(context, "DropOffViewModel", "Conveyor door status updated. isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
+    }
+
 
 
     fun clearScannedWaybill() {
