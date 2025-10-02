@@ -446,7 +446,7 @@ class LockerViewModel @Inject constructor(
 
     fun openConveyorDoor() {
        FileLogger.log(context, "LockerViewModel", "Sending command to open conveyor")
-
+        context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
         isConveyorDoorOpen = false
 
      /*   viewModelScope.launch {

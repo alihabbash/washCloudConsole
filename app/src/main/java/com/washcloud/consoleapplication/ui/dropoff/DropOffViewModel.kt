@@ -138,7 +138,7 @@ class DropOffViewModel @Inject constructor(
     private fun openConveyorDoor() {
         FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor door")
         FileLogger.log(context, "DropOffViewModel", "isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
-
+        context.sendBroadcast(Intent("com.washcloud.conveyor_open_door"))
        /* viewModelScope.launch {
 
             var attempt = 1
@@ -172,7 +172,12 @@ class DropOffViewModel @Inject constructor(
      fun closeConveyorDoor() {
        FileLogger.log(context, "DropOffViewModel", "Sending command to close conveyor door")
         context.sendBroadcast(Intent("com.washcloud.conveyor_close"))
+         isConveyorDoorOpen = false
+    }
 
+    fun updateConveyorDoorStatus(isOpen: Boolean) {
+        isConveyorDoorOpen = isOpen
+        FileLogger.log(context, "DropOffViewModel", "Conveyor door status updated. isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
     }
 
 
