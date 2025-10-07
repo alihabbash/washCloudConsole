@@ -78,6 +78,7 @@ fun AdminLockerScreen(
 
 
     var lockerToDelete by remember { mutableStateOf<Int?>(null) }
+    var lockerToDeleteType by remember { mutableStateOf<String?>(null) }
     var confirmationMessage by remember { mutableStateOf("") }
 
 
@@ -96,9 +97,10 @@ fun AdminLockerScreen(
         })
     }
 
-    val showConfirmationDialog: (String, Int, Boolean) -> Unit = { message, lockerNumber, isReset ->
+    val showConfirmationDialog: (String, String ,Int, Boolean) -> Unit = { message, boxType, lockerNumber, isReset ->
         confirmationMessage = message
         lockerToDelete = lockerNumber
+        lockerToDeleteType = boxType
         showAlert = true
         isResetAction = isReset
     }
@@ -264,15 +266,15 @@ fun AdminLockerScreen(
                                 lockerNumber = box.boxId.toInt(),
                                 boxType = box.boxType.name,
                                 isOccupied = box.boxState == BoxState.OCCUPIED,
-                                onDeleteClick = { lockerNumber ->
-                                    showConfirmationDialog(  sure_to_delete + " #$lockerNumber?", lockerNumber,false)
+                                onDeleteClick = {
+                                    showConfirmationDialog(  sure_to_delete + " #${box.boxId}", box.boxType.toString() ,box.boxId.toInt(),false)
                                 },
                                 showErrorMessage = {->
                                     alertMessage = locker_deleted_failed
                                     showAlert = true
                                 },
-                                onResetClick = { lockerNumber ->
-                                    showConfirmationDialog(are_you_sure_to_reset_box + " #$lockerNumber?", lockerNumber, true)
+                                onResetClick = {
+                                    showConfirmationDialog(are_you_sure_to_reset_box + " #${box.boxId}?",box.boxType.toString(), box.boxId.toInt(), true)
                                 }
                             )
                         }
@@ -369,18 +371,24 @@ fun AdminLockerScreen(
 
                                 if (lockerToDelete != null) {
                                     if (isResetAction) {
-                                        viewModel.resetLocker(lockerToDelete!!)
+                                        viewModel.resetLocker(
+                                            lockerToDelete!!,
+                                            lockerToDeleteType!!
+                                        )
                                         alertMessage = locker_reset_success
                                     } else {
-                                        viewModel.deleteLocker(lockerToDelete!!)
+                                        viewModel.deleteLocker(
+                                            lockerToDelete!!,
+                                            lockerToDeleteType!!
+                                        )
                                         alertMessage = locker_deleted_success
                                     }
                                     lockerToDelete = null
+                                    lockerToDeleteType = null
                                     showAlert = true
                                 } else {
                                     showAlert = false
                                 }
-
 
 
                             },
@@ -455,7 +463,7 @@ fun LockerGridItem(
                 detectTapGestures(
                     onLongPress = {
                         if (isOccupied) {
-                           // showErrorMessage()
+                            // showErrorMessage()
                             onResetClick(lockerNumber)
                         } else {
                             onDeleteClick(lockerNumber)

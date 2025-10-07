@@ -205,11 +205,19 @@ class LockerViewModel @Inject constructor(
 
 
 
+
     fun fetchLockers() {
         viewModelScope.launch {
-            _lockers.value = boxDao.getAllBoxes()
+            val newList = boxDao.getAllBoxes()
+
+            _lockers.value = emptyList()
+
+            delay(1000)
+
+            _lockers.value = newList.toList()
         }
     }
+
 
     fun addLocker(
         boxId: Long,
@@ -252,15 +260,16 @@ class LockerViewModel @Inject constructor(
 
     }
 
-    fun resetLocker(lockerNumber: Int) {
+    fun resetLocker(lockerNumber: Int,  boxType: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val box = boxDao.getBoxById(lockerNumber.toLong(), BoxType.BOX.toString())
+            val box = boxDao.getBoxById(lockerNumber.toLong(), boxType)
             if (box != null) {
                 val updatedBox = box.copy(
                     boxState = BoxState.AVAILABLE,
                     trnasType = TransactionType.DROP_OFF,
                     orderSerial = "",
                     orderId = 0L,
+                    boxType = if (boxType == "CONVEYOR") BoxType.CONVEYOR else BoxType.BOX
                 )
                 boxDao.insertBox(updatedBox)
                 fetchLockers()
@@ -273,11 +282,11 @@ class LockerViewModel @Inject constructor(
         _boxesToInsert.value = emptyList()
     }
 
-    fun deleteLocker(lockerNumber: Int) {
+    fun deleteLocker(lockerNumber: Int, boxType: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val box = boxDao.getBoxById(lockerNumber.toLong(), boxType = BoxType.BOX.toString())
-            if (box?.boxState == BoxState.AVAILABLE && box.boxType == BoxType.BOX) {
-                boxDao.deleteBox(lockerNumber.toLong())
+            val box = boxDao.getBoxById(lockerNumber.toLong(), boxType = boxType)
+            if (box?.boxState == BoxState.AVAILABLE && box.boxType.toString() == boxType) {
+                boxDao.deleteBoxByIdAndType(lockerNumber.toLong(), boxType)
                 fetchLockers()
             } else {
             }

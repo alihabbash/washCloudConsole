@@ -113,7 +113,13 @@ class DropOffViewModel @Inject constructor(
 
                         if (status == "open") {
                             FileLogger.log(context, "DropOffViewModel", "Conveyor is arrived to DES Please open the door and status is  ${status}")
-                            openConveyorDoor()
+
+                            if(isConveyorDoorOpen){
+                                FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor but conveyor is already opened then just no thing to do....");
+                            }else{
+                                openConveyorDoor()
+                            }
+
                         }
                     }
 
@@ -319,19 +325,24 @@ class DropOffViewModel @Inject constructor(
     private fun openConveyor(boxID: String) {
 
 
+        FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
+        val intent = Intent("com.washcloud.conveyor_open").apply {
+            putExtra("conveyorNumber","${boxID}");
+        }
+        context.sendBroadcast(intent)
 
 
-       if(isConveyorDoorOpen){
-           FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor but conveyor is already opened")
+
+      /* if(isConveyorDoorOpen){
+           FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor but conveyor is already opened then just send move command to ${boxID}");
+
        }else{
            FileLogger.log(context, "DropOffViewModel", "Sending command to open conveyor")
-           isConveyorDoorOpen = false
-           FileLogger.log(context, "DropOffViewModel", "make the isConveyorDoorOpen IS:  ${isConveyorDoorOpen}")
            val intent = Intent("com.washcloud.conveyor_open").apply {
                putExtra("conveyorNumber","${boxID}");
            }
            context.sendBroadcast(intent)
-       }
+       }*/
 
 
 
