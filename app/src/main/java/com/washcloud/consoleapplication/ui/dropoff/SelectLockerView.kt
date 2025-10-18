@@ -542,6 +542,7 @@ fun SelectLockerView(
                                 .clickable {
                                     showConveyorDialog = false
                                     selectedLocker = null
+                                    FileLogger.log(context, "SelectLockerView", "finish button clicked Closing conveyor door")
                                     viewModel.closeConveyorDoor();
                                 },
                             contentAlignment = Alignment.Center

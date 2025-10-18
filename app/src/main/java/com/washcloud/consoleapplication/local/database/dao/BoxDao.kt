@@ -16,8 +16,8 @@ interface BoxDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBox(box: BoxDto)
 
-    @Query("DELETE FROM boxes WHERE box_id = :id")
-    suspend fun deleteBox(id: Long)
+    @Query("DELETE FROM boxes WHERE box_id = :id AND box_type = :boxType")
+    suspend fun deleteBoxByIdAndType(id: Long, boxType: String)
 
     @Query("SELECT * FROM boxes WHERE id = :id")
     suspend fun getBox(id: Long): BoxDto
