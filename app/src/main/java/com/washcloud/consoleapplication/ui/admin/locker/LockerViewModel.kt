@@ -144,7 +144,6 @@ class LockerViewModel @Inject constructor(
                 val status = intent.getStringExtra("status")
                 println("LockerViewModel: Conveyor status: $status")
                 FileLogger.log(context, "LockerViewModel", "Conveyor status: $status")
-
                 conveyorStatusReceived = true
 
             }
