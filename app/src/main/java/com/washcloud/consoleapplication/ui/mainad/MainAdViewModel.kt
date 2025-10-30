@@ -137,6 +137,13 @@ data class ApiData(
     @Json(name = "terminalSn") val terminalSn: String,
     @Json(name = "wayBillNo") val wayBillNo: String,
     @Json(name = "dropOffUrl") val dropOffUrl: String,
+    @Json(name = "type") val type: String,
+    @Json(name = "boxes") val boxes: List<Box>
+)
+
+@JsonClass(generateAdapter = true)
+data class Box(
+    @Json(name = "doorNo") val doorNo: String,
     @Json(name = "type") val type: String
 )
 
@@ -264,7 +271,7 @@ class MainAdViewModel @Inject constructor(
 
 
 
-    fun checkOperationType() {
+    fun checkOperationType(boxType: String = "", doorNumber: String  = "", hideDialog: Boolean = true) {
         setCloseDoor()
 
 
@@ -272,8 +279,8 @@ class MainAdViewModel @Inject constructor(
         val data = _apiResponse.value?.data?.firstOrNull()
 
         if (data?.operationType == "PickUp") {
-            val type = data.type.uppercase(Locale.ENGLISH)
-            requestCustomerPickup(type)
+            val type = if (boxType == "") data.type.uppercase(Locale.ENGLISH) else boxType.uppercase(Locale.ENGLISH)
+            requestCustomerPickup(type,doorNumber,hideDialog)
         } else {
             requestCustomerDropOff()
         }
@@ -325,7 +332,7 @@ class MainAdViewModel @Inject constructor(
     }
 
 
-    private fun requestCustomerPickup(boxType: String) {
+    private fun requestCustomerPickup(boxType: String, doorNumber: String, hideDialog: Boolean ) {
         viewModelScope.launch {
             try {
                 FileLogger.log(context,  "setCustomerPickup"   ,"Fetching data from ${CUSTOMER_PICKUP}")
@@ -334,16 +341,19 @@ class MainAdViewModel @Inject constructor(
                     apiKey = PrefsManager.getApiKey(context),
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
                     terminalSn = PrefsManager.getTerminalSN(context),
-                    doorNo = _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "",
+                    doorNo = if(doorNumber == "")  _apiResponse.value?.data?.firstOrNull()?.doorNo ?: "" else doorNumber,
                     type = if(boxType == BoxType.CONVEYOR.name) 2 else 1
                 )
 
                 if (response.isSuccessful) {
                     Log.d("MainAdViewModel", "Response: ${response.body()}")
                     FileLogger.log(context,  "setCustomerPickup"   ,"Response: ${response.body()}")
-                    _showDialog.value = null
-                    response.body()?.let {
+                    if(hideDialog) {
+                        _showDialog.value = null
+                        response.body()?.let {
+                        }
                     }
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     _error.value = "Error fetching data: $errorBody"
@@ -392,11 +402,14 @@ class MainAdViewModel @Inject constructor(
 
                         body?.let {
                             _apiResponse.value = it
+
+                            Log.i("boxes number is", "${it.data?.firstOrNull()?.boxes?.size}");
                             _showDialog.value = it.data?.firstOrNull()
+
+
+
+
                             _isDoorOpen.value = true
-
-
-
                             val boxType = it.data?.firstOrNull()?.type?.uppercase(Locale.ENGLISH);
 
 
@@ -512,8 +525,7 @@ class MainAdViewModel @Inject constructor(
             }
         }
     }
-
-   private fun sendCommand(boxId: String) {
+    fun sendCommand(boxId: String) {
 
 //       FileLogger.log(context,  "sendCommand fun"   ,"sendCommand stationId: ${_apiResponse.value?.data?.firstOrNull()?.wayBillNo}, boxId: $boxId");
 
@@ -532,7 +544,7 @@ class MainAdViewModel @Inject constructor(
         }
 
     }
-    private fun openConveyor(boxID: String) {
+     fun openConveyor(boxID: String) {
       FileLogger.log(context,  "openConveyor"   ,"Sending command to open conveyor")
         isConveyorDoorOpen = false
         val intent = Intent("com.washcloud.conveyor_open").apply {
