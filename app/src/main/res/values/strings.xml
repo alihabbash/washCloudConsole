@@ -144,4 +144,14 @@
         Locker reset successfully!
         <br>All data related to the locker has been deleted.</br>
     </string>
+    <string name="hanging_clothes_door">Hanging Clothes Door</string>
+    <string name="box_label">Box</string>
+    <string name="pickup_instruction">Please collect your items and close the door</string>
+    <string name="remaining_time_format">(Remaining time %1$s)</string>
+    <string name="order_pickup_label">Pickup Order</string>
+    <string name="order_progress">%1$d of %2$d</string>
+    <string name="opened_label">Opened</string>
+    <string name="number_label">Number</string>
+    <string name="next_order_button">Receive Next Order</string>
+    <string name="finish_button">Finish</string>
 </resources>

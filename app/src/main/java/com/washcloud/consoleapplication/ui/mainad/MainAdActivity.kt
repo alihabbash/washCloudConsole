@@ -28,11 +28,13 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
@@ -55,9 +57,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,6 +91,8 @@ import com.washcloud.consoleapplication.utils.FileLogger
 import com.washcloud.consoleapplication.utils.blueGradient
 import com.washcloud.consoleapplication.utils.dimBackground
 import com.washcloud.consoleapplication.utils.lightGrey
+import com.washcloud.consoleapplication.utils.numbersColor
+import com.washcloud.consoleapplication.utils.primaryDark
 import com.washcloud.consoleapplication.utils.screenBackground
 import com.washcloud.consoleapplication.utils.secondaryColor
 import dagger.hilt.android.AndroidEntryPoint
@@ -401,7 +408,7 @@ class MainAdActivity : ComponentActivity() {
 
 //        GlobalScope.launch {
 //            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/O112505230004-1/555554444"
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12510220002-0/123456789?ApiKey=123456789"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.handleBarcode(url)
 ////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
@@ -437,7 +444,7 @@ class MainAdActivity : ComponentActivity() {
                     LaunchedEffect(apiData) {
                         apiData?.let {
                             val box = viewModel.getBox(it.doorNo)
-                            val boxType = it.type.uppercase(Locale.ENGLISH)
+                            val boxType =  if (it.boxes.size > 1)  it.boxes.first().type.uppercase(Locale.ENGLISH) else it.type.uppercase(Locale.ENGLISH)
                             if(isDoorOpen) {
                                 showDialog = true
                                 FileLogger.log(context, "MainAdActivity", "Showing dialog for door 0${it.doorNo} and station ${box?.stationId}")
@@ -513,9 +520,12 @@ class MainAdActivity : ComponentActivity() {
                             )*/
 
 
-                            val boxType = data.type.uppercase(Locale.ENGLISH);
+                            val boxType = if (data.boxes.size > 1)  data.boxes.first().type.uppercase(
+                                Locale.ENGLISH) else data.type.uppercase(Locale.ENGLISH)
 
-                            var timer by remember { mutableStateOf(120) }
+                            var timer by remember { mutableStateOf(120 * data.boxes.size) }
+                            var currentBoxIndex by remember { mutableStateOf(0) }
+
 
                             LaunchedEffect(isDoorOpen) {
                                 while (timer > 0 && isDoorOpen) {
@@ -532,6 +542,39 @@ class MainAdActivity : ComponentActivity() {
                                     //     viewModel.insertTransaction(data)
                                 viewModel.checkOperationType()
                             }
+
+                            if (data.boxes.size > 1) {
+                                ClothesPickupDialog(
+                                    currentIndex = currentBoxIndex + 1,
+                                    totalOrders = data.boxes.size,
+                                    doorNo = data.boxes[currentBoxIndex].doorNo,
+                                    type = data.boxes[currentBoxIndex].type,
+                                    remainingTime = timer,
+                                    onNext = {
+                                        if (currentBoxIndex < data.boxes.size - 1) {
+                                            viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo, hideDialog = false)
+                                            currentBoxIndex++
+                                            val nextBox = data.boxes[currentBoxIndex]
+                                            val nextType = nextBox.type.uppercase(Locale.ENGLISH)
+
+                                            if (nextType == BoxType.CONVEYOR.name) {
+
+                                                viewModel.openConveyor(nextBox.doorNo.padStart(2, '0'))
+                                            } else {
+                                                viewModel.sendCommand(nextBox.doorNo.padStart(2, '0'))
+                                            }
+                                        } else {
+                                            showDialog = false
+                                            viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
+                                        }
+                                    },
+                                    onFinish = {
+                                        showDialog = false
+                                        viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
+                                    }
+                                )
+
+                            }else{
                                 Column(
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -623,14 +666,14 @@ class MainAdActivity : ComponentActivity() {
                                                         shape = RoundedCornerShape(8.dp)
                                                     )
                                                     .clickable {
-                                                        if(isDoorOpen && boxType == BoxType.BOX.name){
+                                                        if (isDoorOpen && boxType == BoxType.BOX.name) {
                                                             showDialog = false
-                                                        }else{
+                                                        } else {
                                                             viewModel.closeConveyorDoor()
 
                                                         }
 
-                                                  //      viewModel.insertTransaction(data)
+                                                        //      viewModel.insertTransaction(data)
                                                         viewModel.checkOperationType()
                                                     },
                                                 contentAlignment = Alignment.Center
@@ -649,8 +692,12 @@ class MainAdActivity : ComponentActivity() {
                                         }
                                     }
                                 }
+                            }
+
+
                         }
                     }
+
                 }
             }
         }
@@ -701,6 +748,203 @@ class MainAdActivity : ComponentActivity() {
                 }
             } else {
                 VideoPlayer(context, modifier = Modifier.fillMaxSize(), onVideoEnded = {})
+            }
+        }
+    }
+
+    @Composable
+    fun ClothesPickupDialog(
+        currentIndex: Int,
+        totalOrders: Int,
+        doorNo: String,
+        type: String, // "Conveyor" or "Box"
+        remainingTime: Int,
+        onNext: () -> Unit,
+        onFinish: () -> Unit
+    ) {
+        val isConveyor = type.equals("Conveyor", ignoreCase = true)
+        val titleText = stringResource(id = R.string.pickup_clothes)
+        val boxLabel = if (isConveyor)
+            stringResource(id = R.string.hanging_clothes_door)
+        else
+            stringResource(id = R.string.box_label)
+        val imageRes = if (isConveyor) R.drawable.hanging else R.drawable.box
+
+        val instructionText = stringResource(id = R.string.pickup_instruction)
+        val minutes = remainingTime / 60
+        val seconds = remainingTime % 60
+        val formattedTime = String.format("%02d:%02d", minutes, seconds)
+        val remainingText = stringResource(id = R.string.remaining_time_format, formattedTime)
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(dimBackground),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color.White)
+                    .padding(horizontal = 32.dp, vertical = 32.dp)
+                    .width(0.85f * LocalConfiguration.current.screenWidthDp.dp),
+            ) {
+                Text(
+                    text = titleText,
+                    style = TextStyle(
+                        color = secondaryColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = (screenWidth.value * 0.036f).sp,
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = imageRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(90.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(24.dp))
+                    Column {
+                        Row {
+                            Text(
+                                text = stringResource(id = R.string.order_pickup_label),
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.Black,
+                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(
+                                    id = R.string.order_progress,
+                                    currentIndex,
+                                    totalOrders
+                                ),
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Medium,
+                                    color = numbersColor,
+                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                )
+                            )
+                        }
+
+                        Row {
+                            Text(
+                                text = stringResource(id = R.string.opened_label),
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.Black,
+                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = boxLabel,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Medium,
+                                    color = numbersColor,
+                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(id = R.string.number_label),
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.Black,
+                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = doorNo,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Medium,
+                                    color = numbersColor,
+                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                )
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = buildAnnotatedString {
+                        append(instructionText)
+                        append(" ")
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color(0xFFD86060),
+                                fontSize = (screenWidth.value * 0.033f).sp,
+                            )
+                        ) {
+                            append(remainingText)
+                        }
+                    },
+                    style = TextStyle(
+                        color = Color.Black,
+                        fontSize = (screenWidth.value * 0.033f).sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(secondaryColor)
+                            .clickable { onNext() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.next_order_button),
+                            style = TextStyle(
+                                color = Color.White,
+                                fontSize = (screenWidth.value * 0.033f).sp,
+                            ),
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(Color(0xFF57B48C))
+                            .clickable { onFinish() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.finish_button),
+                            style = TextStyle(
+                                color = Color.White,
+                                fontSize = (screenWidth.value * 0.033f).sp,
+                            ),
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                    }
+                }
             }
         }
     }
