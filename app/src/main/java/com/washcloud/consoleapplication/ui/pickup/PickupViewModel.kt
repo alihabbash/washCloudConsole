@@ -63,11 +63,11 @@ class PickupViewModel @Inject constructor(
     init {
         fetchTransactions()
         initializePrinterHelper()
-        registerScannerDataReceiver()
     }
 
 
-    private fun registerScannerDataReceiver() {
+    fun registerScannerDataReceiver() {
+        println("Registering scanner data receiver PickupViewModel");
         val filter = IntentFilter().apply {
             addAction("com.washcloud.scanner_data")
         }
@@ -93,6 +93,11 @@ class PickupViewModel @Inject constructor(
         }
     }
 
+    fun unregisterScannerDataReceiver() {
+        println("Unregistering scanner data receiver PickupViewModel");
+        broadcastReceiverRepository.unregisterReceiver()
+        FileLogger.log(context, "PickupViewModel", "Unregistered scanner data receiver")
+    }
 
     fun sendMockDoorScannerDataBrodcast() {
         val intent = Intent("com.washcloud.scanner_data").apply {

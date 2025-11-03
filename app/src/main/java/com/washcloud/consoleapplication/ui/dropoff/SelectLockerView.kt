@@ -139,8 +139,26 @@ fun SelectLockerView(
         }
     }
 
+
+//    LaunchedEffect(Unit) {
+//        repeat(5) { index ->
+//            delay(10000L) // wait 10 seconds before setting
+//            wayBillNo = "HH12510300003-1"
+//
+//            // optional: log progress
+//            Log.d("Waybill", "Execution ${index + 1} done")
+//
+//            if (index < 4) {
+//                delay(20000L) // wait 20 seconds before next run
+//            }
+//        }
+//    }
+
+
     LaunchedEffect(scannedWaybill) {
         if (scannedWaybill.isNotBlank()) {
+            wayBillNo = "";
+            delay(1000L)
             wayBillNo = scannedWaybill
         }
     }
@@ -542,7 +560,11 @@ fun SelectLockerView(
                                 .clickable {
                                     showConveyorDialog = false
                                     selectedLocker = null
-                                    FileLogger.log(context, "SelectLockerView", "finish button clicked Closing conveyor door")
+                                    FileLogger.log(
+                                        context,
+                                        "SelectLockerView",
+                                        "finish button clicked Closing conveyor door"
+                                    )
                                     viewModel.closeConveyorDoor();
                                 },
                             contentAlignment = Alignment.Center
