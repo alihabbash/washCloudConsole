@@ -103,7 +103,12 @@ class DropOffViewModel @Inject constructor(
                     "com.washcloud.scanner_data" -> {
                         val scannerData = intent.getStringExtra("scannerData")
                         FileLogger.log(context, "DropOffViewModel", "Received scanner data: $scannerData")
+
+                        _scannedWaybill.value = "";
+                        FileLogger.log(context, "DropOffViewModel", "_scannedWaybill reset to empty and holding 1 seconds...")
+                        delay(2000L);
                         _scannedWaybill.value = scannerData?.trim() ?: ""
+                        FileLogger.log(context,"DropOffViewModel", "_scannedWaybill has assigned with new value: ${_scannedWaybill}")
                     }
 
                     "com.washcloud.conveyor_move" -> {
@@ -189,6 +194,8 @@ class DropOffViewModel @Inject constructor(
 
 
     fun clearScannedWaybill() {
+
+        FileLogger.log(context, "DropOffViewModel", "Tying to clearing scanned waybill")
         _scannedWaybill.value = ""
     }
 

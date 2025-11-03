@@ -156,9 +156,12 @@ fun SelectLockerView(
 
 
     LaunchedEffect(scannedWaybill) {
+
+        FileLogger.log(context, "SelectLockerView", "Scanned waybill changed: $scannedWaybill");
         if (scannedWaybill.isNotBlank()) {
             wayBillNo = "";
             delay(1000L)
+            FileLogger.log(context, "SelectLockerView", "Setting wayBillNo to scanned waybill: $scannedWaybill");
             wayBillNo = scannedWaybill
         }
     }
@@ -176,6 +179,7 @@ fun SelectLockerView(
     }
 
     LaunchedEffect(wayBillNo) {
+        FileLogger.log(context, "SelectLocker screen", "wayBillNo received ${wayBillNo}");
      if (isValidSerialNumber(wayBillNo)) {
 
          if (selectedLocker == null) {
