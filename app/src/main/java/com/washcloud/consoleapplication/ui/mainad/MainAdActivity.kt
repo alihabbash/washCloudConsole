@@ -406,19 +406,19 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-        GlobalScope.launch {
-            delay(1000 * 5 )
-            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12511100001-0/123456789?ApiKey=123456789"
-            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-            viewModel.handleBarcode(url)
-//            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
-//
-////            delay(30000)
-////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
-////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
-////            viewModel.fetchfetchDirectlyDirectly(url2)
-//
-        }
+//        GlobalScope.launch {
+//            delay(1000 * 5 )
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12511110006-6/123456789?ApiKey=123456789"
+//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+//            viewModel.handleBarcode(url)
+////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
+////
+//////            delay(30000)
+//////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
+//////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
+//////            viewModel.fetchfetchDirectlyDirectly(url2)
+////
+//        }
 
        scheduleHeartbeat(this)
 
@@ -525,7 +525,7 @@ class MainAdActivity : ComponentActivity() {
 
                             var timer by remember { mutableStateOf(180) }
                             var currentBoxIndex by remember { mutableStateOf(0) }
-
+                            var hideNextButton by remember { mutableStateOf(false) }
 
                             LaunchedEffect(isDoorOpen) {
                                 while (timer > 0 && isDoorOpen) {
@@ -550,6 +550,7 @@ class MainAdActivity : ComponentActivity() {
                                     doorNo = data.boxes[currentBoxIndex].doorNo,
                                     type = data.boxes[currentBoxIndex].type,
                                     remainingTime = timer,
+                                    hideNextButton = hideNextButton,
                                     onNext = {
 
 
@@ -571,6 +572,7 @@ class MainAdActivity : ComponentActivity() {
                                                 FileLogger.log(context, "MainAdActivity", "The next Is Box, Sending command to open box door no ${nextBox.doorNo}")
                                                 viewModel.sendCommand(nextBox.doorNo.padStart(2, '0'))
                                             }
+                                            hideNextButton = currentBoxIndex == data.boxes.size - 1
                                         } else {
                                             showDialog = false
                                             viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
@@ -767,6 +769,7 @@ class MainAdActivity : ComponentActivity() {
         doorNo: String,
         type: String, // "Conveyor" or "Box"
         remainingTime: Int,
+        hideNextButton: Boolean,
         onNext: () -> Unit,
         onFinish: () -> Unit
     ) {
@@ -915,6 +918,8 @@ class MainAdActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
+                    if (!hideNextButton)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
