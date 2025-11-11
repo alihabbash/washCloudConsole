@@ -272,7 +272,11 @@ class MainAdViewModel @Inject constructor(
 
 
     fun checkOperationType(boxType: String = "", doorNumber: String  = "", hideDialog: Boolean = true) {
-        setCloseDoor()
+
+        if(hideDialog){
+            setCloseDoor()
+        }
+
 
 
         FileLogger.log(context,  "checkOperationType"   ,"Order ${apiResponse.value?.data?.firstOrNull()}");

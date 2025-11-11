@@ -406,19 +406,19 @@ class MainAdActivity : ComponentActivity() {
             println("Error: $errorMessage")
         })
 
-//        GlobalScope.launch {
-//            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12510220002-0/123456789?ApiKey=123456789"
-//            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
-//            viewModel.handleBarcode(url)
-////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
-////
-//////            delay(30000)
-//////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
-//////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
-//////            viewModel.fetchfetchDirectlyDirectly(url2)
-////
-//        }
+        GlobalScope.launch {
+            delay(1000 * 5 )
+            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12511100001-0/123456789?ApiKey=123456789"
+            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
+            viewModel.handleBarcode(url)
+//            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
+//
+////            delay(30000)
+////            val url2 = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442408250004-1/21222213701A-001"
+////            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url2");
+////            viewModel.fetchfetchDirectlyDirectly(url2)
+//
+        }
 
        scheduleHeartbeat(this)
 
@@ -523,7 +523,7 @@ class MainAdActivity : ComponentActivity() {
                             val boxType = if (data.boxes.size > 1)  data.boxes.first().type.uppercase(
                                 Locale.ENGLISH) else data.type.uppercase(Locale.ENGLISH)
 
-                            var timer by remember { mutableStateOf(120 * data.boxes.size) }
+                            var timer by remember { mutableStateOf(180) }
                             var currentBoxIndex by remember { mutableStateOf(0) }
 
 
@@ -551,16 +551,24 @@ class MainAdActivity : ComponentActivity() {
                                     type = data.boxes[currentBoxIndex].type,
                                     remainingTime = timer,
                                     onNext = {
+
+
+
                                         if (currentBoxIndex < data.boxes.size - 1) {
+                                            FileLogger.log(context, "MainAdActivity", "Moving to next box index ${currentBoxIndex + 1}")
                                             viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo, hideDialog = false)
                                             currentBoxIndex++
+                                            timer = 180;
                                             val nextBox = data.boxes[currentBoxIndex]
                                             val nextType = nextBox.type.uppercase(Locale.ENGLISH)
 
                                             if (nextType == BoxType.CONVEYOR.name) {
+                                                FileLogger.log(context, "MainAdActivity", "The next Is Conveyor, Opening conveyor door for door no ${nextBox.doorNo}");
 
                                                 viewModel.openConveyor(nextBox.doorNo.padStart(2, '0'))
                                             } else {
+
+                                                FileLogger.log(context, "MainAdActivity", "The next Is Box, Sending command to open box door no ${nextBox.doorNo}")
                                                 viewModel.sendCommand(nextBox.doorNo.padStart(2, '0'))
                                             }
                                         } else {
