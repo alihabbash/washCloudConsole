@@ -258,6 +258,13 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun handCheckDoorStatusResponse(stationId: String? = "", boxId: String? = "",  isOpen: Boolean) {
+
+
+        if ((apiResponse.value?.data?.firstOrNull()?.boxes?.size ?: 0) > 1) {
+            return
+        }
+
+
         _isDoorOpen.value = isOpen
         isConveyorDoorOpen = isOpen
         FileLogger.log(context,  "handCheckDoorStatusResponse with order"   ,"apiResponse.value?.data?.firstOrNull() ${apiResponse.value?.data?.firstOrNull()}")
