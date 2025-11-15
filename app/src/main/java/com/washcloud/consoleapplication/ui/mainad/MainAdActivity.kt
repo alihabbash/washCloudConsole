@@ -540,7 +540,14 @@ class MainAdActivity : ComponentActivity() {
                                 }
 
                                     //     viewModel.insertTransaction(data)
-                                viewModel.checkOperationType()
+
+
+                                if(data.boxes.size > 1) {
+                                    viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
+                                }else{
+                                    viewModel.checkOperationType()
+                                }
+
                             }
 
                             if (data.boxes.size > 1) {

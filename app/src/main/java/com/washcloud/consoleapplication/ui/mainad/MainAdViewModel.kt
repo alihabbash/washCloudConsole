@@ -347,7 +347,21 @@ class MainAdViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 FileLogger.log(context,  "setCustomerPickup"   ,"Fetching data from ${CUSTOMER_PICKUP}")
-                updateBoxStats( _apiResponse.value?.data?.firstOrNull()?.doorNo!!.toLong() , BoxState.AVAILABLE, "-1", boxType)
+
+                val selectedDoorId = if (doorNumber.isEmpty()) {
+                    _apiResponse.value?.data?.firstOrNull()?.doorNo?.toLongOrNull()
+                } else {
+                    doorNumber.toLongOrNull()
+                }
+
+
+                updateBoxStats(
+                    selectedDoorId!!,
+                    BoxState.AVAILABLE,
+                    "-1",
+                    boxType
+                )
+
                 val response: Response<ApiResponse> = apiService.customerPickup(
                     apiKey = PrefsManager.getApiKey(context),
                     wayBillNo = _apiResponse.value?.data?.firstOrNull()?.wayBillNo ?: "",
@@ -518,6 +532,22 @@ class MainAdViewModel @Inject constructor(
             val boxId = data.doorNo.toLong()
             updateBoxStats(boxId, BoxState.OCCUPIED, data.wayBillNo, boxType = BoxType.BOX.name)
 
+        }
+    }
+
+    fun resetLocker(lockerNumber: Int,  boxType: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val box = boxDao.getBoxById(lockerNumber.toLong(), boxType)
+            if (box != null) {
+                val updatedBox = box.copy(
+                    boxState = BoxState.AVAILABLE,
+                    trnasType = TransactionType.DROP_OFF,
+                    orderSerial = "",
+                    orderId = 0L,
+                    boxType = if (boxType == "CONVEYOR") BoxType.CONVEYOR else BoxType.BOX
+                )
+                boxDao.insertBox(updatedBox)
+            }
         }
     }
 
