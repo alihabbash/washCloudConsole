@@ -575,11 +575,23 @@ class MainAdActivity : ComponentActivity() {
                                             hideNextButton = currentBoxIndex == data.boxes.size - 1
                                         } else {
                                             showDialog = false
+                                            if (data.boxes.any { it.type.uppercase(Locale.ENGLISH) == BoxType.CONVEYOR.name }) {
+                                                FileLogger.log(context, "MainAdActivity", "Finishing pickup with conveyor box involved");
+                                                viewModel.closeConveyorDoor()
+                                            }
+
                                             viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
                                         }
                                     },
                                     onFinish = {
                                         showDialog = false
+
+                                        if (data.boxes.any { it.type.uppercase(Locale.ENGLISH) == BoxType.CONVEYOR.name }) {
+                                            FileLogger.log(context, "MainAdActivity", "Finishing pickup with conveyor box involved");
+                                            viewModel.closeConveyorDoor()
+                                        }
+
+
                                         viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
                                     }
                                 )
