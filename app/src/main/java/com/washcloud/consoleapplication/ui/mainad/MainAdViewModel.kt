@@ -272,7 +272,6 @@ class MainAdViewModel @Inject constructor(
        // Toast.makeText(context, "Door status received: $stationId  ${boxId} status: ${isDoorOpen.value}", Toast.LENGTH_LONG).show();
         if(!_isDoorOpen.value && apiResponse.value?.data?.firstOrNull()?.operationType != null){
             checkOperationType()
-
         }
     }
 
@@ -296,7 +295,6 @@ class MainAdViewModel @Inject constructor(
             requestCustomerDropOff()
         }
     }
-
 
 
     private fun requestCustomerDropOff() {
@@ -439,6 +437,14 @@ class MainAdViewModel @Inject constructor(
 
 
                             val doorNo = "0${it.data?.firstOrNull()?.doorNo}"
+
+
+                            //send customer pickup to server
+                            if(it.data?.firstOrNull()?.boxes?.size == 1){
+                                FileLogger.log(context, "MainAdViewModel handleBarcode", "Single box detected, checking operation type");
+                                checkOperationType(hideDialog = false);
+                            }
+
 
                             if (boxType == BoxType.CONVEYOR.name) {
                                 FileLogger.log(context, "MainAdViewModel handleBarcode", "openConveyor: $doorNo")

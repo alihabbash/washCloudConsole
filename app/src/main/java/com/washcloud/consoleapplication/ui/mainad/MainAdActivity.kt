@@ -408,7 +408,7 @@ class MainAdActivity : ComponentActivity() {
 
 //        GlobalScope.launch {
 //            delay(1000 * 5 )
-//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12511110006-6/123456789?ApiKey=123456789"
+//            val url = "https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/HH12511170002-4/123456789?ApiKey=123456789"
 //            FileLogger.log(this@MainAdActivity, "MainActivity", "Fetching data from $url");
 //            viewModel.handleBarcode(url)
 ////            //  viewModel.handleBarcode("https://devwashcloud.azurewebsites.net/api/LockerIntegration/Verification/4442503220002-1/21222213701A-001")
@@ -806,6 +806,18 @@ class MainAdActivity : ComponentActivity() {
         val formattedTime = String.format("%02d:%02d", minutes, seconds)
         val remainingText = stringResource(id = R.string.remaining_time_format, formattedTime)
 
+        var nextEnabled by remember { mutableStateOf(true) }
+        var startCooldown by remember { mutableStateOf(false) }
+
+
+        LaunchedEffect(startCooldown) {
+            if (startCooldown) {
+                nextEnabled = false
+                delay(8_000)
+                nextEnabled = true
+                startCooldown = false
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -909,7 +921,6 @@ class MainAdActivity : ComponentActivity() {
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-
                 Text(
                     text = buildAnnotatedString {
                         append(instructionText)
@@ -930,33 +941,35 @@ class MainAdActivity : ComponentActivity() {
                     ),
                     textAlign = TextAlign.Center
                 )
-
                 Spacer(modifier = Modifier.height(24.dp))
-
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     if (!hideNextButton)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(secondaryColor)
-                            .clickable { onNext() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.next_order_button),
-                            style = TextStyle(
-                                color = Color.White,
-                                fontSize = (screenWidth.value * 0.033f).sp,
-                            ),
-                            modifier = Modifier.padding(vertical = 16.dp)
-                        )
-                    }
-
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(
+                                    if (nextEnabled) secondaryColor
+                                    else secondaryColor.copy(alpha = 0.5f)
+                                )
+                                .clickable(enabled = nextEnabled) {
+                                    onNext()
+                                    startCooldown = true
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.next_order_button),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontSize = (screenWidth.value * 0.033f).sp,
+                                ),
+                                modifier = Modifier.padding(vertical = 16.dp)
+                            )
+                        }
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Box(
