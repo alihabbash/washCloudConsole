@@ -484,6 +484,8 @@ class MainActivity : ComponentActivity() {
             )
 
 
+
+
         }
     }
     @Composable
@@ -608,11 +610,6 @@ class MainActivity : ComponentActivity() {
             sharedPreferences.edit().putString(ADMIN_PASSWORD, "589188").apply()
         }
     }
-
-
-
-
-
 
 
     private fun changeLanguage() {

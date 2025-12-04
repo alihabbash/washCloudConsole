@@ -89,6 +89,16 @@ class PrefsManager constructor(
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getString(SERVER_OPTION, "") ?: ""
         }
+
+        fun getTotalBagsCount(context: Context): Int {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getInt(KEY_TOTAL_BAGS_COUNT, 0)
+        }
+
+        fun setTotalBagsCount(context: Context, value: Int) {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            sharedPreferences.edit().putInt(KEY_TOTAL_BAGS_COUNT, value).apply()
+        }
     }
 
 }
