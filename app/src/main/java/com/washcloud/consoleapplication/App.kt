@@ -16,8 +16,33 @@ import androidx.work.*
 import java.util.concurrent.TimeUnit
 
 
+import android.content.Context
+import org.acra.ACRA
+import org.acra.ReportField
+import org.acra.config.CoreConfigurationBuilder
+import org.acra.data.StringFormat
+import org.acra.ktx.initAcra
+import org.acra.sender.ReportSenderFactory
+
 @HiltAndroidApp
 class App : Application() {
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(base)
+
+        initAcra {
+            buildConfigClass = BuildConfig::class.java
+            reportFormat = StringFormat.JSON
+            reportContent = listOf(
+                ReportField.APP_VERSION_NAME,
+                ReportField.ANDROID_VERSION,
+                ReportField.PHONE_MODEL,
+                ReportField.CUSTOM_DATA,
+                ReportField.STACK_TRACE,
+                ReportField.LOGCAT,
+            )
+
+        }
+    }
 
 
     override fun onCreate() {
