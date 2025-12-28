@@ -99,7 +99,7 @@ class SerialPortService : Service() {
             parity = 0
             try {
                 open()
-            } catch (e: IOException) {
+            } catch (e: Throwable) {
                 FileLogger.log(applicationContext, "SerialPortService", "Error opening $port: ${e.message}")
                 stopSelf(startId)
             }
@@ -110,7 +110,7 @@ class SerialPortService : Service() {
         try {
             open()
             FileLogger.log(applicationContext, "SerialPortService", "$port opened successfully")
-        } catch (e: IOException) {
+        } catch (e: Throwable) {
             FileLogger.log(applicationContext, "SerialPortService", "Error opening $port: ${e.message}")
             stopSelf(startId)
         }
