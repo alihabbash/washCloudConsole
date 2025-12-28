@@ -22,3 +22,6 @@ const val CUSTOM_SERVER = "CUSTOM_SERVER"
 
 const val ADS_SECONDARY_ARRAY = "ADS_SECONDARY_ARRAY"
 const val ADS_ARRAY = "ADS_ARRAY"
+
+const val KEY_TOTAL_BAGS_COUNT = "total_bags_count"
+

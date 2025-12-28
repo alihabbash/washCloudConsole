@@ -1,21 +1,13 @@
 package com.washcloud.consoleapplication.ui.mainad
 
 import android.app.Application
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
-import android.provider.MediaStore
 import android.util.Log
 import android.webkit.URLUtil
-import android.widget.Toast
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.toUpperCase
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -26,7 +18,6 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
@@ -43,7 +34,6 @@ import com.washcloud.consoleapplication.remote.config.CUSTOMER_PICKUP
 import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,13 +46,10 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Url
-import tp.xmaihh.serialport.bean.ComBean
-import java.io.File
-import java.io.FileOutputStream
 import java.util.Date
 import java.util.Locale
-import java.util.jar.Manifest
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 
 object RetrofitClient {
@@ -103,6 +90,9 @@ object RetrofitClient {
 interface ApiService {
     @GET
     suspend fun fetchData(@Url url: String): Response<ApiResponse>
+
+    @GET
+    suspend fun checkExternalDriverLogin(@Url url: String): Response<Unit>
 
     @GET(CUSTOMER_DROP_OFF)
     suspend fun customerDropOff(
@@ -193,7 +183,8 @@ class MainAdViewModel @Inject constructor(
     private val _adsList = MutableStateFlow<List<Uri>>(emptyList())
     val adsList: StateFlow<List<Uri>> = _adsList.asStateFlow()
 
-
+    private val _isBagScanMode = MutableStateFlow(false)
+    val isBagScanMode: StateFlow<Boolean> = _isBagScanMode.asStateFlow()
 
 
     init {
@@ -390,7 +381,19 @@ class MainAdViewModel @Inject constructor(
     }
 
     fun handleBarcode(barcode: String) {
+
         val currentTime = System.currentTimeMillis()
+
+        // If we’re in bag mode, ignore all locker logic
+        if (_isBagScanMode.value) {
+            FileLogger.log(
+                context,
+                "handleBarcode",
+                "BagScanMode active, ignoring locker logic for barcode: $barcode"
+            )
+            // We still broadcast in MainAdActivity → BagCounterViewModel picks it up.
+            return
+        }
 
         if (_isloading.value) {
             FileLogger.log(context, "handleBarcode", "rejected (isLoading) handleBarcode: $barcode")
@@ -410,64 +413,12 @@ class MainAdViewModel @Inject constructor(
         viewModelScope.launch {
             try {
 
-                FileLogger.log(context, "handleBarcode", "handleBarcode: $barcode")
-
-                if (URLUtil.isValidUrl(barcode)) {
-                    val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
-                    FileLogger.log(context, "handleBarcode", "Fetching data from $fullUrl")
-
-                    val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
-
-                    if (response.isSuccessful) {
-                        val body = response.body()
-                        Log.d("MainAdViewModel", "Response: $body")
-                        FileLogger.log(context, "MainAdViewModel handleBarcode", "Response: $body")
-
-                        body?.let {
-                            _apiResponse.value = it
-
-                            Log.i("boxes number is", "${it.data?.firstOrNull()?.boxes?.size}");
-                            _showDialog.value = it.data?.firstOrNull()
-
-
-
-
-                            _isDoorOpen.value = true
-                            val boxType = it.data?.firstOrNull()?.type?.uppercase(Locale.ENGLISH);
-
-
-                            val doorNo = "0${it.data?.firstOrNull()?.doorNo}"
-
-
-                            //send customer pickup to server
-                            if(it.data?.firstOrNull()?.boxes?.size == 1){
-                                FileLogger.log(context, "MainAdViewModel handleBarcode", "Single box detected, checking operation type");
-                                checkOperationType(hideDialog = false);
-                            }
-
-
-                            if (boxType == BoxType.CONVEYOR.name) {
-                                FileLogger.log(context, "MainAdViewModel handleBarcode", "openConveyor: $doorNo")
-                                openConveyor(doorNo)
-
-                            } else {
-                                FileLogger.log(context, "MainAdViewModel handleBarcode", "sendCommand: $doorNo")
-                                sendCommand(doorNo)
-                            }
-                        }
-                    } else {
-                        val errorBody = response.errorBody()?.string()
-                        _error.value = "Error fetching data from $fullUrl: $errorBody"
-                        FileLogger.log(context, "handleBarcode", "Error fetching data from $fullUrl: $errorBody")
-                    }
-                } else {
-                    _error.value = "Invalid URL"
-                    FileLogger.log(context, "handleBarcode", "Invalid URL")
-                }
+                executeBarcodeAction(barcode, context)
 
             } catch (e: Exception) {
                 val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
-                _error.value = "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
+                _error.value =
+                    "Error fetching data from $fullUrl: ${e.message ?: "An error occurred"}"
                 FileLogger.log(context, "handleBarcode", "Exception: ${e.message}")
             } finally {
                 _isloading.value = false
@@ -475,7 +426,138 @@ class MainAdViewModel @Inject constructor(
         }
     }
 
+    suspend fun executeBarcodeAction(barcode: String, context: Context) {
+        FileLogger.log(context, "handleBarcode", "Received barcode: $barcode")
 
+        if (!URLUtil.isValidUrl(barcode)) {
+            _error.value = "Invalid URL"
+            FileLogger.log(context, "handleBarcode", "Invalid URL: $barcode")
+            return
+        }
+
+        val uri = barcode.toUri()
+        val path = uri.path.orEmpty()
+
+        val isCheckLogin = path.contains("ExternalDrivers/CheckLogin", ignoreCase = true)
+
+        if (isCheckLogin) {
+            executeExternalDriversCheckLogin(barcode, uri, context)
+        }
+        else {
+            executeLockerBarcodeAction(barcode, context)
+        }
+    }
+
+    private suspend fun executeExternalDriversCheckLogin(
+        barcode: String,
+        uri: Uri,
+        context: Context,
+    ) {
+        val token = uri.getQueryParameter("access_token")
+
+        if (token.isNullOrBlank()) {
+            _error.value = "Invalid login link: missing access_token"
+            FileLogger.log(
+                context,
+                "MainAdViewModel handleBarcode",
+                "Invalid CheckLogin URL (no access_token): $barcode"
+            )
+            return
+        }
+
+        FileLogger.log(
+            context,
+            "MainAdViewModel handleBarcode",
+            "Checking external driver login at $barcode"
+        )
+
+        val response: Response<Unit> = apiService.checkExternalDriverLogin(barcode)
+
+        val code = response.code()
+        FileLogger.log(
+            context,
+            "MainAdViewModel handleBarcode",
+            "CheckLogin HTTP status: $code"
+        )
+
+        when (code) {
+            200 -> {
+                navigateToBagCounter()
+            }
+            401 -> {
+                _error.value = "Login failed: not authorized."
+            }
+            else -> {
+                _error.value = "Login failed (code: $code). Please try again."
+            }
+        }
+    }
+
+    private suspend fun executeLockerBarcodeAction(barcode: String, context: Context) {
+
+        val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
+        FileLogger.log(context, "MainAdViewModel handleBarcode", "Fetching data from $fullUrl")
+
+        val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
+
+        if (response.isSuccessful) {
+            val body = response.body()
+            Log.d("MainAdViewModel", "Response: $body")
+            FileLogger.log(context, "MainAdViewModel handleBarcode", "Response: $body")
+
+            body?.let {
+                _apiResponse.value = it
+
+                Log.i("boxes number is", "${it.data?.firstOrNull()?.boxes?.size}")
+                _showDialog.value = it.data?.firstOrNull()
+
+                _isDoorOpen.value = true
+                val boxType = it.data?.firstOrNull()?.type?.uppercase(Locale.ENGLISH)
+                val doorNo = "0${it.data?.firstOrNull()?.doorNo}"
+
+                //send customer pickup to server
+                if(it.data?.firstOrNull()?.boxes?.size == 1){
+                    FileLogger.log(context, "MainAdViewModel handleBarcode", "Single box detected, checking operation type");
+                    checkOperationType(hideDialog = false);
+                }
+
+
+                if (boxType == BoxType.CONVEYOR.name) {
+                    FileLogger.log(
+                        context,
+                        "MainAdViewModel handleBarcode",
+                        "openConveyor: $doorNo",
+                    )
+                    openConveyor(doorNo)
+                } else {
+                    FileLogger.log(
+                        context,
+                        "MainAdViewModel handleBarcode",
+                        "sendCommand: $doorNo",
+                    )
+                    sendCommand(doorNo)
+                }
+            }
+        } else {
+            val errorBody = response.errorBody()?.string()
+            _error.value = "Error fetching data from $fullUrl: $errorBody"
+            FileLogger.log(
+                context,
+                "MainAdViewModel handleBarcode",
+                "Error fetching data from $fullUrl: $errorBody"
+            )
+        }
+    }
+
+    fun navigateToBagCounter() {
+        FileLogger.log(context, "MainAdViewModel", "navigateToBagCounter called")
+        _isBagScanMode.value = true
+    }
+
+    fun exitBagScanMode() {
+        FileLogger.log(context, "MainAdViewModel", "exitBagScanMode called")
+        _isBagScanMode.value = false
+    }
 
     fun setCloseDoor() {
         FileLogger.log(context,  "setCloseDoor"   ,"setCloseDoor")
@@ -591,6 +673,7 @@ class MainAdViewModel @Inject constructor(
         }
 
     }
+
      fun openConveyor(boxID: String) {
       FileLogger.log(context,  "openConveyor"   ,"Sending command to open conveyor")
         isConveyorDoorOpen = false

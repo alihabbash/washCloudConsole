@@ -154,4 +154,10 @@
     <string name="number_label">Number</string>
     <string name="next_order_button">Receive Next Order</string>
     <string name="finish_button">Finish</string>
+
+
+    <string name="session_bags_label">Bags this session</string>
+    <string name="total_bags_label">Total scanned</string>
+    <string name="bag_counter_title">Scan Bags</string>
+    <string name="scan_bag_hint">Scan bags to increase the counter</string>
 </resources>

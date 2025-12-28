@@ -158,4 +158,9 @@
     <string name="next_order_button">استلم القطعة التالية</string>
     <string name="finish_button">إنهاء</string>
 
+    <string name="session_bags_label">الأكياس في هذه الجلسة</string>
+    <string name="total_bags_label">إجمالي الأكياس الممسوحة</string>
+    <string name="bag_counter_title">مسح الأكياس</string>
+    <string name="scan_bag_hint">امسح الأكياس لزيادة العداد</string>
+
 </resources>

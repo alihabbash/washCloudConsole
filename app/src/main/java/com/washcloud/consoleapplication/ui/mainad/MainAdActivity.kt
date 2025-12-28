@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication.ui.mainad
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -85,6 +86,8 @@ import com.washcloud.consoleapplication.local.preferences.REBOOT_TIME_KEY
 import com.washcloud.consoleapplication.remote.config.LOCKER_API
 import com.washcloud.consoleapplication.remote.config.PREFIX
 import com.washcloud.consoleapplication.remote.config.VERIFICATION
+import com.washcloud.consoleapplication.ui.bagCounter.BagCounterView
+import com.washcloud.consoleapplication.ui.bagCounter.BagCounterViewModel
 
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
@@ -114,6 +117,7 @@ class MainAdActivity : ComponentActivity() {
     private val barcodeData = StringBuilder()
 
     private val viewModel: MainAdViewModel by viewModels()
+    private val bagCounterViewModel: BagCounterViewModel by viewModels()
 
     private lateinit var rebootTime: String
     private var isRebootEnabled: Boolean = false
@@ -130,13 +134,11 @@ class MainAdActivity : ComponentActivity() {
                  //   Toast.makeText(context, "Scanned Data: $it", Toast.LENGTH_SHORT).show()
 
                     viewModel.handleBarcode(it)
+
                 }
             }
         }
     }
-
-
-
 
 
     private val dataReceiver = object : BroadcastReceiver() {
@@ -179,12 +181,14 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun registerScannerReceiver() {
         val filter = IntentFilter("com.washcloud.scanner_data")
         registerReceiver(scannerReceiver, filter)
         FileLogger.log(this, "MainAdActivity", "Scanner receiver registered")
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private  fun registerConveyorReceiver() {
         println("registerReceiver com.washcloud.conveyor_door_status")
 
@@ -196,6 +200,7 @@ class MainAdActivity : ComponentActivity() {
         registerReceiver(converyReceiver, filter)
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun registerReceiver() {
         println("registerReceiver com.washcloud.door_status")
         val filter = IntentFilter("com.washcloud.door_status")
@@ -292,7 +297,7 @@ class MainAdActivity : ComponentActivity() {
               //  Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
                 viewModel.handleBarcode(barcode)
                 FileLogger.log(this, "MainAdActivity", "Sending barcode to DropOffAndPickup: $barcode")
-                sendBarcodeToDropOffAndPickup(barcode)
+                broadcastScannedBarcodeToListeners(barcode)
                 barcodeData.setLength(0)
             }
             true
@@ -341,7 +346,7 @@ class MainAdActivity : ComponentActivity() {
         }
     }
 
-    private fun sendBarcodeToDropOffAndPickup(barcode: String) {
+    private fun broadcastScannedBarcodeToListeners(barcode: String) {
         val broadcastIntent = Intent("com.washcloud.scanner_data")
         broadcastIntent.putExtra("scannerData", barcode)
         sendBroadcast(broadcastIntent)
@@ -434,56 +439,92 @@ class MainAdActivity : ComponentActivity() {
                     color = screenBackground
                 ) {
                     val context = LocalContext.current
-                    val apiData by viewModel.showDialog.observeAsState()
-                    val isDoorOpen by viewModel.isDoorOpen.collectAsState()
 
-                    var showDialog by remember { mutableStateOf(false) }
-                    val adsList by viewModel.adsList.collectAsState()
+                    val isBagScanMode by viewModel.isBagScanMode.collectAsState()
+
+                    if (isBagScanMode) {
+                        // Show bag counter instead of ads/lockers
+                        BagCounterView (
+                            screenWidth = screenWidth,
+                            screenHeight = screenHeight,
+                            viewModel = bagCounterViewModel,
+                            onBack = {
+                                viewModel.exitBagScanMode()
+                                // Optional: go back to MainActivity if you prefer:
+                                // startActivity(Intent(context, MainActivity::class.java))
+                                // finish()
+                            }
+                        )
+                    } else {
+
+                        val apiData by viewModel.showDialog.observeAsState()
+                        val isDoorOpen by viewModel.isDoorOpen.collectAsState()
+
+                        var showDialog by remember { mutableStateOf(false) }
+                        val adsList by viewModel.adsList.collectAsState()
 
 
-                    LaunchedEffect(apiData) {
-                        apiData?.let {
-                            val box = viewModel.getBox(it.doorNo)
-                            val boxType =  if (it.boxes.size > 1)  it.boxes.first().type.uppercase(Locale.ENGLISH) else it.type.uppercase(Locale.ENGLISH)
-                            if(isDoorOpen) {
-                                showDialog = true
-                                FileLogger.log(context, "MainAdActivity", "Showing dialog for door 0${it.doorNo} and station ${box?.stationId}")
+                        LaunchedEffect(apiData) {
+                            apiData?.let {
+                                val box = viewModel.getBox(it.doorNo)
+                                val boxType =
+                                    if (it.boxes.size > 1) it.boxes.first().type.uppercase(Locale.ENGLISH) else it.type.uppercase(
+                                        Locale.ENGLISH
+                                    )
+                                if (isDoorOpen) {
+                                    showDialog = true
+                                    FileLogger.log(
+                                        context,
+                                        "MainAdActivity",
+                                        "Showing dialog for door 0${it.doorNo} and station ${box?.stationId}"
+                                    )
 
 
-                                while (isDoorOpen && apiData != null && boxType == BoxType.BOX.name) {
-                                    delay(3000L)
+                                    while (isDoorOpen && apiData != null && boxType == BoxType.BOX.name) {
+                                        delay(3000L)
 
 
-                                    viewModel.sendCheckDoorStatusCommand(box?.stationId.toString(), "0${it.doorNo}")
-                                    FileLogger.log(context, "MainAdActivity", "Sending check door status command for door 0${it.doorNo} and station ${box?.stationId}")
+                                        viewModel.sendCheckDoorStatusCommand(
+                                            box?.stationId.toString(),
+                                            "0${it.doorNo}"
+                                        )
+                                        FileLogger.log(
+                                            context,
+                                            "MainAdActivity",
+                                            "Sending check door status command for door 0${it.doorNo} and station ${box?.stationId}"
+                                        )
+                                    }
+
+                                } else {
+                                    FileLogger.log(
+                                        context,
+                                        "MainAdActivity",
+                                        "Door is closed for that not showing dialog door 0${it.doorNo} and station ${box?.stationId}"
+                                    )
                                 }
-
-                            }else{
-                                FileLogger.log(context, "MainAdActivity", "Door is closed for that not showing dialog door 0${it.doorNo} and station ${box?.stationId}")
                             }
                         }
-                    }
 
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onDoubleTap = {
-                                       // finish()
-                                        MainActivity.dLocale = Locale("ar")
-                                        val intent = Intent(context, MainActivity::class.java)
-                                        context.startActivity(intent)
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onDoubleTap = {
+                                            // finish()
+                                            MainActivity.dLocale = Locale("ar")
+                                            val intent = Intent(context, MainActivity::class.java)
+                                            context.startActivity(intent)
 
 
-                                    }
-                                )
-                            }
-                    ) {
+                                        }
+                                    )
+                                }
+                        ) {
 
-                        AdDisplay(adsList, context, screenWidth, screenHeight)
+                            AdDisplay(adsList, context, screenWidth, screenHeight)
 //                        Image(
 //                            painterResource(R.drawable.empty_image),
 //                            "ad_1",
@@ -502,14 +543,14 @@ class MainAdActivity : ComponentActivity() {
 //                        )
 
 //                        VideoPlayer(context, Modifier.fillMaxSize())
-                    }
+                        }
 
 
-                    if (showDialog && isDoorOpen) {
+                        if (showDialog && isDoorOpen) {
 
-                        apiData?.let { data ->
+                            apiData?.let { data ->
 
-                           /*DropOffDialog(
+                                /*DropOffDialog(
                                 doorNo = data.doorNo,
                                 onDismiss = { showDialog = false },
                                 onConfirm = {
@@ -520,211 +561,273 @@ class MainAdActivity : ComponentActivity() {
                             )*/
 
 
-                            val boxType = if (data.boxes.size > 1)  data.boxes.first().type.uppercase(
-                                Locale.ENGLISH) else data.type.uppercase(Locale.ENGLISH)
+                                val boxType =
+                                    if (data.boxes.size > 1) data.boxes.first().type.uppercase(
+                                        Locale.ENGLISH
+                                    ) else data.type.uppercase(Locale.ENGLISH)
 
-                            var timer by remember { mutableStateOf(180) }
-                            var currentBoxIndex by remember { mutableStateOf(0) }
-                            var hideNextButton by remember { mutableStateOf(false) }
+                                var timer by remember { mutableStateOf(180) }
+                                var currentBoxIndex by remember { mutableStateOf(0) }
+                                var hideNextButton by remember { mutableStateOf(false) }
 
-                            LaunchedEffect(isDoorOpen) {
-                                while (timer > 0 && isDoorOpen) {
-                                    delay(1000L)
-                                    timer--
-                                }
-                                FileLogger.log(context, "MainAdActivity", "Door is still open after 60 seconds")
-                                if(isDoorOpen && boxType == BoxType.BOX.name){
-                                    showDialog = false
-                                }else{
-                                    viewModel.closeConveyorDoor()
-                                }
+                                LaunchedEffect(isDoorOpen) {
+                                    while (timer > 0 && isDoorOpen) {
+                                        delay(1000L)
+                                        timer--
+                                    }
+                                    FileLogger.log(
+                                        context,
+                                        "MainAdActivity",
+                                        "Door is still open after 60 seconds"
+                                    )
+                                    if (isDoorOpen && boxType == BoxType.BOX.name) {
+                                        showDialog = false
+                                    } else {
+                                        viewModel.closeConveyorDoor()
+                                    }
 
                                     //     viewModel.insertTransaction(data)
 
 
-                                if(data.boxes.size > 1) {
-                                    viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
-                                }else{
-                                    viewModel.checkOperationType()
+                                    if (data.boxes.size > 1) {
+                                        viewModel.checkOperationType(
+                                            boxType = data.boxes[currentBoxIndex].type,
+                                            doorNumber = data.boxes[currentBoxIndex].doorNo
+                                        )
+                                    } else {
+                                        viewModel.checkOperationType()
+                                    }
+
                                 }
 
-                            }
-
-                            if (data.boxes.size > 1) {
-                                ClothesPickupDialog(
-                                    currentIndex = currentBoxIndex + 1,
-                                    totalOrders = data.boxes.size,
-                                    doorNo = data.boxes[currentBoxIndex].doorNo,
-                                    type = data.boxes[currentBoxIndex].type,
-                                    remainingTime = timer,
-                                    hideNextButton = hideNextButton,
-                                    onNext = {
+                                if (data.boxes.size > 1) {
+                                    ClothesPickupDialog(
+                                        currentIndex = currentBoxIndex + 1,
+                                        totalOrders = data.boxes.size,
+                                        doorNo = data.boxes[currentBoxIndex].doorNo,
+                                        type = data.boxes[currentBoxIndex].type,
+                                        remainingTime = timer,
+                                        hideNextButton = hideNextButton,
+                                        onNext = {
 
 
+                                            if (currentBoxIndex < data.boxes.size - 1) {
+                                                FileLogger.log(
+                                                    context,
+                                                    "MainAdActivity",
+                                                    "Moving to next box index ${currentBoxIndex + 1}"
+                                                )
+                                                viewModel.checkOperationType(
+                                                    boxType = data.boxes[currentBoxIndex].type,
+                                                    doorNumber = data.boxes[currentBoxIndex].doorNo,
+                                                    hideDialog = false
+                                                )
+                                                currentBoxIndex++
+                                                timer = 180;
+                                                val nextBox = data.boxes[currentBoxIndex]
+                                                val nextType =
+                                                    nextBox.type.uppercase(Locale.ENGLISH)
 
-                                        if (currentBoxIndex < data.boxes.size - 1) {
-                                            FileLogger.log(context, "MainAdActivity", "Moving to next box index ${currentBoxIndex + 1}")
-                                            viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo, hideDialog = false)
-                                            currentBoxIndex++
-                                            timer = 180;
-                                            val nextBox = data.boxes[currentBoxIndex]
-                                            val nextType = nextBox.type.uppercase(Locale.ENGLISH)
+                                                if (nextType == BoxType.CONVEYOR.name) {
+                                                    FileLogger.log(
+                                                        context,
+                                                        "MainAdActivity",
+                                                        "The next Is Conveyor, Opening conveyor door for door no ${nextBox.doorNo}"
+                                                    );
 
-                                            if (nextType == BoxType.CONVEYOR.name) {
-                                                FileLogger.log(context, "MainAdActivity", "The next Is Conveyor, Opening conveyor door for door no ${nextBox.doorNo}");
+                                                    viewModel.openConveyor(
+                                                        nextBox.doorNo.padStart(
+                                                            2,
+                                                            '0'
+                                                        )
+                                                    )
+                                                } else {
 
-                                                viewModel.openConveyor(nextBox.doorNo.padStart(2, '0'))
+                                                    FileLogger.log(
+                                                        context,
+                                                        "MainAdActivity",
+                                                        "The next Is Box, Sending command to open box door no ${nextBox.doorNo}"
+                                                    )
+                                                    viewModel.sendCommand(
+                                                        nextBox.doorNo.padStart(
+                                                            2,
+                                                            '0'
+                                                        )
+                                                    )
+                                                }
+                                                hideNextButton =
+                                                    currentBoxIndex == data.boxes.size - 1
                                             } else {
+                                                showDialog = false
+                                                if (data.boxes.any { it.type.uppercase(Locale.ENGLISH) == BoxType.CONVEYOR.name }) {
+                                                    FileLogger.log(
+                                                        context,
+                                                        "MainAdActivity",
+                                                        "Finishing pickup with conveyor box involved"
+                                                    );
+                                                    viewModel.closeConveyorDoor()
+                                                }
 
-                                                FileLogger.log(context, "MainAdActivity", "The next Is Box, Sending command to open box door no ${nextBox.doorNo}")
-                                                viewModel.sendCommand(nextBox.doorNo.padStart(2, '0'))
+                                                viewModel.checkOperationType(
+                                                    boxType = data.boxes[currentBoxIndex].type,
+                                                    doorNumber = data.boxes[currentBoxIndex].doorNo
+                                                )
                                             }
-                                            hideNextButton = currentBoxIndex == data.boxes.size - 1
-                                        } else {
+                                        },
+                                        onFinish = {
                                             showDialog = false
+
                                             if (data.boxes.any { it.type.uppercase(Locale.ENGLISH) == BoxType.CONVEYOR.name }) {
-                                                FileLogger.log(context, "MainAdActivity", "Finishing pickup with conveyor box involved");
+                                                FileLogger.log(
+                                                    context,
+                                                    "MainAdActivity",
+                                                    "Finishing pickup with conveyor box involved"
+                                                );
                                                 viewModel.closeConveyorDoor()
                                             }
 
-                                            viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
-                                        }
-                                    },
-                                    onFinish = {
-                                        showDialog = false
 
-                                        if (data.boxes.any { it.type.uppercase(Locale.ENGLISH) == BoxType.CONVEYOR.name }) {
-                                            FileLogger.log(context, "MainAdActivity", "Finishing pickup with conveyor box involved");
-                                            viewModel.closeConveyorDoor()
-                                        }
-
-
-                                        viewModel.checkOperationType(boxType =  data.boxes[currentBoxIndex].type, doorNumber =  data.boxes[currentBoxIndex].doorNo)
-                                    }
-                                )
-
-                            }else{
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .width(screenWidth)
-                                        .height(screenHeight)
-                                        .background(dimBackground)
-                                ) {
-                                    Box(
-                                        modifier =
-                                        Modifier
-                                            .clip(
-                                                RoundedCornerShape(0.02 * screenWidth)
+                                            viewModel.checkOperationType(
+                                                boxType = data.boxes[currentBoxIndex].type,
+                                                doorNumber = data.boxes[currentBoxIndex].doorNo
                                             )
-                                            .background(color = Color.White)
-                                            .width(0.8 * screenWidth)
-                                            .height(0.22 * screenHeight)
-                                            .padding(start = 16.dp, end = 16.dp),
+                                        }
+                                    )
 
-                                        contentAlignment = Alignment.Center,
+                                } else {
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier
+                                            .width(screenWidth)
+                                            .height(screenHeight)
+                                            .background(dimBackground)
                                     ) {
-                                        Column(
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.Start
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .clip(
+                                                        RoundedCornerShape(0.02 * screenWidth)
+                                                    )
+                                                    .background(color = Color.White)
+                                                    .width(0.8 * screenWidth)
+                                                    .height(0.22 * screenHeight)
+                                                    .padding(start = 16.dp, end = 16.dp),
+
+                                            contentAlignment = Alignment.Center,
                                         ) {
-
-                                            Text(
-                                                text = if (data.operationType == "PickUp")    stringResource(id = R.string.pickup_clothes)  else    stringResource(id = R.string.dropoff_clothes),
-                                                style = TextStyle(
-                                                    fontSize = (screenWidth.value * 0.033f).sp,
-                                                    fontWeight = FontWeight.Bold,
-
-                                                    color = secondaryColor
-                                                ),
-                                            )
-
-
-                                            Text(
-                                                text = if (data.operationType == "PickUp" && boxType == BoxType.BOX.name)  stringResource(id = R.string.locker_pickup_message, data.doorNo) else if(data.operationType == "PickUp" && boxType == BoxType.CONVEYOR.name) stringResource(
-                                                    id =  R.string.conveyor_moving_customer) else  stringResource(id = R.string.locker_dropoff_message, data.doorNo) ,
-                                                style = TextStyle(
-                                                    fontSize = (screenWidth.value * 0.025f).sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                            )
-
-                                            Spacer(modifier = Modifier.height(0.03 * screenHeight))
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(start = 16.dp, end = 16.dp)
-                                                    .background(
-                                                        brush = Brush.horizontalGradient(
-                                                            colors = listOf(
-                                                                blueGradient,
-                                                                secondaryColor,
-                                                            ),
-                                                        ),
-                                                        shape = RoundedCornerShape(8.dp)
-                                                    )
-                                                    .clickable {
-                                                        //onConfirm()
-                                                    },
-                                                contentAlignment = Alignment.Center
+                                            Column(
+                                                verticalArrangement = Arrangement.Center,
+                                                horizontalAlignment = Alignment.Start
                                             ) {
+
                                                 Text(
-                                                    text = stringResource(id = R.string.time_remaining) + ": " + timer + " " + stringResource(
-                                                        id = R.string.seconds),
+                                                    text = if (data.operationType == "PickUp") stringResource(
+                                                        id = R.string.pickup_clothes
+                                                    ) else stringResource(id = R.string.dropoff_clothes),
                                                     style = TextStyle(
-                                                        color = Color.White,
-                                                        fontSize = (screenWidth.value * 0.024f).sp,
+                                                        fontSize = (screenWidth.value * 0.033f).sp,
+                                                        fontWeight = FontWeight.Bold,
+
+                                                        color = secondaryColor
+                                                    ),
+                                                )
+
+
+                                                Text(
+                                                    text = if (data.operationType == "PickUp" && boxType == BoxType.BOX.name) stringResource(
+                                                        id = R.string.locker_pickup_message,
+                                                        data.doorNo
+                                                    ) else if (data.operationType == "PickUp" && boxType == BoxType.CONVEYOR.name) stringResource(
+                                                        id = R.string.conveyor_moving_customer
+                                                    ) else stringResource(
+                                                        id = R.string.locker_dropoff_message,
+                                                        data.doorNo
+                                                    ),
+                                                    style = TextStyle(
+                                                        fontSize = (screenWidth.value * 0.025f).sp,
                                                         fontWeight = FontWeight.Bold
                                                     ),
-                                                    modifier = Modifier.padding(16.dp)
                                                 )
-                                            }
-                                            Spacer(modifier = Modifier.height(16.dp))
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(start = 16.dp, end = 16.dp)
-                                                    .background(
-                                                        brush = Brush.horizontalGradient(
-                                                            colors = listOf(
-                                                                blueGradient,
-                                                                secondaryColor,
+
+                                                Spacer(modifier = Modifier.height(0.03 * screenHeight))
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(start = 16.dp, end = 16.dp)
+                                                        .background(
+                                                            brush = Brush.horizontalGradient(
+                                                                colors = listOf(
+                                                                    blueGradient,
+                                                                    secondaryColor,
+                                                                ),
                                                             ),
+                                                            shape = RoundedCornerShape(8.dp)
+                                                        )
+                                                        .clickable {
+                                                            //onConfirm()
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = stringResource(id = R.string.time_remaining) + ": " + timer + " " + stringResource(
+                                                            id = R.string.seconds
                                                         ),
-                                                        shape = RoundedCornerShape(8.dp)
+                                                        style = TextStyle(
+                                                            color = Color.White,
+                                                            fontSize = (screenWidth.value * 0.024f).sp,
+                                                            fontWeight = FontWeight.Bold
+                                                        ),
+                                                        modifier = Modifier.padding(16.dp)
                                                     )
-                                                    .clickable {
-                                                        if (isDoorOpen && boxType == BoxType.BOX.name) {
-                                                            showDialog = false
-                                                        } else {
-                                                            viewModel.closeConveyorDoor()
+                                                }
+                                                Spacer(modifier = Modifier.height(16.dp))
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(start = 16.dp, end = 16.dp)
+                                                        .background(
+                                                            brush = Brush.horizontalGradient(
+                                                                colors = listOf(
+                                                                    blueGradient,
+                                                                    secondaryColor,
+                                                                ),
+                                                            ),
+                                                            shape = RoundedCornerShape(8.dp)
+                                                        )
+                                                        .clickable {
+                                                            if (isDoorOpen && boxType == BoxType.BOX.name) {
+                                                                showDialog = false
+                                                            } else {
+                                                                viewModel.closeConveyorDoor()
 
-                                                        }
+                                                            }
 
-                                                        //      viewModel.insertTransaction(data)
-                                                        viewModel.checkOperationType()
-                                                    },
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    text = stringResource(id = R.string.finsih),
-                                                    style = TextStyle(
-                                                        color = Color.White,
-                                                        fontSize = (screenWidth.value * 0.024f).sp,
-                                                        fontWeight = FontWeight.Bold
-                                                    ),
-                                                    modifier = Modifier.padding(16.dp)
+                                                            //      viewModel.insertTransaction(data)
+                                                            viewModel.checkOperationType()
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = stringResource(id = R.string.finsih),
+                                                        style = TextStyle(
+                                                            color = Color.White,
+                                                            fontSize = (screenWidth.value * 0.024f).sp,
+                                                            fontWeight = FontWeight.Bold
+                                                        ),
+                                                        modifier = Modifier.padding(16.dp)
 
-                                                )
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
+
+
                             }
-
-
                         }
+
                     }
 
                 }
