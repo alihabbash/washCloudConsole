@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -879,7 +880,12 @@ class MainAdActivity : ComponentActivity() {
                     )
                 }
             } else {
-                VideoPlayer(context, modifier = Modifier.fillMaxSize(), onVideoEnded = {})
+                Image(
+                    painter = painterResource(id = R.drawable.default_ad_image),
+                    contentDescription = "Default Ad Image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
             }
         }
     }
