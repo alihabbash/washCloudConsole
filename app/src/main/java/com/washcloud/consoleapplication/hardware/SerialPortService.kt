@@ -54,7 +54,7 @@ class SerialPortService : Service() {
         })
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         initializeSerialPorts(startId)
         return START_STICKY
     }

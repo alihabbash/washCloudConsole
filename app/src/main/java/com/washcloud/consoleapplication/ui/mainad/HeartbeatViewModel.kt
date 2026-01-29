@@ -22,14 +22,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HeartbeatViewModel @Inject constructor(
-    private val sendHeartbeatUseCase: SendHeartbeatUseCase
+    private val sendHeartbeatUseCase: SendHeartbeatUseCase,
+    private val boxDao: BoxDao
 ) : ViewModel() {
 
 
-    private lateinit var boxDao: BoxDao
-
     fun initialize(context: Context) {
-        boxDao = DatabaseModule.provideConsoleDatabase(context).getBoxDao()
+        // Did nothing
     }
 
     fun sendHeartbeat(apiKey: String, terminalSn: String) {
