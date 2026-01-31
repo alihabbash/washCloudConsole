@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.washcloud.consoleapplication.di.DatabaseModule
+import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
@@ -22,7 +23,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 class HeartbeatWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
-    private val sendHeartbeatUseCase: SendHeartbeatUseCase
+    private val sendHeartbeatUseCase: SendHeartbeatUseCase,
+    private val boxDao: BoxDao
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {

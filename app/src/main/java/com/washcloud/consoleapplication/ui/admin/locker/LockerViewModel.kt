@@ -25,6 +25,7 @@ import tp.xmaihh.serialport.utils.ByteUtil
 import android_serialport_api.SerialPortFinder
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
@@ -43,12 +44,11 @@ import javax.inject.Inject
 @HiltViewModel
 class LockerViewModel @Inject constructor(
     application: Application,
-    private val broadcastReceiverRepository: BroadcastReceiverRepository
+    private val broadcastReceiverRepository: BroadcastReceiverRepository,
+    private val boxDao: BoxDao
 ) : AndroidViewModel(application) {
 
     private val context: Context = getApplication<Application>().applicationContext
-
-    private val boxDao = DatabaseModule.provideConsoleDatabase(context).getBoxDao()
 
     private val _lockers = MutableStateFlow<List<BoxDto>>(emptyList())
     val lockers: StateFlow<List<BoxDto>> = _lockers.asStateFlow()
@@ -334,11 +334,9 @@ class LockerViewModel @Inject constructor(
 
         try {
             val existingBoxIds = _lockers.value.map { it.boxId }.toSet()
-            val inputStream = context.contentResolver.openInputStream(fileUri)
-            val bufferedReader = inputStream?.bufferedReader()
-            bufferedReader?.useLines { lines ->
-                lines.drop(1)
-                    .forEach { line ->
+            context.contentResolver.openInputStream(fileUri)?.use { inputStream ->
+                inputStream.bufferedReader().useLines { lines ->
+                    lines.drop(1).forEach { line ->
                         val columns = line.split(";")
                         if (columns.size == 13) {
                             val boxId = columns[3].toLong()
@@ -363,11 +361,12 @@ class LockerViewModel @Inject constructor(
                             } else {
                                 FileLogger.log(context, "Duplicate box ID $boxId found. Ignoring.", "LockerViewModel")
                             }
-                        }else{
-                            _errorMessage.value = "Invalid CSV format."
+                        } else {
+                            _errorMessage.postValue("Invalid CSV format.")
                             FileLogger.log(context, "Invalid CSV format.", "LockerViewModel")
                         }
                     }
+                }
             }
         } catch (e: Exception) {
             _errorMessage.value = "Invalid CSV format."

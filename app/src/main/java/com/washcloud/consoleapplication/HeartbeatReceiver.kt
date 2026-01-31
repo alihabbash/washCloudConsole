@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import com.washcloud.consoleapplication.di.DatabaseModule
+import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
@@ -41,14 +42,16 @@ class HeartbeatReceiver : BroadcastReceiver() {
     }
 
 
+    @Inject
+    lateinit var boxDao: BoxDao
+
     private fun sendHeartbeat(context: Context) {
         try {
-            val boxDao = DatabaseModule.provideConsoleDatabase(context.applicationContext).getBoxDao()
 
             scope.launch {
                 try {
                     val boxesDto = boxDao.getAllBoxes()
-                    val boxes = boxesDto.map { mapBoxDtoToHeartbeatBox(it) }
+            val boxes = boxesDto.map { mapBoxDtoToHeartbeatBox(it) }
 
                     val response = sendHeartbeatUseCase(
                         SendHeartbeatUseCase.Params(
