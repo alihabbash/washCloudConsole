@@ -72,7 +72,54 @@ class PrefsManager constructor(
     override suspend fun clearKey(key: String) {
         prefsEditor.remove(key)
     }
+
+
+
+
     companion object {
+
+
+
+        // ===============================
+// ✅ QR Replay Protection (STATIC)
+// ===============================
+
+
+        /**
+         * Check if QR signature was already scanned
+         */
+        fun isQrAlreadyScanned(context: Context, signature: String): Boolean {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            val set = prefs.getStringSet(SCANNED_QR_SIGNATURES, emptySet())
+            return set?.contains(signature) == true
+        }
+
+        /**
+         * Save scanned QR signature
+         */
+        fun saveScannedQr(context: Context, signature: String) {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            val currentSet = prefs
+                .getStringSet(SCANNED_QR_SIGNATURES, emptySet())
+                ?.toMutableSet() ?: mutableSetOf()
+
+            currentSet.add(signature)
+
+            prefs.edit()
+                .putStringSet(SCANNED_QR_SIGNATURES, currentSet)
+                .apply()
+        }
+
+        /**
+         * Optional: clear all scanned QR signatures
+         */
+        fun clearScannedQrs(context: Context) {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            prefs.edit()
+                .remove(SCANNED_QR_SIGNATURES)
+                .apply()
+        }
+
         fun getApiKey(context: Context): String {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getString(API_KEY_KEY, "") ?: ""
@@ -99,6 +146,9 @@ class PrefsManager constructor(
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             sharedPreferences.edit().putInt(KEY_TOTAL_BAGS_COUNT, value).apply()
         }
+
+
+
     }
 
 }

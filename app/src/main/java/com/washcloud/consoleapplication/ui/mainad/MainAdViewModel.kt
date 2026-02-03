@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
 import android.webkit.URLUtil
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -50,6 +51,9 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.washcloud.consoleapplication.remote.model.offline.ActionType
+import com.washcloud.consoleapplication.remote.model.offline.QrActionPayload
+import com.washcloud.consoleapplication.utils.SignatureVerifier
 
 
 object RetrofitClient {
@@ -143,6 +147,12 @@ class MainAdViewModel @Inject constructor(
     private val boxDao: BoxDao,
     application: Application
 ) : AndroidViewModel(application)  {
+
+    private val moshi: Moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+
+    private val qrAdapter = moshi.adapter(QrActionPayload::class.java)
 
     private  val context: Context = getApplication<Application>().applicationContext
     private val apiService: ApiService = RetrofitClient.getApiService(context)
@@ -432,6 +442,7 @@ class MainAdViewModel @Inject constructor(
         if (!URLUtil.isValidUrl(barcode)) {
             _error.value = "Invalid URL"
             FileLogger.log(context, "handleBarcode", "Invalid URL: $barcode")
+            handleUrlOrQrJsonBarcode(barcode, context)
             return
         }
 
@@ -447,6 +458,169 @@ class MainAdViewModel @Inject constructor(
             executeLockerBarcodeAction(barcode, context)
         }
     }
+
+
+    /**
+     *
+     * Expected QR JSON format example:
+     *
+     * {
+     *   "actionType": "OPEN_BOX",
+     *   "wayBillNo": "WB123456789",
+     *   "doorNo": "05",
+     *   "type": 1,
+     *   "issuedAt": 1712345600,
+     *   "expiresAt": 1712345660,
+     *   "nonce": "A7X9Q",
+     *   "signature": "9f3a1c88b7e2d4a5c9b1a77e"
+     * }
+     */
+
+    private fun handleUrlOrQrJsonBarcode(barcode: String, context: Context) {
+
+
+        try {
+            val qrPayload = qrAdapter.fromJson(barcode)
+
+            if (qrPayload == null) {
+                _error.value = "Invalid QR payload"
+                FileLogger.log(context, "handleUrlOrQrJsonBarcode", "QR JSON parsed as null")
+                return
+            }
+
+            FileLogger.log(
+                context,
+                "handleUrlOrQrJsonBarcode",
+                "QR JSON parsed successfully: $qrPayload"
+            )
+
+            // ===============================
+            // ✅ STEP 2: validate signature
+            // ===============================
+            val verifier = SignatureVerifier()
+
+            val isSignatureValid = verifier.isSignatureValid(
+                receivedSignature = qrPayload.signature,
+                apiKey = PrefsManager.getApiKey(context),
+                terminalSn = PrefsManager.getTerminalSN(context)
+            )
+
+            if (!isSignatureValid) {
+                _error.value = "Invalid signature"
+                FileLogger.log(context, "handleUrlOrQrJsonBarcode", "Signature validation failed")
+                return
+            }
+
+            // ===============================
+            // ✅ STEP 3: check expiration
+            // ===============================
+            val isNotExpired = verifier.isNotExpired(qrPayload.expiresAt)
+
+            if (!isNotExpired) {
+                _error.value = "QR code expired"
+                FileLogger.log(context, "handleUrlOrQrJsonBarcode", "QR expired")
+                return
+            }
+
+
+            if (PrefsManager.isQrAlreadyScanned(context, qrPayload.signature)) {
+                Toast.makeText(context, "QR already scanned", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            PrefsManager.saveScannedQr(context,qrPayload.signature)
+
+            // ===============================
+            // ✅ STEP 4: execute action (SWITCH ONLY)
+            // ===============================
+            when (qrPayload.actionType) {
+
+                ActionType.OPEN_BOX -> {
+                    FileLogger.log(
+                        context,
+                        "handleUrlOrQrJsonBarcode",
+                        "Opening box door as per QR code request");
+                    sendCommand(qrPayload.doorNo ?: "0");
+
+                    if (qrPayload.operationType == "PickUp") {
+                        updateBoxStats(
+                            qrPayload.doorNo!!.toLong(),
+                            BoxState.AVAILABLE,
+                            "-1",
+                            BoxType.BOX.name.uppercase(Locale.ENGLISH)
+                        )
+                    } else {
+                        insertTransaction(ApiData(
+                            operationType = qrPayload.operationType,
+                            doorNo = qrPayload.doorNo ?: "",
+                            terminalSn = PrefsManager.getTerminalSN(context),
+                            wayBillNo = qrPayload.wayBillNo,
+                            dropOffUrl = "",
+                            type = BoxType.BOX.name,
+                            boxes = emptyList()
+                        ) )
+                    }
+                }
+
+                ActionType.OPEN_CONVEYOR -> {
+                    FileLogger.log(
+                        context,
+                        "handleUrlOrQrJsonBarcode",
+                        "Opening conveyor door as per QR code request");
+                    openConveyorDoor();
+                    updateBoxStats(
+                        qrPayload.doorNo!!.toLong(),
+                        BoxState.AVAILABLE,
+                        "-1",
+                        BoxType.CONVEYOR.name.uppercase(Locale.ENGLISH)
+                    )
+
+                }
+
+                ActionType.CLOSE_CONVEYOR -> {
+                    closeConveyorDoor();
+                    FileLogger.log(
+                        context,
+                        "handleUrlOrQrJsonBarcode",
+                        "Closing conveyor door as per QR code request");
+                }
+
+                ActionType.MOVE_CONVEYOR -> {
+                    FileLogger.log(
+                        context,
+                        "handleUrlOrQrJsonBarcode",
+                        "Moving conveyor to doorNo: ${qrPayload.doorNo ?: "0"}"
+                    );
+                    openConveyor(qrPayload.doorNo ?: "0");
+                }
+
+                ActionType.REBOOT_DEVICE -> {
+
+                    FileLogger.log(
+                        context,
+                        "handleUrlOrQrJsonBarcode",
+                        "Rebooting device as per QR code request");
+                    try {
+                        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
+                        process.waitFor()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+        } catch (e: Exception) {
+            _error.value = "Invalid barcode format"
+            FileLogger.log(
+                context,
+                "handleUrlOrQrJsonBarcode",
+                "Barcode is neither URL nor valid QR JSON: ${e.message}"
+            )
+        }
+    }
+
+
+
 
     private suspend fun executeExternalDriversCheckLogin(
         barcode: String,
