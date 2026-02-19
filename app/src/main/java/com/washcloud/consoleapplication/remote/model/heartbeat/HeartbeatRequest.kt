@@ -15,6 +15,9 @@ data class HeartbeatRequest(
         @field:Json(name = "occupied") val occupied: String,
         @field:Json(name = "size") val size: Int,
         @field:Json(name = "open") val open: String,
-        @field:Json(name = "type") val type: Int
+        @field:Json(name = "type") val type: Int,
+        @field:Json(name = "date") val date: Long,
+        @field:Json(name = "orderID") val orderID: Long
+
     )
 }

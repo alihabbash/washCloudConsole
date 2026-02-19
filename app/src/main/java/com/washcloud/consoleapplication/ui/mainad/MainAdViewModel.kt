@@ -524,6 +524,7 @@ class MainAdViewModel @Inject constructor(
 
 
             if (PrefsManager.isQrAlreadyScanned(context, qrPayload.signature)) {
+                //TODO show Dialog only once
                 Toast.makeText(context, "QR already scanned", Toast.LENGTH_SHORT).show()
                 return
             }
@@ -562,18 +563,13 @@ class MainAdViewModel @Inject constructor(
                     }
                 }
 
-                ActionType.OPEN_CONVEYOR -> {
+                ActionType.OPEN_CONVEYOR_DOOR -> {
                     FileLogger.log(
                         context,
                         "handleUrlOrQrJsonBarcode",
                         "Opening conveyor door as per QR code request");
                     openConveyorDoor();
-                    updateBoxStats(
-                        qrPayload.doorNo!!.toLong(),
-                        BoxState.AVAILABLE,
-                        "-1",
-                        BoxType.CONVEYOR.name.uppercase(Locale.ENGLISH)
-                    )
+
 
                 }
 
@@ -592,6 +588,13 @@ class MainAdViewModel @Inject constructor(
                         "Moving conveyor to doorNo: ${qrPayload.doorNo ?: "0"}"
                     );
                     openConveyor(qrPayload.doorNo ?: "0");
+
+                    updateBoxStats(
+                        qrPayload.doorNo!!.toLong(),
+                        BoxState.AVAILABLE,
+                        "-1",
+                        BoxType.CONVEYOR.name.uppercase(Locale.ENGLISH)
+                    )
                 }
 
                 ActionType.REBOOT_DEVICE -> {
