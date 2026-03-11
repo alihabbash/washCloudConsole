@@ -46,7 +46,8 @@ import java.util.Locale
 fun PCSettingsScreen(
     screenWidth: Dp,
     screenHeight: Dp,
-    showAd2: () -> Unit
+    showAd2: () -> Unit,
+    onBack: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -385,7 +386,7 @@ fun PCSettingsScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, showAd2)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
         }
     }
 

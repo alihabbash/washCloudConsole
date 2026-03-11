@@ -49,7 +49,8 @@ fun UpdatePhoneNumberScreen(
     screenWidth: Dp,
     screenHeight: Dp,
     onSave: () -> Unit,
-    showAd2: () -> Unit
+    showAd2: () -> Unit,
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: UpdatePhoneNumberViewModel = hiltViewModel()
@@ -219,7 +220,7 @@ fun UpdatePhoneNumberScreen(
                     }
                 }
             }
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel,showAd2, showAd2)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel,showAd2, onBack)
         }
     }
 }
@@ -232,7 +233,8 @@ fun PreviewChangePasswordScreen() {
             screenWidth = 360.dp,
             screenHeight = 640.dp,
             onSave = {},
-            showAd2 = {}
+            showAd2 = {},
+            onBack = {}
         )
     }
 }

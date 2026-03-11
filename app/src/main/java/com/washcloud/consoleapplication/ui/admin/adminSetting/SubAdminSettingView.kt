@@ -42,7 +42,8 @@ fun SubAdminSettingsScreen(
     screenHeight: Dp,
     onChangePassword: () -> Unit,
     onHelpPhoneNumber: () -> Unit,
-    showAd2: () -> Unit
+    showAd2: () -> Unit,
+    onBack: () -> Unit
 ) {
 
     val timerViewModel: TimerViewModel = hiltViewModel()
@@ -100,8 +101,8 @@ fun SubAdminSettingsScreen(
                  screenHeight = screenHeight,
              )
          }
-
-          BottomNavigationWithBackAndTimer(screenWidth, screenHeight , isAdmin = false, timerViewModel ,showAd2, showAd2)
+         Spacer(modifier = Modifier.weight(1f))
+          BottomNavigationWithBackAndTimer(screenWidth, screenHeight , isAdmin = false, timerViewModel ,showAd2, onBack)
       }
     }
 }
@@ -166,7 +167,8 @@ fun PreviewSubAdminSettingsScreen() {
             screenHeight = 640.dp,
             onChangePassword = {},
             onHelpPhoneNumber = {},
-            showAd2 = {}
+            showAd2 = {},
+            onBack = {}
         )
     }
 }

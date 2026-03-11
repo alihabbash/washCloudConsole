@@ -311,6 +311,12 @@ class MainActivity : ComponentActivity() {
         mainViewModel: MainViewModel,
         phoneNumber: String
     ) {
+        val onTimeout: () -> Unit = {
+            val intent = Intent(this@MainActivity, MainAdActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
         when (selectedView) {
             is SelectedView.Ad2Form -> {
                 LaunchedEffect(Unit) {
@@ -380,8 +386,9 @@ class MainActivity : ComponentActivity() {
                 { mainViewModel.resetStack() }
             )
             is SelectedView.AdminLogInView -> AdminLogInView(
-                { mainViewModel.resetStack() },
-                { mainViewModel.addToStack(SelectedView.AdminMenuView) },
+                showAd2 = onTimeout,
+                showAdminScreens = { mainViewModel.addToStack(SelectedView.AdminMenuView) },
+                onBack = { mainViewModel.popStack() },
                 screenWidth = screenWidth,
                 screenHeight = screenHeight
             )
@@ -392,33 +399,33 @@ class MainActivity : ComponentActivity() {
                 showSetting = { mainViewModel.addToStack(SelectedView.PCSettingsScreen) },
                 showAdminSetting = { mainViewModel.addToStack(SelectedView.SubAdminSettingsScreen) },
                 showAdsSetting = { mainViewModel.addToStack(SelectedView.AdsManagementScreen) },
-                showLockerManagement = { mainViewModel.addToStack(SelectedView.AdminLockerScreen) }) {
-                mainViewModel.addToStack(SelectedView.ExitAdminView)
-            }
+                showLockerManagement = { mainViewModel.addToStack(SelectedView.AdminLockerScreen) },
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.addToStack(SelectedView.ExitAdminView) }
+            )
 
             is SelectedView.PCSettingsScreen -> PCSettingsScreen(
                 screenWidth = screenWidth,
-                screenHeight = screenHeight) {
-
-                mainViewModel.popStack()
-            }
+                screenHeight = screenHeight,
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
+            )
 
             is SelectedView.SubAdminSettingsScreen -> SubAdminSettingsScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onChangePassword = { mainViewModel.addToStack(SelectedView.ChangePasswordScreen) },
                 onHelpPhoneNumber = {  mainViewModel.addToStack(SelectedView.UpdatePhoneNumberScreen) },
-                showAd2 = {
-
-                    mainViewModel.popStack()
-                }
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
             )
 
             is SelectedView.ChangePasswordScreen -> ChangePasswordScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onSave = {  },
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
             )
 
             is SelectedView.UpdatePhoneNumberScreen -> UpdatePhoneNumberScreen(
@@ -427,13 +434,14 @@ class MainActivity : ComponentActivity() {
                 onSave = {
                     loadPhoneNumber()
                 },
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
             )
 
             is SelectedView.AdsManagementScreen -> AdsManagementScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                showAd2 = { mainViewModel.popStack() },
+                showAd2 = onTimeout,
                 onBack = { mainViewModel.popStack() }
             )
 
@@ -444,7 +452,7 @@ class MainActivity : ComponentActivity() {
                     mainViewModel.addToStack(SelectedView.AddLockerScreen)
                 },
                 onBack = { mainViewModel.popStack()},
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout
             )
 
             is  SelectedView.ExitAdminView ->
@@ -474,13 +482,14 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     logoutAdmin = { mainViewModel.resetStack() },
-                    showAd2 = {  mainViewModel.popStack() }
+                    showAd2 = onTimeout,
+                    onBack = { mainViewModel.popStack() }
                 )
             is SelectedView.AddLockerScreen -> AddLockerScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onBack = { mainViewModel.popStack() },
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout
             )
 
 
