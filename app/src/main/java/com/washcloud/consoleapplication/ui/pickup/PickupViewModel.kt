@@ -144,8 +144,8 @@ class PickupViewModel @Inject constructor(
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId}")
         val transaction = _transactions.value.firstOrNull { tx ->
-            tx.orderSerial == orderSerial
-                    || tx.orderSerial.startsWith("$orderSerial-")
+            tx.orderSerial.equals(orderSerial, ignoreCase = true)
+                    || tx.orderSerial.startsWith("$orderSerial-", ignoreCase = true)
         }
 
         if (transaction == null) {
@@ -187,7 +187,7 @@ class PickupViewModel @Inject constructor(
                 _isSuccessed.value = true
                 sendCommand(stationId.toString(), "0$doorNo")
                 FileLogger.log(context, "PickupViewModel", "Staff Pickup successful: $response")
-                deleteTransactionsByOrderSerial(_transactions.value.first { it.orderSerial == orderSerial })
+                deleteTransactionsByOrderSerial(transaction)
             } catch (e: Exception) {
                 _error.value = e.message
                 FileLogger.log(context, "PickupViewModel", "Error in Staff Pickup: ${e.message}")

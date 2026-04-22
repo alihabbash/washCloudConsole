@@ -240,9 +240,9 @@ class MainAdActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(scannerReceiver)
-        unregisterReceiver(dataReceiver)
-        unregisterReceiver(converyReceiver)
+        unregisterReceiverSafe(scannerReceiver)
+        unregisterReceiverSafe(dataReceiver)
+        unregisterReceiverSafe(converyReceiver)
         FileLogger.log(this, "MainAdActivity onDestroy", "Receivers unregistered")
     }
 
