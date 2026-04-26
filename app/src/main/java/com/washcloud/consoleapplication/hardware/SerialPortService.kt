@@ -148,8 +148,11 @@ class SerialPortService : Service() {
         val data: ByteArray = hexStringToByteArray(prefix)
         val crc: Int = compute(data)
         val command = prefix + toHex(crc)
-
-        serialHelperConveyor.sendHex("0106620307086584")  /// set motor speed 1800
+        serialHelperConveyor.sendHex("01066200000157B2")
+        GlobalScope.launch {
+            delay(50)
+            serialHelperConveyor.sendHex("0106620307086584")  /// set motor speed 1800
+        }
         GlobalScope.launch {
             delay(150)
             FileLogger.log(
