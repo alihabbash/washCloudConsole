@@ -233,7 +233,7 @@ class MainActivity : ComponentActivity() {
         return metrics.widthPixels
     }
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-
+ 
         FileLogger.log(this, "MainActivity", "keyCode $keyCode")
         return if (keyCode == KeyEvent.KEYCODE_ENTER) {
             Log.e("MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
@@ -241,18 +241,26 @@ class MainActivity : ComponentActivity() {
             val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
             FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
             Log.e("MainActivity", "Barcode scanned: $barcode")
-            if (barcode.startsWith("https")) {
-               FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
-                barcodeData.setLength(0)
-                Log.e("MainActivity", "Valid barcode: $barcode")
-
-                val intent = Intent(this, MainAdActivity::class.java).apply {
-                    putExtra("barcode", barcode)
+            if (barcode.isNotEmpty()) {
+                // Broadcast to all listeners (Pickup, DropOff, etc.)
+                val broadcastIntent = Intent("com.washcloud.scanner_data").apply {
+                    putExtra("scannerData", barcode)
                 }
-                startActivity(intent)
-                Log.e("MainActivity", "finish")
-                finish()
+                sendBroadcast(broadcastIntent)
+                FileLogger.log(this, "MainActivity", "Broadcasted scanner data: $barcode")
+
+                if (barcode.startsWith("https")) {
+                    FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
+                    Log.e("MainActivity", "Valid barcode: $barcode")
+                    val intent = Intent(this, MainAdActivity::class.java).apply {
+                        putExtra("barcode", barcode)
+                    }
+                    startActivity(intent)
+                    Log.e("MainActivity", "finish")
+                    finish()
+                }
             }
+            barcodeData.setLength(0)
             true
         } else {
             barcodeData.append(event.unicodeChar.toChar())
