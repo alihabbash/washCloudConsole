@@ -123,9 +123,9 @@ class PickupViewModel @Inject constructor(
 
     fun printTransaction(transaction: BoxDto) {
         viewModelScope.launch {
-            if (customPrinterHelper.OpenDevice()) {
+            if (customPrinterHelper.openDevice()) {
                 FileLogger.log(context, "PickupViewModel", "Printing transaction: $transaction")
-                customPrinterHelper.PrintOrderQr(transaction.orderSerial, PrefsManager.getTerminalSN(context))
+                customPrinterHelper.printOrderQr(transaction.orderSerial, PrefsManager.getTerminalSN(context))
                 //customPrinterHelper.closeDevice()
             } else {
               FileLogger.log(context, "PickupViewModel", "Error opening print device")
