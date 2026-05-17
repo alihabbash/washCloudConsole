@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -72,6 +73,7 @@ class PickupViewModel @Inject constructor(
             addAction("com.washcloud.scanner_data")
         }
         broadcastReceiverRepository.registerReceiver(filter)
+        FileLogger.log(context, "PickupViewModel", "Scanner receiver registered. Current transactions: ${_transactions.value.map { it.orderSerial }}")
 
         viewModelScope.launch {
             broadcastReceiverRepository.broadcastFlow.collectLatest { intent ->
@@ -85,7 +87,13 @@ class PickupViewModel @Inject constructor(
 
                         FileLogger.log(context, "pickupViewModel", "Received scanner data: $scannerData")
 
-                        staffPickup(scannerData?.trim() ?: "");
+                        val extractedData = scannerData?.trim() ?: ""
+                        if (extractedData.startsWith("http://", ignoreCase = true) || extractedData.startsWith("https://", ignoreCase = true)) {
+                            FileLogger.log(context, "PickupViewModel", "Ignoring URL scanned in Staff Pickup mode: $extractedData")
+                            return@collectLatest
+                        }
+                        FileLogger.log(context, "PickupViewModel", "Passing to staffPickup: '$extractedData'")
+                        staffPickup(extractedData)
 
                     }
                 }
@@ -115,9 +123,9 @@ class PickupViewModel @Inject constructor(
 
     fun printTransaction(transaction: BoxDto) {
         viewModelScope.launch {
-            if (customPrinterHelper.OpenDevice()) {
+            if (customPrinterHelper.openDevice()) {
                 FileLogger.log(context, "PickupViewModel", "Printing transaction: $transaction")
-                customPrinterHelper.PrintOrderQr(transaction.orderSerial, PrefsManager.getTerminalSN(context))
+                customPrinterHelper.printOrderQr(transaction.orderSerial, PrefsManager.getTerminalSN(context))
                 //customPrinterHelper.closeDevice()
             } else {
               FileLogger.log(context, "PickupViewModel", "Error opening print device")
@@ -141,6 +149,7 @@ class PickupViewModel @Inject constructor(
         println("transactions: ${_transactions.value}")
         FileLogger.log(context, "PickupViewModel", "confirm Staff Pickup button clicked: $orderSerial")
         FileLogger.log(context, "PickupViewModel", "transactions: ${_transactions.value}")
+        FileLogger.log(context, "PickupViewModel", "Matching '$orderSerial' against: ${_transactions.value.map { "'${it.orderSerial}'" }}")
         //println("doorNo: ${_transactions.value.first { it.orderSerial == orderSerial }.boxId}")
         FileLogger.log(context, "PickupViewModel", "doorNo: ${_transactions.value.firstOrNull { it.orderSerial == orderSerial }?.boxId}")
         val transaction = _transactions.value.firstOrNull { tx ->
