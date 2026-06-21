@@ -341,9 +341,9 @@ class MainAdActivity : ComponentActivity() {
     private fun unregisterReceiverSafe(receiver: BroadcastReceiver) {
         try {
             unregisterReceiver(receiver)
-        } catch (e: IllegalArgumentException) {
-            // Receiver was not registered
-            FileLogger.log(this,"MainAdActivity", "Receiver not registered: ${receiver.javaClass.simpleName}")
+        } catch (e: Exception) {
+            // Receiver was not registered or another framework exception occurred
+            FileLogger.log(this,"MainAdActivity", "Receiver not registered: ${receiver.javaClass.simpleName} - ${e.message}")
         }
     }
 

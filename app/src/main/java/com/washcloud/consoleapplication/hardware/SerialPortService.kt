@@ -291,19 +291,18 @@ class SerialPortService : Service() {
     private fun handleConveyorDoorData(comBean: ComBean) {
         val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
         FileLogger.log(applicationContext, "SerialPortService", "Conveyor door data: $dataReceive")
-        if(dataReceive == "FEFA8E070105000000010175B6" || dataReceive == "FEFA8E030205012F0B") {
+        
+        // Note: We use startsWith() instead of strict == to account for hardware protocol quirks:
+        // 1. The hardware appends trailing zeros to the open response: FEFA8E070105000000010175B6000000
+        // 2. The hardware swaps the CRC bytes in the close response: returns 0B2F instead of 2F0B
+        if(dataReceive.startsWith("FEFA8E070105000000010175B6") || dataReceive.startsWith("FEFA8E03020501")) {
             val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
-            when (dataReceive) {
-                "FEFA8E070105000000010175B6" -> {
-                    FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: open")
-                    broadcastIntent.putExtra("status", "open")
-
-                }
-
-                "FEFA8E030205012F0B" -> {
-                    FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: close")
-                    broadcastIntent.putExtra("status", "close")
-                }
+            if (dataReceive.startsWith("FEFA8E070105000000010175B6")) {
+                FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: open")
+                broadcastIntent.putExtra("status", "open")
+            } else if (dataReceive.startsWith("FEFA8E03020501")) {
+                FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: close")
+                broadcastIntent.putExtra("status", "close")
             }
             sendBroadcast(broadcastIntent)
         }
@@ -324,12 +323,14 @@ class SerialPortService : Service() {
                 sendBroadcast(broadcastIntent)
             }
         }
-        if(dataReceive.startsWith("01066002001037")) {
+        // Note: Using startsWith directly for the close position (01066002002037D2) instead of nesting inside an 
+        // outer startsWith("01066002001037") which evaluates a different command prefix.
+        if(dataReceive.startsWith("01066002002037")) {
             val broadcastIntent = Intent("com.washcloud.conveyor_move")
-            when (dataReceive) {
-                "01066002002037D2" -> broadcastIntent.putExtra("status", "close")
-                    .also { position = 0 }
-            }
+            // This hex response indicates the conveyor has successfully returned to its initial (zero) position.
+            // Therefore, we broadcast the "close" status to update the UI and reset our internal position tracker.
+            broadcastIntent.putExtra("status", "close")
+            position = 0
             sendBroadcast(broadcastIntent)
         }
 
