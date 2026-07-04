@@ -6,11 +6,13 @@ import javax.crypto.spec.SecretKeySpec
 import android.util.Base64
 
 
+import com.washcloud.consoleapplication.remote.model.offline.QrActionPayload
+
 /**
  * QR / Backend Signature Verifier
  *
  * Backend signs using:
- *   payload = "apiKey=XXX&terminalSn=YYY"
+ *   payload = "apiKey=${apiKey}&terminalSn=${terminalSn}&nonce=${payload.nonce}&expiresAt=${payload.expiresAt}&actionType=${payload.actionType}&doorNo=${payload.doorNo}"
  *   signature = HMAC_SHA256(payload, apiKey)
  *
  * Device verifies using the same logic.
@@ -21,8 +23,8 @@ class SignatureVerifier {
     /**
      * Build payload exactly like backend
      */
-    private fun buildPayload(apiKey: String, terminalSn: String): String {
-        return "apiKey=$apiKey&terminalSn=$terminalSn"
+    private fun buildPayload(apiKey: String, terminalSn: String, payload: QrActionPayload): String {
+        return "apiKey=$apiKey&terminalSn=$terminalSn&nonce=${payload.nonce}&expiresAt=${payload.expiresAt}&actionType=${payload.actionType.name}&doorNo=${payload.doorNo}"
     }
 
     /**
@@ -43,15 +45,15 @@ class SignatureVerifier {
      * Verify backend signature
      */
     fun isSignatureValid(
-        receivedSignature: String,
+        payloadObj: QrActionPayload,
         apiKey: String,
         terminalSn: String
     ): Boolean {
 
-        val payload = buildPayload(apiKey, terminalSn)
-        val expectedSignature = computeHmacSha256(payload, apiKey)
+        val payloadString = buildPayload(apiKey, terminalSn, payloadObj)
+        val expectedSignature = computeHmacSha256(payloadString, apiKey)
 
-        return expectedSignature == receivedSignature
+        return expectedSignature == payloadObj.signature
     }
 
     /**
@@ -66,12 +68,11 @@ class SignatureVerifier {
      * FINAL validation
      */
     fun isQrValid(
-        receivedSignature: String,
+        payloadObj: QrActionPayload,
         apiKey: String,
-        terminalSn: String,
-        expiresAt: Long
+        terminalSn: String
     ): Boolean {
-        return isSignatureValid(receivedSignature, apiKey, terminalSn)
-                && isNotExpired(expiresAt)
+        return isSignatureValid(payloadObj, apiKey, terminalSn)
+                && isNotExpired(payloadObj.expiresAt)
     }
 }

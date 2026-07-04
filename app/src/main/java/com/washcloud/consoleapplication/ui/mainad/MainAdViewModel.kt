@@ -15,6 +15,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -54,6 +59,7 @@ import androidx.core.net.toUri
 import com.washcloud.consoleapplication.remote.model.offline.ActionType
 import com.washcloud.consoleapplication.remote.model.offline.QrActionPayload
 import com.washcloud.consoleapplication.utils.SignatureVerifier
+import com.washcloud.consoleapplication.workmanager.OfflineSyncWorker
 
 
 object RetrofitClient {
@@ -500,7 +506,7 @@ class MainAdViewModel @Inject constructor(
             val verifier = SignatureVerifier()
 
             val isSignatureValid = verifier.isSignatureValid(
-                receivedSignature = qrPayload.signature,
+                payloadObj = qrPayload,
                 apiKey = PrefsManager.getApiKey(context),
                 terminalSn = PrefsManager.getTerminalSN(context)
             )
@@ -523,13 +529,13 @@ class MainAdViewModel @Inject constructor(
             }
 
 
-            if (PrefsManager.isQrAlreadyScanned(context, qrPayload.signature)) {
+            if (PrefsManager.isQrAlreadyScanned(context, qrPayload.nonce)) {
                 //TODO show Dialog only once
                 Toast.makeText(context, "QR already scanned", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            PrefsManager.saveScannedQr(context,qrPayload.signature)
+            PrefsManager.saveScannedQr(context, qrPayload.nonce)
 
             // ===============================
             // ✅ STEP 4: execute action (SWITCH ONLY)
@@ -543,7 +549,7 @@ class MainAdViewModel @Inject constructor(
                         "Opening box door as per QR code request");
                     sendCommand(qrPayload.doorNo ?: "0");
 
-                    if (qrPayload.operationType == "PickUp") {
+                    if (qrPayload.operationType.equals("PickUp", ignoreCase = true)) {
                         updateBoxStats(
                             qrPayload.doorNo!!.toLong(),
                             BoxState.AVAILABLE,
@@ -551,16 +557,16 @@ class MainAdViewModel @Inject constructor(
                             BoxType.BOX.name.uppercase(Locale.ENGLISH)
                         )
                     } else {
-                        insertTransaction(ApiData(
-                            operationType = qrPayload.operationType,
-                            doorNo = qrPayload.doorNo ?: "",
-                            terminalSn = PrefsManager.getTerminalSN(context),
-                            wayBillNo = qrPayload.wayBillNo,
-                            dropOffUrl = "",
-                            type = BoxType.BOX.name,
-                            boxes = emptyList()
-                        ) )
+                        updateBoxStats(
+                            qrPayload.doorNo!!.toLong(),
+                            BoxState.OCCUPIED,
+                            qrPayload.wayBillNo ?: "",
+                            BoxType.BOX.name.uppercase(Locale.ENGLISH)
+                        )
                     }
+                    
+                    // Enqueue background sync
+                    insertOfflineEmergencyTransaction(qrPayload, context)
                 }
 
                 ActionType.OPEN_CONVEYOR_DOOR -> {
@@ -675,53 +681,183 @@ class MainAdViewModel @Inject constructor(
         val fullUrl = "$barcode?apiKey=${PrefsManager.getApiKey(context)}"
         FileLogger.log(context, "MainAdViewModel handleBarcode", "Fetching data from $fullUrl")
 
-        val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
+        try {
+            val response: Response<ApiResponse> = apiService.fetchData(fullUrl)
 
-        if (response.isSuccessful) {
-            val body = response.body()
-            Log.d("MainAdViewModel", "Response: $body")
-            FileLogger.log(context, "MainAdViewModel handleBarcode", "Response: $body")
+            if (response.isSuccessful) {
+                val body = response.body()
+                Log.d("MainAdViewModel", "Response: $body")
+                FileLogger.log(context, "MainAdViewModel handleBarcode", "Response: $body")
 
-            body?.let {
-                _apiResponse.value = it
+                body?.let {
+                    _apiResponse.value = it
 
-                Log.i("boxes number is", "${it.data?.firstOrNull()?.boxes?.size}")
-                _showDialog.value = it.data?.firstOrNull()
+                    Log.i("boxes number is", "${it.data?.firstOrNull()?.boxes?.size}")
+                    _showDialog.value = it.data?.firstOrNull()
 
-                _isDoorOpen.value = true
-                val boxType = it.data?.firstOrNull()?.type?.uppercase(Locale.ENGLISH)
-                val doorNo = "0${it.data?.firstOrNull()?.doorNo}"
+                    _isDoorOpen.value = true
+                    val boxType = it.data?.firstOrNull()?.type?.uppercase(Locale.ENGLISH)
+                    val doorNo = "0${it.data?.firstOrNull()?.doorNo}"
 
-                //send customer pickup to server
-                if(it.data?.firstOrNull()?.boxes?.size == 1){
-                    FileLogger.log(context, "MainAdViewModel handleBarcode", "Single box detected, checking operation type");
-                    checkOperationType(hideDialog = false);
+                    //send customer pickup to server
+                    if(it.data?.firstOrNull()?.boxes?.size == 1){
+                        FileLogger.log(context, "MainAdViewModel handleBarcode", "Single box detected, checking operation type");
+                        checkOperationType(hideDialog = false);
+                    }
+
+
+                    if (boxType == BoxType.CONVEYOR.name) {
+                        FileLogger.log(
+                            context,
+                            "MainAdViewModel handleBarcode",
+                            "openConveyor: $doorNo",
+                        )
+                        openConveyor(doorNo)
+                    } else {
+                        FileLogger.log(
+                            context,
+                            "MainAdViewModel handleBarcode",
+                            "sendCommand: $doorNo",
+                        )
+                        sendCommand(doorNo)
+                    }
                 }
-
-
-                if (boxType == BoxType.CONVEYOR.name) {
-                    FileLogger.log(
-                        context,
-                        "MainAdViewModel handleBarcode",
-                        "openConveyor: $doorNo",
-                    )
-                    openConveyor(doorNo)
-                } else {
-                    FileLogger.log(
-                        context,
-                        "MainAdViewModel handleBarcode",
-                        "sendCommand: $doorNo",
-                    )
-                    sendCommand(doorNo)
-                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                _error.value = "Error fetching data from $fullUrl: $errorBody"
+                FileLogger.log(
+                    context,
+                    "MainAdViewModel handleBarcode",
+                    "Error fetching data from $fullUrl: $errorBody"
+                )
             }
-        } else {
-            val errorBody = response.errorBody()?.string()
-            _error.value = "Error fetching data from $fullUrl: $errorBody"
+        } catch (e: Exception) {
             FileLogger.log(
                 context,
                 "MainAdViewModel handleBarcode",
-                "Error fetching data from $fullUrl: $errorBody"
+                "Network exception: ${e.message}. Triggering Primary Offline Mode."
+            )
+            handlePrimaryOfflineMode(barcode, context)
+        }
+    }
+
+    private suspend fun handlePrimaryOfflineMode(barcode: String, context: Context) {
+        try {
+            val uri = barcode.toUri()
+            val pathSegments = uri.pathSegments
+            if (pathSegments.size >= 2) {
+                // Extract serial from standard URL format: /api/LockerIntegration/Verification/{serial}/{terminalSn}
+                val serial = pathSegments[pathSegments.size - 2]
+                FileLogger.log(context, "handlePrimaryOfflineMode", "Extracted serial: $serial")
+                
+                val boxes = boxDao.getBoxesByOrderSerial(serial)
+                
+                if (boxes.isNotEmpty()) {
+                    FileLogger.log(context, "handlePrimaryOfflineMode", "Found ${boxes.size} boxes for serial: $serial")
+                    for (box in boxes) {
+                        val doorNo = box.boxId.toString().padStart(2, '0')
+                        val boxTypeStr = box.boxType.name.uppercase(Locale.ENGLISH)
+                        
+                        if (boxTypeStr == BoxType.CONVEYOR.name) {
+                            FileLogger.log(context, "handlePrimaryOfflineMode", "openConveyor: $doorNo")
+                            openConveyor(doorNo)
+                        } else {
+                            FileLogger.log(context, "handlePrimaryOfflineMode", "sendCommand: $doorNo")
+                            sendCommand(doorNo)
+                        }
+                        
+                        // Update box state to AVAILABLE and clear serial
+                        updateBoxStats(
+                            box.boxId,
+                            BoxState.AVAILABLE,
+                            "", 
+                            boxTypeStr
+                        )
+                        
+                        // Queue transaction for background sync
+                        insertOfflinePickupTransaction(box)
+                    }
+                    _error.value = "Offline Pickup Successful"
+                } else {
+                    _error.value = "Order not found in this terminal"
+                    FileLogger.log(context, "handlePrimaryOfflineMode", "No boxes found for serial: $serial")
+                }
+            } else {
+                _error.value = "Invalid QR Format for Offline Pickup"
+                FileLogger.log(context, "handlePrimaryOfflineMode", "Could not extract serial from path segments")
+            }
+        } catch (e: Exception) {
+            _error.value = "Offline Mode Error: ${e.message}"
+            FileLogger.log(context, "handlePrimaryOfflineMode", "Error: ${e.message}")
+        }
+    }
+
+    private fun insertOfflinePickupTransaction(box: BoxDto) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val transaction = TransactionDto(
+                orderSerial = box.orderSerial,
+                orderId = box.orderId,
+                boxId = box.boxId,
+                trnasDate = Date(),
+                branchId = box.branchId,
+                trnasType = TransactionType.PICKUP,
+                boxSize = box.boxSize
+            )
+            transactionDao.insertTransaction(transaction)
+            FileLogger.log(context, "insertOfflinePickupTransaction", "Inserted offline pickup sync transaction: $transaction")
+            
+            // Queue sync worker
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+                
+            val syncRequest = OneTimeWorkRequestBuilder<OfflineSyncWorker>()
+                .setConstraints(constraints)
+                .build()
+                
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "OfflineSyncWork",
+                ExistingWorkPolicy.REPLACE,
+                syncRequest
+            )
+        }
+    }
+
+    private fun insertOfflineEmergencyTransaction(qrPayload: QrActionPayload, context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val transType = if (qrPayload.operationType.equals("PickUp", ignoreCase = true)) {
+                TransactionType.PICKUP
+            } else {
+                TransactionType.DROP_OFF
+            }
+
+            val boxSize = BoxSizeType.MEDIUM // default since it's missing in emergency JSON
+            
+            val transaction = TransactionDto(
+                orderSerial = qrPayload.wayBillNo ?: "",
+                orderId = 0L,
+                boxId = qrPayload.doorNo?.toLongOrNull() ?: 0L,
+                trnasDate = Date(),
+                branchId = 0L,
+                trnasType = transType,
+                boxSize = boxSize
+            )
+            transactionDao.insertTransaction(transaction)
+            FileLogger.log(context, "insertOfflineEmergencyTransaction", "Inserted offline emergency sync transaction: $transaction")
+            
+            // Queue sync worker
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+                
+            val syncRequest = OneTimeWorkRequestBuilder<OfflineSyncWorker>()
+                .setConstraints(constraints)
+                .build()
+                
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "OfflineSyncWork",
+                ExistingWorkPolicy.REPLACE,
+                syncRequest
             )
         }
     }

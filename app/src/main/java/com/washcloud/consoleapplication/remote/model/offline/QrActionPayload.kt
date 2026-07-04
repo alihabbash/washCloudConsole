@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class QrActionPayload(
     val actionType: ActionType,
-    val wayBillNo: String,
+    val wayBillNo: String? = null,
     val doorNo: String?,
     val operationType: String, // Pickup, DropOff
     val issuedAt: Long,

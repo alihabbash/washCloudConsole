@@ -25,7 +25,14 @@ import org.acra.ktx.initAcra
 import org.acra.sender.ReportSenderFactory
 
 @HiltAndroidApp
-class App : Application() {
+class App : Application(), Configuration.Provider {
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    override fun getWorkManagerConfiguration() =
+        Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
