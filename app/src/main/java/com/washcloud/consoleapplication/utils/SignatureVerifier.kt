@@ -24,7 +24,12 @@ class SignatureVerifier {
      * Build payload exactly like backend
      */
     private fun buildPayload(apiKey: String, terminalSn: String, payload: QrActionPayload): String {
-        return "apiKey=$apiKey&terminalSn=$terminalSn&nonce=${payload.nonce}&expiresAt=${payload.expiresAt}&actionType=${payload.actionType.name}&doorNo=${payload.doorNo}"
+        val basePayload = "apiKey=$apiKey&terminalSn=$terminalSn&nonce=${payload.nonce}&expiresAt=${payload.expiresAt}&actionType=${payload.actionType.name}"
+        return if (payload.doorNo != null) {
+            "$basePayload&doorNo=${payload.doorNo}"
+        } else {
+            basePayload
+        }
     }
 
     /**

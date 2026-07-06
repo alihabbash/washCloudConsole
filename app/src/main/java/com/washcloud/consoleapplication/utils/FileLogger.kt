@@ -21,6 +21,7 @@ object FileLogger {
 
     fun log(context: Context, tag: String, message: String) {
         val logMessage = "${dateFormat.format(Date())} $tag: $message\n"
+        Log.i("File Logger",logMessage)
         writeLogToFile(context, logMessage)
     }
 
