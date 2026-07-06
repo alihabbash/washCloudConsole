@@ -27,21 +27,30 @@ class PrintQR(context: Context?) {
             fntPrinterNormal.setJustification(PrinterFont.FONT_JUSTIFICATION_CENTER) //Center
             fntPrinterNormal.setInternationalCharSet(PrinterFont.FONT_CS_DEFAULT) //Default International Chars
             usbDeviceList = CustomAndroidAPI.EnumUsbDevices(context)
-            prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
+            if (!usbDeviceList.isNullOrEmpty()) {
+                prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
+            } else {
+                context?.let { FileLogger.log(it, "Init PrintQR", "No USB printer devices found.") }
+            }
         } catch (e: CustomException) {
             context?.let { FileLogger.log(it, "Init PrintQR", e.message.toString()) };
 
         }
     }
 
-    fun OpenDevice(): Boolean {
+    fun openDevice(): Boolean {
         if (prnDevice == null) {
             try {
                 //Open and connect it
                 context?.let { FileLogger.log(it, "PrintQR", "Device was opened successfully") }
                 context?.let { FileLogger.log(it, "PrintQR", "${usbDeviceList?.size}") }
-                prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
-                return true
+                if (!usbDeviceList.isNullOrEmpty()) {
+                    prnDevice = CustomAndroidAPI().getPrinterDriverUSB(usbDeviceList!![0], context)
+                    return true
+                } else {
+                    context?.let { FileLogger.log(it, "PrintQR", "Cannot open device: No USB printer devices found.") }
+                    return false
+                }
             } catch (e: CustomException) {
                 context?.let { FileLogger.log(it, "CustomException-PrintQR",  e.message.toString() + e.stackTrace.toString()) };
                 return false
@@ -54,8 +63,8 @@ class PrintQR(context: Context?) {
         return true
     }
 
-    fun PrintOrderQr(serialNumber: String?, consoleSN: String?) {
-        if (!OpenDevice()) return
+    fun printOrderQr(serialNumber: String?, consoleSN: String?) {
+        if (!openDevice()) return
         synchronized(lock) {
             try {
                 //Print Text (NORMAL)
@@ -63,12 +72,23 @@ class PrintQR(context: Context?) {
                 prnDevice?.printText("SN:", fntPrinterNormal)
                 prnDevice?.printTextLF(consoleSN, fntPrinterNormal)
                 prnDevice?.feed(3)
+                // Fallback: If native barcode fails or looks weird, uncomment this and comment out printBarcode below.
+                /*
                 prnDevice?.printImage(
                     BarcodeUtil.generateBarcode(
                         serialNumber,
                         400,
                         170
                     ), CustomPrinter.IMAGE_ALIGN_TO_LEFT, CustomPrinter.IMAGE_SCALE_TO_FIT, 0
+                )
+                */
+                prnDevice?.printBarcode(
+                    serialNumber ?: "",
+                    CustomPrinter.BARCODE_TYPE_CODE128,
+                    CustomPrinter.BARCODE_HRI_NONE, // brcHriType: Hide the text below the barcode
+                    CustomPrinter.BARCODE_ALIGN_TO_CENTER, // brcJustification: Center the barcode
+                    2, // brcWidth: Width multiplier (2 is standard)
+                    120 // brcHeight: Height in dots
                 )
                 prnDevice?.feed(3)
                 prnDevice?.printText("Order SO:", fntPrinterNormal)

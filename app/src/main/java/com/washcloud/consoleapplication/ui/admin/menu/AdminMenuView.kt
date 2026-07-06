@@ -47,6 +47,7 @@ fun AdminMenuView(
     showAdsSetting: () -> Unit,
     showLockerManagement: () -> Unit,
     showAd2: () -> Unit,
+    onBack: () -> Unit
 ) {
 
     val timerViewModel: TimerViewModel = hiltViewModel()
@@ -100,7 +101,7 @@ fun AdminMenuView(
 
         // Footer(screenWidth)
 
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = true, timerViewModel, showAd2, showAd2)
+        BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = true, timerViewModel, showAd2, onBack)
     }
 }
 

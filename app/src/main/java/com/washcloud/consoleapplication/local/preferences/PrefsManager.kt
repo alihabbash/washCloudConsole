@@ -147,8 +147,10 @@ class PrefsManager constructor(
             sharedPreferences.edit().putInt(KEY_TOTAL_BAGS_COUNT, value).apply()
         }
 
-
-
+        fun isV2ApiEnabled(context: Context): Boolean {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getBoolean(IS_V2_API_ENABLED_KEY, false)
+        }
     }
 
 }

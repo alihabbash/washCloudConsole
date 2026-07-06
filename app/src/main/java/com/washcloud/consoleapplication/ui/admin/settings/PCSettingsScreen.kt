@@ -46,7 +46,8 @@ import java.util.Locale
 fun PCSettingsScreen(
     screenWidth: Dp,
     screenHeight: Dp,
-    showAd2: () -> Unit
+    showAd2: () -> Unit,
+    onBack: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -351,7 +352,59 @@ fun PCSettingsScreen(
                     }
                 }
 
+                item {
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .border(
+                                color = borderColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .shadow(3.dp, shape = RoundedCornerShape(24.dp))
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            modifier =
+                            Modifier
+                                .height(0.08 * screenHeight)
+                                .padding(16.dp)
+                                .padding(top = 8.dp, bottom = 8.dp),
 
+                            verticalArrangement = Arrangement.SpaceBetween,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.switch_to_v2),
+                                    style = TextStyle(
+                                        fontSize = (screenWidth.value * 0.035f).sp,
+                                        color = secondaryColor,
+                                    )
+                                )
+                                Switch(
+                                    checked = viewModel.isV2ApiEnabled.value,
+                                    onCheckedChange  = {
+                                        viewModel.isV2ApiEnabled.value = it
+                                        viewModel.saveIsV2ApiEnabled()
+                                    },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = secondaryColor,
+                                        uncheckedThumbColor = Color.Gray
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
 
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -385,7 +438,7 @@ fun PCSettingsScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, showAd2)
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
         }
     }
 

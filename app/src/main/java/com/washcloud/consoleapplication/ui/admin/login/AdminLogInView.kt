@@ -63,7 +63,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 fun AdminLogInView(
     showAd2: () -> Unit,
     showAdminScreens: () -> Unit,
-
+    onBack: () -> Unit,
     screenWidth: Dp,
     screenHeight: Dp,
 ) {
@@ -566,7 +566,7 @@ fun AdminLogInView(
                     modifier =
                     Modifier.weight(1f)
                 )
-                BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel ,showAd2, showAd2)
+                BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel ,showAd2, onBack)
             }
 
 

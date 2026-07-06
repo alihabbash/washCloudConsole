@@ -55,9 +55,48 @@ class App : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
+        setupCrashRebootHandler()
 
         MainActivity.dLocale = Locale("ar")
         MainAdActivity.dLocale = Locale("ar")
 
+    }
+
+    /**
+     * Sets up a global uncaught exception handler that reboots the device
+     * via root access when a fatal crash occurs.
+     *
+     * Includes a crash-loop guard: if two crashes occur within 60 seconds,
+     * the reboot is skipped to prevent an infinite reboot loop.
+     */
+    private fun setupCrashRebootHandler() {
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+
+        Thread.setDefaultUncaughtExceptionHandler { thread, exception ->
+            val prefs = getSharedPreferences("crash_reboot_prefs", Context.MODE_PRIVATE)
+            val lastCrashTime = prefs.getLong("last_crash_time", 0L)
+            val now = System.currentTimeMillis()
+
+            val shouldReboot = now - lastCrashTime > 60_000L
+
+            if (shouldReboot) {
+                prefs.edit().putLong("last_crash_time", now).commit()
+                android.util.Log.e("App", "Fatal crash detected, rebooting device...", exception)
+
+                // Fire reboot immediately. exec() spawns a separate OS process
+                // that survives even after our app process is killed.
+                // ACRA still gets ~100-200ms to save the crash report to disk.
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
+                } catch (e: Exception) {
+                    android.util.Log.e("App", "Failed to execute reboot command", e)
+                }
+            } else {
+                android.util.Log.e("App", "Crash-loop detected, skipping reboot.", exception)
+            }
+
+            // Let ACRA / default handler process the crash (saves report to disk)
+            defaultHandler?.uncaughtException(thread, exception)
+        }
     }
 }

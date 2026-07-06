@@ -27,4 +27,4 @@ const val KEY_TOTAL_BAGS_COUNT = "total_bags_count"
 
 const val SCANNED_QR_SIGNATURES = "SCANNED_QR_SIGNATURES"
 
-
+const val IS_V2_API_ENABLED_KEY = "IS_V2_API_ENABLED"

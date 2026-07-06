@@ -34,11 +34,20 @@ class TimerViewModel @Inject constructor(
     }
 
     fun startTimeWatcher() {
-        cancelTimer() //
-        remainingTime = getStoredDelayTime()
+        cancelTimer()
+        resumeJob?.cancel()
+        
+        // 3 minutes countdown total
+        remainingTime = 180_000L
         timerPaused = false
-        createTimer(remainingTime)
 
+        _timerText.value = "" // Clear text during inactivity delay
+        
+        // Start 5 second inactivity delay
+        resumeJob = CoroutineScope(Dispatchers.Main).launch {
+            delay(5000L)
+            createTimer(remainingTime)
+        }
     }
 
     private fun getStoredDelayTime(): Long {
@@ -66,18 +75,15 @@ class TimerViewModel @Inject constructor(
 
     fun pauseTimer() {
         timer?.cancel()
+        resumeJob?.cancel() // Also cancel the inactivity watcher
         timerPaused = true
+        _timerText.value = "" // Clear the timer text
     }
 
     fun resumeTimerAfterDelay(delayMillis: Long) {
-        resumeJob?.cancel()
-        resumeJob = CoroutineScope(Dispatchers.Main).launch {
-            delay(6000L)
-            if (timerPaused) {
-                createTimer(remainingTime)
-                timerPaused = false
-            }
-        }
+        // We completely ignore the passed input `delayMillis` now because
+        // we want a consistent 5 second delay and full 3 minute restart.
+        startTimeWatcher()
     }
 
     fun cancelTimer() {

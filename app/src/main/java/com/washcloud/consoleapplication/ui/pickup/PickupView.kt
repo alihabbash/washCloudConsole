@@ -156,8 +156,9 @@ fun PickupView(
     LaunchedEffect(wayBillNoHidden) {
         if (isValidSerialNumber(wayBillNoHidden)) {
             viewModel.staffPickup(wayBillNoHidden)
-            wayBillNoHidden = ""
         }
+        wayBillNoHidden = ""
+        FileLogger.log(context, "Pickup view", "wayBillNoHidden from hidden keyboard $wayBillNoHidden")
     }
 
     /*var barcodeData by remember { mutableStateOf("") }

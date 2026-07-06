@@ -233,7 +233,7 @@ class MainActivity : ComponentActivity() {
         return metrics.widthPixels
     }
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-
+ 
         FileLogger.log(this, "MainActivity", "keyCode $keyCode")
         return if (keyCode == KeyEvent.KEYCODE_ENTER) {
             Log.e("MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
@@ -241,18 +241,26 @@ class MainActivity : ComponentActivity() {
             val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
             FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
             Log.e("MainActivity", "Barcode scanned: $barcode")
-            if (barcode.startsWith("https")) {
-               FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
-                barcodeData.setLength(0)
-                Log.e("MainActivity", "Valid barcode: $barcode")
-
-                val intent = Intent(this, MainAdActivity::class.java).apply {
-                    putExtra("barcode", barcode)
+            if (barcode.isNotEmpty()) {
+                // Broadcast to all listeners (Pickup, DropOff, etc.)
+                val broadcastIntent = Intent("com.washcloud.scanner_data").apply {
+                    putExtra("scannerData", barcode)
                 }
-                startActivity(intent)
-                Log.e("MainActivity", "finish")
-                finish()
+                sendBroadcast(broadcastIntent)
+                FileLogger.log(this, "MainActivity", "Broadcasted scanner data: $barcode")
+
+                if (barcode.startsWith("https")) {
+                    FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
+                    Log.e("MainActivity", "Valid barcode: $barcode")
+                    val intent = Intent(this, MainAdActivity::class.java).apply {
+                        putExtra("barcode", barcode)
+                    }
+                    startActivity(intent)
+                    Log.e("MainActivity", "finish")
+                    finish()
+                }
             }
+            barcodeData.setLength(0)
             true
         } else {
             barcodeData.append(event.unicodeChar.toChar())
@@ -311,6 +319,12 @@ class MainActivity : ComponentActivity() {
         mainViewModel: MainViewModel,
         phoneNumber: String
     ) {
+        val onTimeout: () -> Unit = {
+            val intent = Intent(this@MainActivity, MainAdActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
         when (selectedView) {
             is SelectedView.Ad2Form -> {
                 LaunchedEffect(Unit) {
@@ -380,8 +394,9 @@ class MainActivity : ComponentActivity() {
                 { mainViewModel.resetStack() }
             )
             is SelectedView.AdminLogInView -> AdminLogInView(
-                { mainViewModel.resetStack() },
-                { mainViewModel.addToStack(SelectedView.AdminMenuView) },
+                showAd2 = onTimeout,
+                showAdminScreens = { mainViewModel.addToStack(SelectedView.AdminMenuView) },
+                onBack = { mainViewModel.popStack() },
                 screenWidth = screenWidth,
                 screenHeight = screenHeight
             )
@@ -392,33 +407,33 @@ class MainActivity : ComponentActivity() {
                 showSetting = { mainViewModel.addToStack(SelectedView.PCSettingsScreen) },
                 showAdminSetting = { mainViewModel.addToStack(SelectedView.SubAdminSettingsScreen) },
                 showAdsSetting = { mainViewModel.addToStack(SelectedView.AdsManagementScreen) },
-                showLockerManagement = { mainViewModel.addToStack(SelectedView.AdminLockerScreen) }) {
-                mainViewModel.addToStack(SelectedView.ExitAdminView)
-            }
+                showLockerManagement = { mainViewModel.addToStack(SelectedView.AdminLockerScreen) },
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.addToStack(SelectedView.ExitAdminView) }
+            )
 
             is SelectedView.PCSettingsScreen -> PCSettingsScreen(
                 screenWidth = screenWidth,
-                screenHeight = screenHeight) {
-
-                mainViewModel.popStack()
-            }
+                screenHeight = screenHeight,
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
+            )
 
             is SelectedView.SubAdminSettingsScreen -> SubAdminSettingsScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onChangePassword = { mainViewModel.addToStack(SelectedView.ChangePasswordScreen) },
                 onHelpPhoneNumber = {  mainViewModel.addToStack(SelectedView.UpdatePhoneNumberScreen) },
-                showAd2 = {
-
-                    mainViewModel.popStack()
-                }
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
             )
 
             is SelectedView.ChangePasswordScreen -> ChangePasswordScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onSave = {  },
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
             )
 
             is SelectedView.UpdatePhoneNumberScreen -> UpdatePhoneNumberScreen(
@@ -427,13 +442,14 @@ class MainActivity : ComponentActivity() {
                 onSave = {
                     loadPhoneNumber()
                 },
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
             )
 
             is SelectedView.AdsManagementScreen -> AdsManagementScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                showAd2 = { mainViewModel.popStack() },
+                showAd2 = onTimeout,
                 onBack = { mainViewModel.popStack() }
             )
 
@@ -444,7 +460,7 @@ class MainActivity : ComponentActivity() {
                     mainViewModel.addToStack(SelectedView.AddLockerScreen)
                 },
                 onBack = { mainViewModel.popStack()},
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout
             )
 
             is  SelectedView.ExitAdminView ->
@@ -474,13 +490,14 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     logoutAdmin = { mainViewModel.resetStack() },
-                    showAd2 = {  mainViewModel.popStack() }
+                    showAd2 = onTimeout,
+                    onBack = { mainViewModel.popStack() }
                 )
             is SelectedView.AddLockerScreen -> AddLockerScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 onBack = { mainViewModel.popStack() },
-                showAd2 = { mainViewModel.popStack() }
+                showAd2 = onTimeout
             )
 
 

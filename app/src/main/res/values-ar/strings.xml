@@ -162,5 +162,6 @@
     <string name="total_bags_label">إجمالي الأكياس الممسوحة</string>
     <string name="bag_counter_title">مسح الأكياس</string>
     <string name="scan_bag_hint">امسح الأكياس لزيادة العداد</string>
+    <string name="switch_to_v2">التبديل إلى V2</string>
 
 </resources>

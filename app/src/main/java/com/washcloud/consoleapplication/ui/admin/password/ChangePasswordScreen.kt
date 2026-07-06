@@ -45,7 +45,8 @@ fun ChangePasswordScreen(
     screenWidth: Dp,
     screenHeight: Dp,
     onSave: () -> Unit,
-    showAd2: () -> Unit
+    showAd2: () -> Unit,
+    onBack: () -> Unit
 ) {
     val  viewModel: ChangePasswordViewModel = hiltViewModel()
     val currentPassword by viewModel.currentPassword.collectAsState()
@@ -234,7 +235,8 @@ fun ChangePasswordScreen(
                  }
              }
          }
-         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, showAd2)
+         Spacer(modifier = Modifier.weight(1f))
+         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
      }
     }
 }
@@ -247,7 +249,8 @@ fun PreviewChangePasswordScreen() {
             screenWidth = 360.dp,
             screenHeight = 640.dp,
             onSave = {},
-            showAd2 = {}
+            showAd2 = {},
+            onBack = {}
         )
     }
 }
