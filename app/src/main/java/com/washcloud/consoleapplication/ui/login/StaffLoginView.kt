@@ -67,12 +67,15 @@ fun LoginForm(
 ) {
     val viewModel: StaffLoginViewModel = hiltViewModel()
 
-    var mobileSelectedLoginForm by remember { mutableStateOf(true) }
-    var passwordSelectedLoginForm by remember { mutableStateOf(false) }
-    val accountLoginForm by viewModel.accountText.collectAsState()
-    val passwordLoginForm by viewModel.passwordText.collectAsState()
+    val gradientBrush = remember {
+        Brush.horizontalGradient(
+            colors = listOf(
+                blueGradient,
+                secondaryColor,
+            )
+        )
+    }
     val timerViewModel: TimerViewModel = hiltViewModel()
-    var timerValue by remember { mutableStateOf(10) }
 
     val interactionModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(onTap = {
@@ -82,15 +85,12 @@ fun LoginForm(
     }
 
     val clearSelectedField = {
-        if (passwordSelectedLoginForm) {
-            viewModel.passwordText.value = ""
-        } else {
-            viewModel.accountText.value = ""
-        }
+        viewModel.accountText.value = ""
+        viewModel.passwordText.value = ""
     }
 
     val updateSelectedField = { value: String -> //update selected field
-        if (passwordSelectedLoginForm) {
+        if (viewModel.selectedField.value == 1) {
             viewModel.passwordText.value += value
         } else {
             viewModel.accountText.value += value
@@ -98,13 +98,7 @@ fun LoginForm(
     }
 
     val selectField = { field: Int -> //select field 0 for mobile 1 for password
-        if (field == 0) {
-            mobileSelectedLoginForm = true
-            passwordSelectedLoginForm = false
-        } else {
-            mobileSelectedLoginForm = false
-            passwordSelectedLoginForm = true
-        }
+        viewModel.selectedField.value = field
     }
     val screenState by viewModel.uiState.collectAsState()
     val isLoading = screenState is LoginState.Loading
@@ -121,14 +115,10 @@ fun LoginForm(
     LaunchedEffect(screenState is LoginState.Error ) {
         Log.d("Login", "Error  $screenState")
 
-        if(screenState != null){
-            while (timerValue > 0) {
-                delay(1000L)
-                timerValue -= 1
-            }
+        if(screenState is LoginState.Error){
+            delay(10000L)
             viewModel.resetLoadingToInitial()
         }
-
     }
 
     Box {
@@ -205,37 +195,7 @@ fun LoginForm(
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.padding(start = 24.dp)
                                 )
-                                Box(
-                                    modifier = Modifier
-                                        .padding(24.dp)
-                                        .border(
-                                            color = if (mobileSelectedLoginForm)
-                                                primaryDark else borderColor,
-                                            width = 1.dp,
-                                            shape = RoundedCornerShape(36.dp)
-                                        )
-                                        .background(
-                                            color = Color.White,
-                                            shape = RoundedCornerShape(36.dp)
-                                        )
-                                        .fillMaxWidth()
-                                        .padding(
-                                            top = (screenHeight.value * 0.01f).dp,
-                                            bottom = (screenHeight.value * 0.01f).dp,
-                                            start = 24.dp
-                                        )
-                                        .clickable {
-                                            selectField(0)
-                                        }
-                                ) {
-                                    Text(
-                                        text = accountLoginForm,
-                                        style = TextStyle(
-                                            color = hints,
-                                            fontSize = (screenWidth.value * 0.025f).sp
-                                        )
-                                    )
-                                }
+                                StaffAccountInputBox(viewModel = viewModel, screenWidth = screenWidth, screenHeight = screenHeight, selectField = selectField)
                                 Text(
                                     text = stringResource(id = R.string.password),
                                     style = TextStyle(
@@ -245,41 +205,7 @@ fun LoginForm(
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.padding(start = 24.dp)
                                 )
-                                Box(
-                                    modifier = Modifier
-                                        .padding(24.dp)
-                                        .border(
-                                            color = if (passwordSelectedLoginForm)
-                                                primaryDark else borderColor,
-                                            width = 1.dp,
-                                            shape = RoundedCornerShape(36.dp)
-                                        )
-                                        .background(
-                                            color = Color.White,
-                                            shape = RoundedCornerShape(36.dp)
-                                        )
-                                        .fillMaxWidth()
-                                        .padding(
-                                            top = (screenHeight.value * 0.01f).dp,
-                                            bottom = (screenHeight.value * 0.01f).dp, start = 24.dp
-                                        )
-                                        .clickable {
-                                            selectField(1)
-                                        }
-                                ) {
-                                    Text(
-                                        text =  if (passwordLoginForm.isEmpty()) {
-                                            "XXXX-XXXX-XXXX"
-                                        } else {
-                                            "*".repeat(passwordLoginForm.length)
-                                        },
-                                        style = TextStyle(
-                                            color = hints,
-                                            fontSize = (screenWidth.value * 0.025f).sp
-
-                                        )
-                                    )
-                                }
+                                StaffPasswordInputBox(viewModel = viewModel, screenWidth = screenWidth, screenHeight = screenHeight, selectField = selectField)
                                 Spacer(modifier = Modifier.height((screenHeight.value * 0.01f).dp))
                                 Box(
                                     modifier = Modifier
@@ -288,12 +214,7 @@ fun LoginForm(
                                             RoundedCornerShape((screenHeight.value * 0.011f).dp)
                                         )
                                         .background(
-                                            brush = Brush.horizontalGradient(
-                                                colors = listOf(
-                                                    blueGradient,
-                                                    secondaryColor,
-                                                ),
-                                            )
+                                            brush = gradientBrush
                                         )
                                         .padding(
                                             start = 16.dp,
@@ -593,12 +514,7 @@ fun LoginForm(
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        brush = Brush.horizontalGradient(
-                                            colors = listOf(
-                                                blueGradient,
-                                                secondaryColor,
-                                            ),
-                                        ),
+                                        brush = gradientBrush,
                                         shape = RoundedCornerShape(24.dp)
                                     )
 
@@ -639,6 +555,7 @@ fun LoginForm(
                     .width(screenWidth)
                     .height(screenHeight)
                     .background(dimBackground)
+                    .clickable { if (screenState is LoginState.Error) viewModel.resetLoadingToInitial() }
             ) {
                 Box(
                     modifier =
@@ -675,7 +592,88 @@ fun LoginForm(
     }
 }
 
+@Composable
+fun StaffAccountDisplay(viewModel: StaffLoginViewModel, screenWidth: Dp) {
+    val accountText by viewModel.accountText.collectAsState()
+    Text(
+        text = accountText,
+        style = TextStyle(
+            color = hints,
+            fontSize = (screenWidth.value * 0.025f).sp
+        )
+    )
+}
 
+@Composable
+fun StaffPasswordDisplay(viewModel: StaffLoginViewModel, screenWidth: Dp) {
+    val password by viewModel.passwordText.collectAsState()
+    Text(
+        text =  if (password.isEmpty()) {
+            "XXXX-XXXX-XXXX"
+        } else {
+            "*".repeat(password.length)
+        },
+        style = TextStyle(
+            color = hints,
+            fontSize = (screenWidth.value * 0.025f).sp
+        )
+    )
+}
 
+@Composable
+fun StaffAccountInputBox(viewModel: StaffLoginViewModel, screenWidth: Dp, screenHeight: Dp, selectField: (Int) -> Unit) {
+    val selectedField by viewModel.selectedField.collectAsState()
+    Box(
+        modifier = Modifier
+            .padding(24.dp)
+            .border(
+                color = if (selectedField == 0) primaryDark else borderColor,
+                width = 1.dp,
+                shape = RoundedCornerShape(36.dp)
+            )
+            .background(
+                color = Color.White,
+                shape = RoundedCornerShape(36.dp)
+            )
+            .fillMaxWidth()
+            .padding(
+                top = (screenHeight.value * 0.01f).dp,
+                bottom = (screenHeight.value * 0.01f).dp,
+                start = 24.dp
+            )
+            .clickable {
+                selectField(0)
+            }
+    ) {
+        StaffAccountDisplay(viewModel = viewModel, screenWidth = screenWidth)
+    }
+}
 
-
+@Composable
+fun StaffPasswordInputBox(viewModel: StaffLoginViewModel, screenWidth: Dp, screenHeight: Dp, selectField: (Int) -> Unit) {
+    val selectedField by viewModel.selectedField.collectAsState()
+    Box(
+        modifier = Modifier
+            .padding(24.dp)
+            .border(
+                color = if (selectedField == 1) primaryDark else borderColor,
+                width = 1.dp,
+                shape = RoundedCornerShape(36.dp)
+            )
+            .background(
+                color = Color.White,
+                shape = RoundedCornerShape(36.dp)
+            )
+            .fillMaxWidth()
+            .padding(
+                top = (screenHeight.value * 0.01f).dp,
+                bottom = (screenHeight.value * 0.01f).dp,
+                start = 24.dp
+            )
+            .clickable {
+                selectField(1)
+            }
+    ) {
+        StaffPasswordDisplay(viewModel = viewModel, screenWidth = screenWidth)
+    }
+}

@@ -41,6 +41,7 @@ class AdminLoginViewModel @Inject constructor(
 
     fun dismissAlert() {
         _showAlert.value = false
+        passwordText.value = ""
     }
 
     fun resetPasswordCorrectState() {
