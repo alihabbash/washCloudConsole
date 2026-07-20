@@ -398,7 +398,7 @@ class MainAdActivity : ComponentActivity() {
         /* registerConveyorReceiver()
          registerReceiver()
          registerScannerReceiver()*/
-        //startPortService()
+        startPortService()
 
         requestPermissionsIfNeeded()
         checkRebootStatus()
