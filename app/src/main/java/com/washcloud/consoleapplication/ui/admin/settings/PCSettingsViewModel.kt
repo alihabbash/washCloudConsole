@@ -27,6 +27,7 @@ class PCSettingsViewModel @Inject constructor(
     var lockerName = mutableStateOf("")
     var rebootTime = mutableStateOf("")
     var isRebootEnabled = mutableStateOf(false)
+    var isV2ApiEnabled = mutableStateOf(false)
 
     var apiKey = mutableStateOf("")
     var terminalSn = mutableStateOf("")
@@ -45,6 +46,7 @@ class PCSettingsViewModel @Inject constructor(
             lockerName.value = sharedPreferences.getString(LOCKER_NAME_KEY, "22222213703.001") ?: ""
             rebootTime.value = sharedPreferences.getString(REBOOT_TIME_KEY, "13:00") ?: ""
             isRebootEnabled.value = sharedPreferences.getBoolean(IS_REBOOT_ENABLED_KEY, true)
+            isV2ApiEnabled.value = sharedPreferences.getBoolean(IS_V2_API_ENABLED_KEY, false)
 
             apiKey.value = sharedPreferences.getString(API_KEY_KEY, "cb71a12703264742b5b8") ?: ""
             terminalSn.value = sharedPreferences.getString(TERMINAL_SN_KEY, "21222213701A-001") ?: ""
@@ -64,6 +66,13 @@ class PCSettingsViewModel @Inject constructor(
         }
     }
 
+    fun saveIsV2ApiEnabled() {
+        with(sharedPreferences.edit()) {
+            putBoolean(IS_V2_API_ENABLED_KEY, isV2ApiEnabled.value)
+            apply()
+        }
+    }
+
 
     fun saveAllSettings() {
 
@@ -77,6 +86,7 @@ class PCSettingsViewModel @Inject constructor(
             putString(DELAY_MILLIS_KEY, delayMillis.value)
             putString(SERVER_OPTION, serverOption.value)
             putString(CUSTOM_SERVER, customServer.value)
+            putBoolean(IS_V2_API_ENABLED_KEY, isV2ApiEnabled.value)
             apply()
         }
     }

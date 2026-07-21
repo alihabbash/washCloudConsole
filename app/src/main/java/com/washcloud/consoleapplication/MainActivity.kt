@@ -186,24 +186,6 @@ class MainActivity : ComponentActivity() {
                     Box {
                         BackgroundImage()
                         CurrentView(stack.last(), screenWidth, screenHeight, mainViewModel, phoneNumber)
-
-                        // TODO: Remove this test crash button after verifying auto-reboot works
-                        androidx.compose.material3.Button(
-                            onClick = { throw RuntimeException("TEST CRASH: Verifying auto-reboot on crash") },
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .height(40.dp),
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                containerColor = Color.Red
-                            )
-                        ) {
-                            androidx.compose.material3.Text(
-                                "Test Crash",
-                                color = Color.White,
-                                fontSize = androidx.compose.ui.unit.TextUnit(12f, androidx.compose.ui.unit.TextUnitType.Sp)
-                            )
-                        }
-                        // END TODO
                     }
                 }
             }

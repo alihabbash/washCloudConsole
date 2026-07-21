@@ -19,6 +19,7 @@ class StaffLoginViewModel @Inject constructor(
 
     val accountText = MutableStateFlow("")
     val passwordText = MutableStateFlow("")
+    val selectedField = MutableStateFlow(0) // 0 for account, 1 for password
 
     fun login() {
         viewModelScope.launch {

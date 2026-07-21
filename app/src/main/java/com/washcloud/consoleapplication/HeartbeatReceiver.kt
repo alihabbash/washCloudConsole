@@ -86,7 +86,9 @@ class HeartbeatReceiver : BroadcastReceiver() {
                 BoxSizeType.CONVEYOR -> 6
             },
             open = "0",
-            type = if (boxDto.boxType == BoxType.BOX) 1 else 2
+            type = if (boxDto.boxType == BoxType.BOX) 1 else 2,
+            date = boxDto.trnasDate.time,
+            orderID = boxDto.orderId
         )
     }
 }

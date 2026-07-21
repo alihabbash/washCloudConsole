@@ -71,8 +71,15 @@ fun AdminLogInView(
     val viewModel: AdminLoginViewModel = hiltViewModel();
     val isPasswordCorrect by viewModel.isPasswordCorrect.collectAsState()
     val showAlert by viewModel.showAlert.collectAsState()
-    val passwordLoginForm by viewModel.passwordText.collectAsState()
     val passwordSelectedLoginForm by remember { mutableStateOf(true) }
+    val gradientBrush = remember {
+        Brush.horizontalGradient(
+            colors = listOf(
+                blueGradient,
+                secondaryColor,
+            )
+        )
+    }
 
     val timerViewModel: TimerViewModel = hiltViewModel()
 
@@ -201,18 +208,7 @@ fun AdminLogInView(
 
                                         }
                                 ) {
-                                    Text(
-                                        text = if (passwordLoginForm.isEmpty()) {
-                                            "XXXX-XXXX-XXXX"
-                                        } else {
-                                            "*".repeat(passwordLoginForm.length)
-                                        },
-                                        style = TextStyle(
-                                            color = hints,
-                                            fontSize = (screenWidth.value * 0.025f).sp
-
-                                        )
-                                    )
+                                    AdminPasswordDisplay(viewModel = viewModel, screenWidth = screenWidth)
                                 }
                                 Spacer(modifier = Modifier.height((screenHeight.value * 0.01f).dp))
                                 Box(
@@ -222,12 +218,7 @@ fun AdminLogInView(
                                             RoundedCornerShape((screenHeight.value * 0.011f).dp)
                                         )
                                         .background(
-                                            brush = Brush.horizontalGradient(
-                                                colors = listOf(
-                                                    blueGradient,
-                                                    secondaryColor,
-                                                ),
-                                            )
+                                            brush = gradientBrush
                                         )
                                         .padding(
                                             start = 16.dp,
@@ -530,12 +521,7 @@ fun AdminLogInView(
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        brush = Brush.horizontalGradient(
-                                            colors = listOf(
-                                                blueGradient,
-                                                secondaryColor,
-                                            ),
-                                        ),
+                                        brush = gradientBrush,
                                         shape = RoundedCornerShape(24.dp)
                                     )
 
@@ -629,12 +615,7 @@ fun AdminLogInView(
                                 RoundedCornerShape((screenHeight.value * 0.011f).dp)
                             )
                             .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        blueGradient,
-                                        secondaryColor,
-                                    ),
-                                )
+                                brush = gradientBrush
                             )
                             .padding(
                                 start = 16.dp,
@@ -664,7 +645,18 @@ fun AdminLogInView(
     }
 }
 
-
-
-
-
+@Composable
+fun AdminPasswordDisplay(viewModel: AdminLoginViewModel, screenWidth: Dp) {
+    val password by viewModel.passwordText.collectAsState()
+    Text(
+        text = if (password.isEmpty()) {
+            "XXXX-XXXX-XXXX"
+        } else {
+            "*".repeat(password.length)
+        },
+        style = TextStyle(
+            color = hints,
+            fontSize = (screenWidth.value * 0.025f).sp
+        )
+    )
+}

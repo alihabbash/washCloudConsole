@@ -93,6 +93,7 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.8")
     implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     implementation ("androidx.work:work-runtime-ktx:2.7.1")
     kapt("androidx.room:room-compiler:$roomVersion")

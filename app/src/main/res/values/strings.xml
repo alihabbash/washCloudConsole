@@ -160,4 +160,5 @@
     <string name="total_bags_label">Total scanned</string>
     <string name="bag_counter_title">Scan Bags</string>
     <string name="scan_bag_hint">Scan bags to increase the counter</string>
+    <string name="switch_to_v2">Switch to V2</string>
 </resources>

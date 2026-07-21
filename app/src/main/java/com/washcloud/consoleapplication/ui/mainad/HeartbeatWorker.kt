@@ -61,7 +61,9 @@ class HeartbeatWorker @AssistedInject constructor(
                 BoxSizeType.CONVEYOR -> 6
             },
             open = "1",
-            type = if (boxDto.boxType == BoxType.BOX) 1 else 2
+            type = if (boxDto.boxType == BoxType.BOX) 1 else 2,
+            date = boxDto.trnasDate.time,
+            orderID = boxDto.orderId
         )
     }
 }
