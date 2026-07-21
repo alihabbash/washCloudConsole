@@ -75,7 +75,10 @@ object RetrofitClient {
                 level = HttpLoggingInterceptor.Level.BODY
             }
 
+            val headersInterceptor = com.washcloud.consoleapplication.remote.config.HeadersInterceptors(context)
+
             val okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(headersInterceptor)
                 .addInterceptor(loggingInterceptor)
                 .build()
 

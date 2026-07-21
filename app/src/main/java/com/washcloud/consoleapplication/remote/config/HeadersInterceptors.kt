@@ -15,7 +15,6 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Inject
 
 class HeadersInterceptors @Inject constructor(
-    private val prefsManager: IPrefsManager,
     @ApplicationContext private val context: Context
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
