@@ -56,6 +56,7 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.washcloud.consoleapplication.remote.config.HeadersInterceptors
 import com.washcloud.consoleapplication.remote.model.offline.ActionType
 import com.washcloud.consoleapplication.remote.model.offline.QrActionPayload
 import com.washcloud.consoleapplication.utils.SignatureVerifier
@@ -75,7 +76,7 @@ object RetrofitClient {
                 level = HttpLoggingInterceptor.Level.BODY
             }
 
-            val headersInterceptor = com.washcloud.consoleapplication.remote.config.HeadersInterceptors(context)
+            val headersInterceptor = HeadersInterceptors(context)
 
             val okHttpClient = OkHttpClient.Builder()
                 .addInterceptor(headersInterceptor)
