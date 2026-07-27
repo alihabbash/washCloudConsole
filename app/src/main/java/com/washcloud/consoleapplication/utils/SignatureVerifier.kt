@@ -71,7 +71,7 @@ class SignatureVerifier {
         phoneNumber: String,
         terminalSn: String
     ): String {
-        val payloadString = "terminalSn=$terminalSn&id=$customerId&phoneNumber=$phoneNumber"
+        val payloadString = "id=$customerId&phoneNumber=$phoneNumber"
         return generateSignature(payloadString, terminalSn)
     }
 
