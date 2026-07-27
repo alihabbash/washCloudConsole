@@ -163,5 +163,19 @@
     <string name="bag_counter_title">مسح الأكياس</string>
     <string name="scan_bag_hint">امسح الأكياس لزيادة العداد</string>
     <string name="switch_to_v2">التبديل إلى V2</string>
-
+    <string name="branch_api_key">مفتاح API للفرع</string>
+    <string name="static_qr_offline_enabled">سير عمل QR الثابت بدون إنترنت</string>
+    <string name="setup_offline_pin">إعداد الرقم السري (بدون إنترنت)</string>
+    <string name="create_4_digit_pin">إنشاء رقم سري من 4 أرقام</string>
+    <string name="confirm_4_digit_pin">تأكيد الرقم السري المكون من 4 أرقام</string>
+    <string name="pin_must_be_4_digits">يجب أن يتكون الرقم السري من 4 أرقام.</string>
+    <string name="pins_do_not_match">الأرقام السرية غير متطابقة.</string>
+    <string name="customer_pickup_offline_qr">استلام العميل (بدون إنترنت)</string>
+    <string name="enter_your_4_digit_pin">أدخل الرقم السري المكون من 4 أرقام</string>
+    <string name="sync_customers">مزامنة العملاء</string>
+    <string name="sync_triggered">تم بدء مزامنة العملاء</string>
+    <string name="sync_customers_instruction">لمزامنة بيانات العملاء، اضغط على الزر أدناه</string>
+    <string name="open_screen_locker_box">فتح صندوق شاشة الخزنة</string>
+    <string name="force_open_box">فتح الصندوق</string>
+    <string name="mobile_number_cannot_be_empty">لا يمكن أن يكون رقم الجوال فارغًا.</string>
 </resources>

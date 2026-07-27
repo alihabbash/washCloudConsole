@@ -75,6 +75,8 @@ import com.washcloud.consoleapplication.ui.help.HelpForm
 import com.washcloud.consoleapplication.ui.login.LoginForm
 import com.washcloud.consoleapplication.ui.mainad.MainAdActivity
 import com.washcloud.consoleapplication.ui.pickup.PickupView
+import com.washcloud.consoleapplication.ui.pickup.StaticQrLoginScreen
+import com.washcloud.consoleapplication.ui.pickup.SetPasswordScreen
 import com.washcloud.consoleapplication.ui.startStaff.DriverLoginForm
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
@@ -499,6 +501,29 @@ class MainActivity : ComponentActivity() {
                 onBack = { mainViewModel.popStack() },
                 showAd2 = onTimeout
             )
+            is SelectedView.SetPasswordScreen -> SetPasswordScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() },
+                onPasswordSetSuccess = { phone, newPin ->
+                    mainViewModel.popStack()
+                    mainViewModel.addToStack(SelectedView.StaticQrLoginScreen)
+                }
+            )
+            is SelectedView.StaticQrLoginScreen -> StaticQrLoginScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() },
+                verifyPin = { phone, pin, onResult -> 
+                    val isCorrect = (pin == "1234")
+                    onResult(isCorrect)
+                    if (isCorrect) {
+                        mainViewModel.resetStack()
+                    }
+                }
+            )
 
 
 
@@ -511,7 +536,7 @@ class MainActivity : ComponentActivity() {
         showStaffLogin: () -> Unit,
         showAdminLogin: () -> Unit,
         showHelpForm: () -> Unit,
-        phoneNumber: String,
+        phoneNumber: String
     ) {
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(LocalContext.current)

@@ -161,4 +161,19 @@
     <string name="bag_counter_title">Scan Bags</string>
     <string name="scan_bag_hint">Scan bags to increase the counter</string>
     <string name="switch_to_v2">Switch to V2</string>
+    <string name="branch_api_key">Branch Api key</string>
+    <string name="static_qr_offline_enabled">Static QR Offline Workflow</string>
+    <string name="setup_offline_pin">Setup Offline PIN</string>
+    <string name="create_4_digit_pin">Create a 4-digit PIN</string>
+    <string name="confirm_4_digit_pin">Confirm your 4-digit PIN</string>
+    <string name="pin_must_be_4_digits">PIN must be 4 digits.</string>
+    <string name="pins_do_not_match">PINs do not match.</string>
+    <string name="customer_pickup_offline_qr">Customer Pickup (Offline QR)</string>
+    <string name="enter_your_4_digit_pin">Enter your 4-digit PIN</string>
+    <string name="sync_customers">Sync Customers</string>
+    <string name="sync_triggered">Customer sync triggered</string>
+    <string name="sync_customers_instruction">To sync your customer data click the button below</string>
+    <string name="open_screen_locker_box">Open screen locker box</string>
+    <string name="force_open_box">Open Box</string>
+    <string name="mobile_number_cannot_be_empty">Mobile number cannot be empty.</string>
 </resources>

@@ -7,6 +7,7 @@ import android.util.Base64
 
 
 import com.washcloud.consoleapplication.remote.model.offline.QrActionPayload
+import com.washcloud.consoleapplication.remote.model.offline.StaticQrPayload
 
 /**
  * QR / Backend Signature Verifier
@@ -34,8 +35,9 @@ class SignatureVerifier {
 
     /**
      * Compute HMAC-SHA256 (Android compatible)
+     * Generates a signature for any arbitrary payload string.
      */
-    private fun computeHmacSha256(data: String, secret: String): String {
+    fun generateSignature(data: String, secret: String): String {
         val mac = Mac.getInstance("HmacSHA256")
         val keySpec = SecretKeySpec(secret.toByteArray(Charsets.UTF_8), "HmacSHA256")
         mac.init(keySpec)
@@ -56,8 +58,31 @@ class SignatureVerifier {
     ): Boolean {
 
         val payloadString = buildPayload(apiKey, terminalSn, payloadObj)
-        val expectedSignature = computeHmacSha256(payloadString, apiKey)
+        val expectedSignature = generateSignature(payloadString, apiKey)
 
+        return expectedSignature == payloadObj.signature
+    }
+
+    /**
+     * Generate backend signature for Static QR (useful for testing/mocking)
+     */
+    fun generateStaticQrSignature(
+        customerId: Long,
+        phoneNumber: String,
+        terminalSn: String
+    ): String {
+        val payloadString = "terminalSn=$terminalSn&id=$customerId&phoneNumber=$phoneNumber"
+        return generateSignature(payloadString, terminalSn)
+    }
+
+    /**
+     * Verify backend signature for Static QR
+     */
+    fun isStaticQrSignatureValid(
+        payloadObj: StaticQrPayload,
+        terminalSn: String
+    ): Boolean {
+        val expectedSignature = generateStaticQrSignature(payloadObj.customerId, payloadObj.phoneNumber, terminalSn)
         return expectedSignature == payloadObj.signature
     }
 

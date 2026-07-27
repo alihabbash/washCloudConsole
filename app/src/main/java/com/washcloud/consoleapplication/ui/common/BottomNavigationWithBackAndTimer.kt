@@ -118,7 +118,9 @@ fun BottomNavigationWithBackAndTimer(
                 modifier =
                 Modifier.weight(1f)
             )
-            timerView(screenWidth,timerViewModel!! ,showAd2)
+            if (timerViewModel != null) {
+                timerView(screenWidth, timerViewModel, showAd2)
+            }
         }
     }
 }

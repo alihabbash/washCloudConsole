@@ -18,6 +18,8 @@ sealed class SelectedView{
     object AdminLockerScreen: SelectedView()
     object ExitAdminView: SelectedView()
     object AddLockerScreen: SelectedView()
+    object StaticQrLoginScreen: SelectedView()
+    object SetPasswordScreen: SelectedView()
     fun copy(): SelectedView{
         return this
     }

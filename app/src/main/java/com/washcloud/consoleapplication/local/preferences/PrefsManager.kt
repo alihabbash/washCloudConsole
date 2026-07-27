@@ -151,6 +151,16 @@ class PrefsManager constructor(
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getBoolean(IS_V2_API_ENABLED_KEY, false)
         }
+
+        fun isStaticQrOfflineEnabled(context: Context): Boolean {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getBoolean(IS_STATIC_QR_OFFLINE_ENABLED_KEY, false)
+        }
+
+        fun getBranchApiKey(context: Context): String? {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getString(BRANCH_API_KEY_KEY, null)
+        }
     }
 
 }

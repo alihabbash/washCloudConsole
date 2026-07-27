@@ -13,6 +13,7 @@ const val HEART_BEAT_V2 =  "api/v2/LockerIntegration/Heartbeat"
 const val STAFF_DROP_OFF = PREFIX + "StaffDropOff"
 const val STAFF_PICKUP = "api/LockerIntegration/StaffPickup"
 const val CUSTOMER_DROP_OFF = "api/LockerIntegration/CustomerDropOff"
+const val SYNC_CUSTOMER_DATA = "api/LockerIntegration/V2/SyncCustomerData"
 const val CUSTOMER_PICKUP = "api/LockerIntegration/CustomerPickup"
 const val STAFF_RECALL = "api/LockerIntegration/StaffRecall"
 

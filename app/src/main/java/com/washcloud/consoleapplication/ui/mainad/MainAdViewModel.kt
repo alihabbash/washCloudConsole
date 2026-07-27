@@ -25,8 +25,10 @@ import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.washcloud.consoleapplication.local.database.dao.BoxDao
+import com.washcloud.consoleapplication.local.database.dao.CustomerUserDao
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
+import com.washcloud.consoleapplication.local.database.dto.CustomerUserDto
 import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxSizeType
 import com.washcloud.consoleapplication.local.database.utils.BoxState
@@ -37,6 +39,7 @@ import com.washcloud.consoleapplication.local.preferences.BRANCH_ID
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_DROP_OFF
 import com.washcloud.consoleapplication.remote.config.CUSTOMER_PICKUP
+import com.washcloud.consoleapplication.remote.config.SYNC_CUSTOMER_DATA
 import com.washcloud.consoleapplication.utils.FileLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +53,8 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Body
 import retrofit2.http.Query
 import retrofit2.http.Url
 import java.util.Date
@@ -59,6 +64,7 @@ import androidx.core.net.toUri
 import com.washcloud.consoleapplication.remote.config.HeadersInterceptors
 import com.washcloud.consoleapplication.remote.model.offline.ActionType
 import com.washcloud.consoleapplication.remote.model.offline.QrActionPayload
+import com.washcloud.consoleapplication.remote.model.offline.StaticQrPayload
 import com.washcloud.consoleapplication.utils.SignatureVerifier
 import com.washcloud.consoleapplication.workmanager.OfflineSyncWorker
 
@@ -125,6 +131,11 @@ interface ApiService {
         @Query("DoorNo") doorNo: String,
         @Query("Type") type: Int
     ): Response<ApiResponse>
+
+    @POST(SYNC_CUSTOMER_DATA)
+    suspend fun syncCustomerData(
+        @Body request: CustomerSyncRequest
+    ): Response<CustomerSyncResponse>
 }
 
 @JsonClass(generateAdapter = true)
@@ -151,10 +162,34 @@ data class Box(
     @Json(name = "type") val type: String
 )
 
+@JsonClass(generateAdapter = true)
+data class CustomerSyncRequest(
+    @Json(name = "apiKey") val apiKey: String,
+    @Json(name = "terminalSn") val terminalSn: String,
+    @Json(name = "customers") val customers: List<CustomerData>
+)
+
+@JsonClass(generateAdapter = true)
+data class CustomerSyncResponse(
+    @Json(name = "Status") val status: String?,
+    @Json(name = "message") val message: String?,
+    @Json(name = "customers") val customers: List<CustomerData>?
+)
+
+@JsonClass(generateAdapter = true)
+data class CustomerData(
+    @Json(name = "id") val customerId: Long,
+    @Json(name = "customerName") val customerName: String?,
+    @Json(name = "customerPhoneNumber") val phoneNumber: String?,
+    @Json(name = "consolePassword") val password: String?,
+    @Json(name = "consoleLastUpdate") val lastUpdate: String?
+)
+
 @HiltViewModel
 class MainAdViewModel @Inject constructor(
     private val transactionDao: TransactionDao,
     private val boxDao: BoxDao,
+    private val customerUserDao: CustomerUserDao,
     application: Application
 ) : AndroidViewModel(application)  {
 
@@ -163,6 +198,7 @@ class MainAdViewModel @Inject constructor(
         .build()
 
     private val qrAdapter = moshi.adapter(QrActionPayload::class.java)
+    private val staticQrAdapter = moshi.adapter(StaticQrPayload::class.java)
 
     private  val context: Context = getApplication<Application>().applicationContext
     private val apiService: ApiService = RetrofitClient.getApiService(context)
@@ -176,13 +212,20 @@ class MainAdViewModel @Inject constructor(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
 
+    private val _isloading = MutableStateFlow(false)
+    val isloading: StateFlow<Boolean> get() = _isloading
+
+    private var lastScannedBarcode: String? = null
+
+    private val _offlineQrLoginCustomerId = MutableStateFlow<Long?>(null)
+    val offlineQrLoginCustomerId: StateFlow<Long?> get() = _offlineQrLoginCustomerId
+
+    private val _offlineQrSetPinCustomerId = MutableStateFlow<Long?>(null)
+    val offlineQrSetPinCustomerId: StateFlow<Long?> get() = _offlineQrSetPinCustomerId
 
     private val _isDoorOpen = MutableStateFlow(false)
     val isDoorOpen: StateFlow<Boolean> = _isDoorOpen.asStateFlow()
 
-    private val _isloading = MutableStateFlow(false)
-
-    private var lastScannedBarcode: String? = null
     private var lastScannedTime: Long = 0L
     private val debounceInterval = 5000L
     private var isConveyorDoorOpen: Boolean = false
@@ -452,7 +495,18 @@ class MainAdViewModel @Inject constructor(
         if (!URLUtil.isValidUrl(barcode)) {
             _error.value = "Invalid URL"
             FileLogger.log(context, "handleBarcode", "Invalid URL: $barcode")
-            handleUrlOrQrJsonBarcode(barcode, context)
+            
+            try {
+                val jsonObject = org.json.JSONObject(barcode)
+                if (jsonObject.has("phoneNumber")) {
+                    handleStaticQrBarcode(barcode, context)
+                } else {
+                    handleUrlOrQrJsonBarcode(barcode, context)
+                }
+            } catch (e: Exception) {
+                // Fallback if not valid JSON
+                handleUrlOrQrJsonBarcode(barcode, context)
+            }
             return
         }
 
@@ -466,6 +520,69 @@ class MainAdViewModel @Inject constructor(
         }
         else {
             executeLockerBarcodeAction(barcode, context)
+        }
+    }
+
+
+    /**
+     *
+     * Expected Static QR JSON format example:
+     *
+     * {
+     *   "customerId": 319,
+     *   "signature": "9f3a1c88b7e2d4a5c9b1a77e..."
+     * }
+     */
+    private fun handleStaticQrBarcode(barcode: String, context: Context) {
+        try {
+            val staticQrPayload = staticQrAdapter.fromJson(barcode)
+
+            if (staticQrPayload == null) {
+                _error.value = "Invalid Static QR payload"
+                FileLogger.log(context, "handleStaticQrBarcode", "Static QR JSON parsed as null")
+                return
+            }
+
+            FileLogger.log(
+                context,
+                "handleStaticQrBarcode",
+                "Static QR JSON parsed successfully: $staticQrPayload"
+            )
+
+            val verifier = SignatureVerifier()
+            val isSignatureValid = verifier.isStaticQrSignatureValid(
+                payloadObj = staticQrPayload,
+                terminalSn = PrefsManager.getTerminalSN(context)
+            )
+
+            if (!isSignatureValid) {
+                _error.value = "Invalid Static QR signature"
+                FileLogger.log(context, "handleStaticQrBarcode", "Static QR signature validation failed")
+                return
+            }
+
+            FileLogger.log(context, "handleStaticQrBarcode", "Static QR successfully validated for customer: ${staticQrPayload.customerId}")
+            
+            viewModelScope.launch {
+                val customer = customerUserDao.getCustomerUser(staticQrPayload.customerId)
+                if (customer == null) {
+                    _error.value = "Customer not found locally. Please sync first."
+                    FileLogger.log(context, "handleStaticQrBarcode", "Customer ${staticQrPayload.customerId} not found in DB.")
+                    return@launch
+                }
+
+                if (customer.consolePassword.isNullOrBlank()) {
+                    // No PIN set, navigate to Set PIN screen
+                    _offlineQrSetPinCustomerId.value = customer.userId
+                } else {
+                    // PIN is set, navigate to Login screen
+                    _offlineQrLoginCustomerId.value = customer.userId
+                }
+            }
+
+        } catch (e: Exception) {
+            _error.value = "Error parsing Static QR: ${e.message}"
+            FileLogger.log(context, "handleStaticQrBarcode", "Exception parsing Static QR: ${e.message}")
         }
     }
 
@@ -1073,4 +1190,81 @@ class MainAdViewModel @Inject constructor(
 //        unregisterReceiver()
 //    }
 
+    fun clearOfflineQrMode() {
+        _offlineQrLoginCustomerId.value = null
+        _offlineQrSetPinCustomerId.value = null
+    }
+
+    fun verifyPinAndUnlockBoxes(customerId: Long, enteredPhone: String, enteredPin: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val customer = customerUserDao.getCustomerUser(customerId)
+            if (customer != null && customer.consolePassword == enteredPin) {
+                val expectedPhone = customer.phoneNumber
+                val fullEnteredPhone = "+966$enteredPhone"
+                if (expectedPhone == fullEnteredPhone) {
+                    FileLogger.log(context, "OfflineStaticQr", "Customer $customerId successfully verified offline PIN and phone number.")
+                    unlockDropOffBoxesForCustomer(customerId)
+                    onResult(true)
+                } else {
+                    FileLogger.log(context, "OfflineStaticQr", "Customer $customerId failed offline verification. Phone number mismatch (Entered: $fullEnteredPhone, Expected: $expectedPhone).")
+                    onResult(false)
+                }
+            } else {
+                FileLogger.log(context, "OfflineStaticQr", "Customer $customerId failed offline PIN verification.")
+                onResult(false)
+            }
+        }
+    }
+
+    fun savePinAndUnlockBoxes(customerId: Long, enteredPhone: String, newPin: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val customer = customerUserDao.getCustomerUser(customerId)
+            if (customer != null) {
+                val expectedPhone = customer.phoneNumber
+                val fullEnteredPhone = "+966$enteredPhone"
+                if (expectedPhone == fullEnteredPhone) {
+                    FileLogger.log(context, "OfflineStaticQr", "Setting initial offline PIN for customer $customerId")
+                    val updatedCustomer = customer.copy(
+                        consolePassword = newPin,
+                        consoleLastUpdate = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(Date())
+                    )
+                    customerUserDao.updateCustomerUser(updatedCustomer)
+                    unlockDropOffBoxesForCustomer(customerId)
+                    onResult(true)
+                } else {
+                    FileLogger.log(context, "OfflineStaticQr", "Failed to set PIN: Phone number mismatch (Entered: $fullEnteredPhone, Expected: $expectedPhone).")
+                    onResult(false)
+                }
+            } else {
+                FileLogger.log(context, "OfflineStaticQr", "Failed to set PIN: Customer $customerId not found in local DB.")
+                onResult(false)
+            }
+        }
+    }
+
+    private suspend fun unlockDropOffBoxesForCustomer(customerId: Long) {
+        // Find all boxes assigned to this customer that are OCCUPIED
+        val customerBoxes = boxDao.getBoxesByCustomerId(customerId, BoxState.OCCUPIED)
+        
+        for (box in customerBoxes) {
+            if (box.boxType == BoxType.CONVEYOR) {
+                openConveyor(box.boxNumber.toString())
+            } else {
+                // Send hardware broadcast to open the door (sendCommand expects boxId as String)
+                sendCommand(box.boxId.toString())
+            }
+            
+            // Update local box state to AVAILABLE
+            val updatedBox = box.copy(boxState = BoxState.AVAILABLE)
+            boxDao.updateBox(updatedBox)
+            
+            FileLogger.log(context, "OfflineStaticQr", "Successfully unlocked boxId ${box.boxId} (Type: ${box.boxType}) for customer $customerId")
+        }
+        
+        // Delete all transactions for this customer as they have been picked up
+        transactionDao.deleteTransactionsByCustomerId(customerId)
+        
+        // After processing, clear the UI state to return to Ad screen
+        clearOfflineQrMode()
+    }
 }

@@ -6,5 +6,6 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class StaffDropoffResponse(
     @field:Json(name = "Status") val status: String?,
-    @field:Json(name = "message") val message: String?
+    @field:Json(name = "message") val message: String?,
+    @field:Json(name = "customerId") val customerId: Long?
 )
