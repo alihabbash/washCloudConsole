@@ -176,4 +176,5 @@
     <string name="open_screen_locker_box">Open screen locker box</string>
     <string name="force_open_box">Open Box</string>
     <string name="mobile_number_cannot_be_empty">Mobile number cannot be empty.</string>
+    <string name="settings_saved_successfully">Settings saved successfully</string>
 </resources>
