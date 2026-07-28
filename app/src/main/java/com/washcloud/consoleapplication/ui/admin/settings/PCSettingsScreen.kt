@@ -2,6 +2,7 @@ package com.washcloud.consoleapplication.ui.admin.settings
 
 import android.app.TimePickerDialog
 import android.widget.TimePicker
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -654,6 +655,7 @@ fun PCSettingsScreen(
                     .width(0.8 * screenWidth)
                     .clickable {
                         viewModel.saveAllSettings()
+                        Toast.makeText(context, context.getString(R.string.settings_saved_successfully), Toast.LENGTH_SHORT).show()
                     }
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center

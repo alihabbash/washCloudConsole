@@ -64,6 +64,8 @@ class PCSettingsViewModel @Inject constructor(
 
             serverOption.value = sharedPreferences.getString(SERVER_OPTION, BASE_URL_DEV) ?: BASE_URL_DEV
             customServer.value = sharedPreferences.getString(CUSTOM_SERVER, "") ?: ""
+            forceOpenStationId.value = sharedPreferences.getString(FORCE_OPEN_STATION_ID_KEY, "") ?: ""
+            forceOpenBoxId.value = sharedPreferences.getString(FORCE_OPEN_BOX_ID_KEY, "") ?: ""
         }
     }
 
@@ -105,6 +107,8 @@ class PCSettingsViewModel @Inject constructor(
             putBoolean(IS_V2_API_ENABLED_KEY, isV2ApiEnabled.value)
             putBoolean(IS_STATIC_QR_OFFLINE_ENABLED_KEY, isStaticQrOfflineEnabled.value)
             putString(BRANCH_API_KEY_KEY, branchApiKey.value)
+            putString(FORCE_OPEN_STATION_ID_KEY, forceOpenStationId.value)
+            putString(FORCE_OPEN_BOX_ID_KEY, forceOpenBoxId.value)
             apply()
         }
     }
