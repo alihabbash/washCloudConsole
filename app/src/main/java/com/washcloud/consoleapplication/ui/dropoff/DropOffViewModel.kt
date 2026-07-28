@@ -256,7 +256,7 @@ class DropOffViewModel @Inject constructor(
                         }
 
                         FileLogger.log(context, "DropOffViewModel", "Staff Dropoff successful: $response")
-                        updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType)
+                        updateBoxState(boxID, orderSerial, BoxState.OCCUPIED, TransactionType.PICKUP, boxType, response.customerId)
                         delay(3000)
                         onSuccess()
 
@@ -356,7 +356,7 @@ class DropOffViewModel @Inject constructor(
     }
 
 
-    private fun  updateBoxState(boxId: String, orderSerial: String, boxState: BoxState, trnasType: TransactionType, boxType: String) {
+    private fun  updateBoxState(boxId: String, orderSerial: String, boxState: BoxState, trnasType: TransactionType, boxType: String, customerId: Long? = null) {
 
         viewModelScope.launch(Dispatchers.IO) {
 
@@ -364,8 +364,16 @@ class DropOffViewModel @Inject constructor(
             val box = boxDao.getBoxById(boxId.toLong(), boxType)
             Log.e("box before updated ", box.toString());
             if (box != null) {
-                val updatedBox = box.copy(boxState = boxState, trnasType = trnasType, orderSerial = orderSerial)
+                val updatedBox = box.copy(
+                    boxState = boxState, 
+                    trnasType = trnasType, 
+                    orderSerial = orderSerial,
+                    customerId = customerId ?: box.customerId
+                )
                 boxDao.updateBox(updatedBox)
+                customerId?.let { 
+                    transactionDao.updateTransactionCustomerId(orderSerial, it) 
+                }
                 FileLogger.log(context,  "insertTransaction"   ,"Updated box status to ${updatedBox.boxState} for boxId: $boxId")
                 Log.e("DropOffViewModel", "Updated box status to ${updatedBox.boxState} for boxId: $boxId and orderSerial: ${updatedBox.orderSerial}")
                 fetchLockers()

@@ -59,7 +59,46 @@ class App : Application(), Configuration.Provider {
 
         MainActivity.dLocale = Locale("ar")
         MainAdActivity.dLocale = Locale("ar")
+        
+        scheduleDailyCustomerSync()
+    }
 
+    private fun scheduleDailyCustomerSync() {
+        val calendar = java.util.Calendar.getInstance()
+        val currentMillis = calendar.timeInMillis
+
+        // Target next 12:00 or 00:00
+        val hour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+        if (hour < 12) {
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 12)
+        } else {
+            // Next midnight
+            calendar.add(java.util.Calendar.DAY_OF_MONTH, 1)
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        }
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+
+        val initialDelay = calendar.timeInMillis - currentMillis
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        // 12 hours apart covers exactly 12:00 and 00:00
+        val syncWorkRequest = PeriodicWorkRequestBuilder<com.washcloud.consoleapplication.workmanager.CustomerSyncWorker>(
+            12, TimeUnit.HOURS
+        )
+        .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+        .setConstraints(constraints)
+        .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "DailyCustomerSync",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            syncWorkRequest
+        )
     }
 
     /**

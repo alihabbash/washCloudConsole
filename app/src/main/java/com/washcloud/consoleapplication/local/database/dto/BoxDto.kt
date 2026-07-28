@@ -23,7 +23,8 @@ data class BoxDto(
     @ColumnInfo(name = "box_type") val boxType: BoxType,
     @ColumnInfo(name = "box_state") val boxState: BoxState,
     @ColumnInfo(name = "station_id") val stationId: Long,
-    @ColumnInfo(name = "port_id") val portId: String
+    @ColumnInfo(name = "port_id") val portId: String,
+    @ColumnInfo(name = "customer_id") val customerId: Long? = null
 ){
     constructor(
         orderSerial: String,
@@ -38,7 +39,8 @@ data class BoxDto(
         boxState: BoxState,
         stationId: Long,
         portId: String,
+        customerId: Long? = null
 
     ): this(0, orderSerial, orderId, boxId, boxNumber, trnasDate, branchId,
-        trnasType, boxSize, boxType, boxState, stationId, portId)
+        trnasType, boxSize, boxType, boxState, stationId, portId, customerId)
 }

@@ -133,6 +133,20 @@ fun PCSettingsScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                 }
 
+                item {
+                    SettingItem(
+                        screenWidth = screenWidth,
+                        screenHeight = screenHeight,
+                        label =  stringResource(R.string.branch_api_key),
+                        value =  viewModel.branchApiKey.value,
+                        onValueChange = { viewModel.branchApiKey.value = it },
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
 
                 item {
                     SettingItem(
@@ -255,6 +269,169 @@ fun PCSettingsScreen(
                             ) {
                                 Text(
                                     text = stringResource(R.string.reset_database),
+                                    style = TextStyle(
+                                        color = Color.White,
+                                        fontSize = (screenWidth.value * 0.035f).sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (viewModel.isStaticQrOfflineEnabled.value) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .border(
+                                    color = borderColor,
+                                    width = 1.dp,
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                                .shadow(3.dp, shape = RoundedCornerShape(24.dp))
+                                .background(
+                                    color = Color.White,
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Column( modifier =
+                            Modifier
+                                .height(0.10 * screenHeight)
+                                .padding(8.dp)
+                                .padding(top = 8.dp, bottom = 8.dp),
+                                verticalArrangement = Arrangement.SpaceBetween) {
+                                Text(
+                                    text = stringResource(R.string.sync_customers_instruction),
+                                    style = TextStyle(
+                                        fontSize = (screenWidth.value * 0.035f).sp,
+                                        color = secondaryColor,
+                                    )
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(
+                                            brush = Brush.horizontalGradient(
+                                                colors = listOf(
+                                                    blueGradient,
+                                                    secondaryColor,
+                                                ),
+                                            )
+                                        )
+                                        .padding(16.dp)
+                                        .clickable {
+                                            val syncWorkRequest = androidx.work.OneTimeWorkRequestBuilder<com.washcloud.consoleapplication.workmanager.CustomerSyncWorker>().build()
+                                            androidx.work.WorkManager.getInstance(context).enqueue(syncWorkRequest)
+                                            android.widget.Toast.makeText(context, context.getString(R.string.sync_triggered), android.widget.Toast.LENGTH_SHORT).show()
+                                        }
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.sync_customers),
+                                        style = TextStyle(
+                                            color = Color.White,
+                                            fontSize = (screenWidth.value * 0.035f).sp,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .border(
+                                color = borderColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .shadow(3.dp, shape = RoundedCornerShape(24.dp))
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column( modifier =
+                        Modifier
+                            .padding(8.dp)
+                            .padding(top = 8.dp, bottom = 8.dp),
+                            verticalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                text = stringResource(R.string.open_screen_locker_box),
+                                style = TextStyle(
+                                    fontSize = (screenWidth.value * 0.042f).sp,
+                                    color = secondaryColor,
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            OutlinedTextField(
+                                value = viewModel.forceOpenStationId.value,
+                                onValueChange = { viewModel.forceOpenStationId.value = it },
+                                label = { Text(stringResource(R.string.station_id), modifier = Modifier.padding(bottom = 16.dp),
+                                    style =  TextStyle(fontSize = (screenWidth.value * 0.042f).sp, color = secondaryColor)) },
+                                shape = RoundedCornerShape(16.dp),
+                                textStyle = TextStyle(
+                                    fontSize = (screenWidth.value * 0.032f).sp,
+                                ),
+                                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp, bottom = 16.dp)
+                            )
+
+                            OutlinedTextField(
+                                value = viewModel.forceOpenBoxId.value,
+                                onValueChange = { viewModel.forceOpenBoxId.value = it },
+                                label = { Text(stringResource(R.string.box_id), modifier = Modifier.padding(bottom = 16.dp),
+                                    style =  TextStyle(fontSize = (screenWidth.value * 0.042f).sp, color = secondaryColor)) },
+                                shape = RoundedCornerShape(16.dp),
+                                textStyle = TextStyle(
+                                    fontSize = (screenWidth.value * 0.032f).sp,
+                                ),
+                                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp, bottom = 16.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                blueGradient,
+                                                secondaryColor,
+                                            ),
+                                        )
+                                    )
+                                    .padding(16.dp)
+                                    .clickable {
+                                        viewModel.forceOpenBox(context)
+                                    }
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.force_open_box),
                                     style = TextStyle(
                                         color = Color.White,
                                         fontSize = (screenWidth.value * 0.035f).sp,
@@ -395,6 +572,60 @@ fun PCSettingsScreen(
                                     onCheckedChange  = {
                                         viewModel.isV2ApiEnabled.value = it
                                         viewModel.saveIsV2ApiEnabled()
+                                    },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = secondaryColor,
+                                        uncheckedThumbColor = Color.Gray
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .border(
+                                color = borderColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .shadow(3.dp, shape = RoundedCornerShape(24.dp))
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            modifier =
+                            Modifier
+                                .height(0.08 * screenHeight)
+                                .padding(16.dp)
+                                .padding(top = 8.dp, bottom = 8.dp),
+
+                            verticalArrangement = Arrangement.SpaceBetween,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.static_qr_offline_enabled),
+                                    style = TextStyle(
+                                        fontSize = (screenWidth.value * 0.035f).sp,
+                                        color = secondaryColor,
+                                    )
+                                )
+                                Switch(
+                                    checked = viewModel.isStaticQrOfflineEnabled.value,
+                                    onCheckedChange  = {
+                                        viewModel.isStaticQrOfflineEnabled.value = it
+                                        viewModel.saveIsStaticQrOfflineEnabled()
                                     },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = secondaryColor,

@@ -25,4 +25,10 @@ interface TransactionDao {
 
     @Query("DELETE FROM transactions WHERE order_serial = :orderSerial")
     suspend fun deleteTransactionsByOrderSerial(orderSerial: String)
+
+    @Query("DELETE FROM transactions WHERE customer_id = :customerId")
+    suspend fun deleteTransactionsByCustomerId(customerId: Long)
+
+    @Query("UPDATE transactions SET customer_id = :customerId WHERE order_serial = :orderSerial")
+    suspend fun updateTransactionCustomerId(orderSerial: String, customerId: Long)
 }

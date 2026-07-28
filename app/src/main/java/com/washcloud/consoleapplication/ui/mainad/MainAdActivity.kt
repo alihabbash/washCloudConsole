@@ -89,6 +89,8 @@ import com.washcloud.consoleapplication.remote.config.PREFIX
 import com.washcloud.consoleapplication.remote.config.VERIFICATION
 import com.washcloud.consoleapplication.ui.bagCounter.BagCounterView
 import com.washcloud.consoleapplication.ui.bagCounter.BagCounterViewModel
+import com.washcloud.consoleapplication.ui.pickup.SetPasswordScreen
+import com.washcloud.consoleapplication.ui.pickup.StaticQrLoginScreen
 
 import com.washcloud.consoleapplication.ui.theme.ConsoleApplicationTheme
 import com.washcloud.consoleapplication.utils.FileLogger
@@ -455,6 +457,32 @@ class MainAdActivity : ComponentActivity() {
                                 // startActivity(Intent(context, MainActivity::class.java))
                                 // finish()
                             }
+                        )
+                    } else if (viewModel.offlineQrSetPinCustomerId.collectAsState().value != null) {
+                        val customerId = viewModel.offlineQrSetPinCustomerId.collectAsState().value!!
+                        SetPasswordScreen(
+                            showAd2 = {},
+                            onBack = { viewModel.clearOfflineQrMode() },
+                            onPasswordSetSuccess = { phone, newPin ->
+                                viewModel.savePinAndUnlockBoxes(customerId, phone, newPin) { success ->
+                                    if (!success) {
+                                        Toast.makeText(context, "Verification failed", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            screenWidth = screenWidth,
+                            screenHeight = screenHeight
+                        )
+                    } else if (viewModel.offlineQrLoginCustomerId.collectAsState().value != null) {
+                        val customerId = viewModel.offlineQrLoginCustomerId.collectAsState().value!!
+                        StaticQrLoginScreen(
+                            showAd2 = {},
+                            onBack = { viewModel.clearOfflineQrMode() },
+                            verifyPin = { phone, pin, onResult ->
+                                viewModel.verifyPinAndUnlockBoxes(customerId, phone, pin, onResult)
+                            },
+                            screenWidth = screenWidth,
+                            screenHeight = screenHeight
                         )
                     } else {
 

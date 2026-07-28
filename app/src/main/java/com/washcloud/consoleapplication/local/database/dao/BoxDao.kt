@@ -37,4 +37,7 @@ interface BoxDao {
     @Query("SELECT * FROM boxes WHERE order_serial = :orderSerial AND box_state = :state")
     suspend fun getBoxesByOrderSerial(orderSerial: String, state: BoxState = BoxState.OCCUPIED): List<BoxDto>
 
+    @Query("SELECT * FROM boxes WHERE customer_id = :customerId AND box_state = :state")
+    suspend fun getBoxesByCustomerId(customerId: Long, state: BoxState = BoxState.OCCUPIED): List<BoxDto>
+
 }

@@ -17,6 +17,7 @@ data class TransactionDto(
     @ColumnInfo(name = "branch_id") val branchId: Long,
     @ColumnInfo(name = "trans_type") val trnasType: TransactionType,//drop off - pickup
     @ColumnInfo(name = "box_Size") val boxSize: BoxSizeType,
+    @ColumnInfo(name = "customer_id") val customerId: Long? = null
 ){
     constructor(
         orderSerial: String,
@@ -26,8 +27,9 @@ data class TransactionDto(
         branchId: Long,
         trnasType: TransactionType,
         boxSize: BoxSizeType,
+        customerId: Long? = null
     ): this(0, orderSerial, orderId, boxId, trnasDate, branchId,
-        trnasType, boxSize)
+        trnasType, boxSize, customerId)
 }
 
 
