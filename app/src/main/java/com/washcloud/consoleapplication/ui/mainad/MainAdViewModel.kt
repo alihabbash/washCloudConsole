@@ -749,7 +749,11 @@ class MainAdViewModel @Inject constructor(
                         qrPayload.customerId?.let { custId ->
                             val customer = customerUserDao.getCustomerUser(custId)
                             if (customer != null) {
-                                customerUserDao.updateCustomerUser(customer.copy(consolePassword = null))
+                                val currentDateTime = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
+                                customerUserDao.updateCustomerUser(customer.copy(
+                                    consolePassword = null,
+                                    consoleLastUpdate = currentDateTime
+                                ))
                                 Toast.makeText(context, context.getString(R.string.password_reset_success), Toast.LENGTH_LONG).show()
                             } else {
                                 FileLogger.log(
