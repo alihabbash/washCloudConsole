@@ -470,6 +470,9 @@ class MainAdActivity : ComponentActivity() {
                                     }
                                 }
                             },
+                            onPhoneValidate = { phone, callback ->
+                                viewModel.validatePhoneForOfflineQr(customerId, phone, callback)
+                            },
                             screenWidth = screenWidth,
                             screenHeight = screenHeight
                         )

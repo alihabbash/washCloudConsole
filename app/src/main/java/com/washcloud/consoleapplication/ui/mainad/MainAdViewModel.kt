@@ -65,6 +65,7 @@ import com.washcloud.consoleapplication.remote.config.HeadersInterceptors
 import com.washcloud.consoleapplication.remote.model.offline.ActionType
 import com.washcloud.consoleapplication.remote.model.offline.QrActionPayload
 import com.washcloud.consoleapplication.remote.model.offline.StaticQrPayload
+import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.utils.SignatureVerifier
 import com.washcloud.consoleapplication.workmanager.OfflineSyncWorker
 
@@ -737,6 +738,29 @@ class MainAdViewModel @Inject constructor(
                         e.printStackTrace()
                     }
                 }
+                
+                ActionType.RESET_CUSTOMER_PASSWORD -> {
+                    FileLogger.log(
+                        context,
+                        "handleUrlOrQrJsonBarcode",
+                        "Resetting customer password as per QR code request");
+                        
+                    viewModelScope.launch {
+                        qrPayload.customerId?.let { custId ->
+                            val customer = customerUserDao.getCustomerUser(custId)
+                            if (customer != null) {
+                                customerUserDao.updateCustomerUser(customer.copy(consolePassword = null))
+                                Toast.makeText(context, context.getString(R.string.password_reset_success), Toast.LENGTH_LONG).show()
+                            } else {
+                                FileLogger.log(
+                                    context,
+                                    "handleUrlOrQrJsonBarcode",
+                                    "Customer ID $custId not found for password reset"
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
         } catch (e: Exception) {
@@ -1211,6 +1235,24 @@ class MainAdViewModel @Inject constructor(
                 }
             } else {
                 FileLogger.log(context, "OfflineStaticQr", "Customer $customerId failed offline PIN verification.")
+                onResult(false)
+            }
+        }
+    }
+
+    fun validatePhoneForOfflineQr(customerId: Long, enteredPhone: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val customer = customerUserDao.getCustomerUser(customerId)
+            if (customer != null) {
+                val expectedPhone = customer.phoneNumber
+                val fullEnteredPhone = "+966$enteredPhone"
+                if (expectedPhone == fullEnteredPhone) {
+                    onResult(true)
+                } else {
+                    FileLogger.log(context, "OfflineStaticQr", "Phone validation failed: mismatch (Entered: $fullEnteredPhone, Expected: $expectedPhone).")
+                    onResult(false)
+                }
+            } else {
                 onResult(false)
             }
         }

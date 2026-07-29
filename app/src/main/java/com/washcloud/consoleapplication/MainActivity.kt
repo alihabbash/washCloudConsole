@@ -509,6 +509,9 @@ class MainActivity : ComponentActivity() {
                 onPasswordSetSuccess = { phone, newPin ->
                     mainViewModel.popStack()
                     mainViewModel.addToStack(SelectedView.StaticQrLoginScreen)
+                },
+                onPhoneValidate = { phone, callback ->
+                    callback(true) // Mock validation for MainActivity demo
                 }
             )
             is SelectedView.StaticQrLoginScreen -> StaticQrLoginScreen(
