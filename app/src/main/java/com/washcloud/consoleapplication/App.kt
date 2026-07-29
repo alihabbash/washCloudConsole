@@ -55,7 +55,7 @@ class App : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
-        setupCrashRebootHandler()
+//        setupCrashRebootHandler()
 
         MainActivity.dLocale = Locale("ar")
         MainAdActivity.dLocale = Locale("ar")
