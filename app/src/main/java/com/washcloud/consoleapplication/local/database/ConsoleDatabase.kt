@@ -75,13 +75,43 @@ abstract class ConsoleDatabase : RoomDatabase(){
                 
                 // Transactions Table Recreation
                 db.execSQL("CREATE TABLE IF NOT EXISTS `transactions_new` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `order_serial` TEXT NOT NULL, `order_id` INTEGER NOT NULL, `box_id` INTEGER NOT NULL, `trans_date` INTEGER NOT NULL, `branch_id` INTEGER NOT NULL, `trans_type` TEXT NOT NULL, `box_Size` TEXT NOT NULL, `customer_id` INTEGER)")
-                db.execSQL("INSERT INTO transactions_new (id, order_serial, order_id, box_id, trans_date, branch_id, trans_type, box_Size, customer_id) SELECT id, order_serial, order_id, box_id, trans_date, branch_id, trans_type, box_Size, CAST(customer_id AS INTEGER) FROM transactions")
+                
+                var hasTransactionsCustomerId = false
+                db.query("PRAGMA table_info(transactions)").use { cursor ->
+                    while(cursor.moveToNext()) {
+                        if (cursor.getString(1) == "customer_id") {
+                            hasTransactionsCustomerId = true
+                            break
+                        }
+                    }
+                }
+                
+                if (hasTransactionsCustomerId) {
+                    db.execSQL("INSERT INTO transactions_new (id, order_serial, order_id, box_id, trans_date, branch_id, trans_type, box_Size, customer_id) SELECT id, order_serial, order_id, box_id, trans_date, branch_id, trans_type, box_Size, CAST(customer_id AS INTEGER) FROM transactions")
+                } else {
+                    db.execSQL("INSERT INTO transactions_new (id, order_serial, order_id, box_id, trans_date, branch_id, trans_type, box_Size, customer_id) SELECT id, order_serial, order_id, box_id, trans_date, branch_id, trans_type, box_Size, NULL FROM transactions")
+                }
                 db.execSQL("DROP TABLE transactions")
                 db.execSQL("ALTER TABLE transactions_new RENAME TO transactions")
 
                 // Boxes Table Recreation
                 db.execSQL("CREATE TABLE IF NOT EXISTS `boxes_new` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `order_serial` TEXT NOT NULL, `order_id` INTEGER NOT NULL, `box_id` INTEGER NOT NULL, `box_number` INTEGER NOT NULL, `trans_date` INTEGER NOT NULL, `branch_id` INTEGER NOT NULL, `trans_type` TEXT NOT NULL, `box_Size` TEXT NOT NULL, `box_type` TEXT NOT NULL, `box_state` TEXT NOT NULL, `station_id` INTEGER NOT NULL, `port_id` TEXT NOT NULL, `customer_id` INTEGER)")
-                db.execSQL("INSERT INTO boxes_new (id, order_serial, order_id, box_id, box_number, trans_date, branch_id, trans_type, box_Size, box_type, box_state, station_id, port_id, customer_id) SELECT id, order_serial, order_id, box_id, box_number, trans_date, branch_id, trans_type, box_Size, box_type, box_state, station_id, port_id, CAST(customer_id AS INTEGER) FROM boxes")
+                
+                var hasBoxesCustomerId = false
+                var hasBoxesBoxNumber = false
+                db.query("PRAGMA table_info(boxes)").use { cursor ->
+                    while(cursor.moveToNext()) {
+                        val colName = cursor.getString(1)
+                        if (colName == "customer_id") hasBoxesCustomerId = true
+                        if (colName == "box_number") hasBoxesBoxNumber = true
+                    }
+                }
+                
+                val boxNumberSelect = if (hasBoxesBoxNumber) "box_number" else "0"
+                val customerIdSelectBoxes = if (hasBoxesCustomerId) "CAST(customer_id AS INTEGER)" else "NULL"
+                
+                db.execSQL("INSERT INTO boxes_new (id, order_serial, order_id, box_id, box_number, trans_date, branch_id, trans_type, box_Size, box_type, box_state, station_id, port_id, customer_id) SELECT id, order_serial, order_id, box_id, $boxNumberSelect, trans_date, branch_id, trans_type, box_Size, box_type, box_state, station_id, port_id, $customerIdSelectBoxes FROM boxes")
+                
                 db.execSQL("DROP TABLE boxes")
                 db.execSQL("ALTER TABLE boxes_new RENAME TO boxes")
             }

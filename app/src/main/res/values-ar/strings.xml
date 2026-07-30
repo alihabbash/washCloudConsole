@@ -178,5 +178,7 @@
     <string name="open_screen_locker_box">فتح صندوق شاشة الخزنة</string>
     <string name="force_open_box">فتح الصندوق</string>
     <string name="mobile_number_cannot_be_empty">لا يمكن أن يكون رقم الجوال فارغًا.</string>
+    <string name="invalid_phone_number">رقم الجوال غير صحيح</string>
     <string name="settings_saved_successfully">تم حفظ الإعدادات بنجاح</string>
+    <string name="password_reset_success">تم إعادة تعيين كلمة المرور بنجاح</string>
 </resources>

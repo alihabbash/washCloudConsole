@@ -34,6 +34,7 @@ fun SetPasswordScreen(
     showAd2: () -> Unit,
     onBack: () -> Unit,
     onPasswordSetSuccess: (String, String) -> Unit,
+    onPhoneValidate: (String, (Boolean) -> Unit) -> Unit,
     screenWidth: Dp,
     screenHeight: Dp,
 ) {
@@ -209,7 +210,14 @@ fun SetPasswordScreen(
                                     alertMessage = context.getString(R.string.mobile_number_cannot_be_empty) // Using a string resource if available, or just fallback
                                     showAlert = true
                                 } else if (passwordText.length == 4) {
-                                    isConfirmStage = true
+                                    onPhoneValidate(phoneText) { isValid ->
+                                        if (isValid) {
+                                            isConfirmStage = true
+                                        } else {
+                                            alertMessage = context.getString(R.string.invalid_phone_number)
+                                            showAlert = true
+                                        }
+                                    }
                                 } else {
                                     alertMessage = context.getString(R.string.pin_must_be_4_digits)
                                     showAlert = true
