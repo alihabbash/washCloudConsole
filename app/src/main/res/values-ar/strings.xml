@@ -179,6 +179,8 @@
     <string name="force_open_box">فتح الصندوق</string>
     <string name="mobile_number_cannot_be_empty">لا يمكن أن يكون رقم الجوال فارغًا.</string>
     <string name="invalid_phone_number">رقم الجوال غير صحيح</string>
+    <string name="disable_drop_off_setting">إلغاء عمليات الإيداع</string>
+    <string name="drop_off_disabled_toast">الإيداع غير متاح هنا. الرجاء استخدام جهاز آخر.</string>
     <string name="settings_saved_successfully">تم حفظ الإعدادات بنجاح</string>
     <string name="password_reset_success">تم إعادة تعيين كلمة المرور بنجاح</string>
 </resources>
