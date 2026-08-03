@@ -347,6 +347,11 @@ class MainAdViewModel @Inject constructor(
             val type = if (boxType == "") data.type.uppercase(Locale.ENGLISH) else boxType.uppercase(Locale.ENGLISH)
             requestCustomerPickup(type,doorNumber,hideDialog)
         } else {
+            if (PrefsManager.isDropOffDisabled(context)) {
+                FileLogger.log(context, "checkOperationType", "Drop-Off is disabled in settings. Aborting.")
+                Toast.makeText(context, context.getString(R.string.drop_off_disabled_toast), Toast.LENGTH_SHORT).show()
+                return
+            }
             requestCustomerDropOff()
         }
     }
@@ -839,6 +844,13 @@ class MainAdViewModel @Inject constructor(
                 FileLogger.log(context, "MainAdViewModel handleBarcode", "Response: $body")
 
                 body?.let {
+                    val opType = it.data?.firstOrNull()?.operationType
+                    if (opType != "PickUp" && PrefsManager.isDropOffDisabled(context)) {
+                        FileLogger.log(context, "MainAdViewModel handleBarcode", "Drop-Off is disabled in settings. Aborting.")
+                        Toast.makeText(context, context.getString(R.string.drop_off_disabled_toast), Toast.LENGTH_SHORT).show()
+                        return@let
+                    }
+
                     _apiResponse.value = it
 
                     Log.i("boxes number is", "${it.data?.firstOrNull()?.boxes?.size}")

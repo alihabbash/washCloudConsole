@@ -161,6 +161,11 @@ class PrefsManager constructor(
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getString(BRANCH_API_KEY_KEY, null)
         }
+
+        fun isDropOffDisabled(context: Context): Boolean {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getBoolean(IS_DROP_OFF_DISABLED_KEY, false)
+        }
     }
 
 }

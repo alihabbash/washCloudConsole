@@ -32,7 +32,7 @@ class PCSettingsViewModel @Inject constructor(
     var isRebootEnabled = mutableStateOf(false)
     var isV2ApiEnabled = mutableStateOf(false)
     var isStaticQrOfflineEnabled = mutableStateOf(false)
-
+    var isDropOffDisabled = mutableStateOf(false)
     var branchApiKey = mutableStateOf("")
     var apiKey = mutableStateOf("")
     var terminalSn = mutableStateOf("")
@@ -55,7 +55,7 @@ class PCSettingsViewModel @Inject constructor(
             isRebootEnabled.value = sharedPreferences.getBoolean(IS_REBOOT_ENABLED_KEY, true)
             isV2ApiEnabled.value = sharedPreferences.getBoolean(IS_V2_API_ENABLED_KEY, false)
             isStaticQrOfflineEnabled.value = sharedPreferences.getBoolean(IS_STATIC_QR_OFFLINE_ENABLED_KEY, false)
-
+            isDropOffDisabled.value = sharedPreferences.getBoolean(IS_DROP_OFF_DISABLED_KEY, false)
             branchApiKey.value = sharedPreferences.getString(BRANCH_API_KEY_KEY, "") ?: ""
             apiKey.value = sharedPreferences.getString(API_KEY_KEY, "cb71a12703264742b5b8") ?: ""
             terminalSn.value = sharedPreferences.getString(TERMINAL_SN_KEY, "21222213701A-001") ?: ""
@@ -136,6 +136,13 @@ class PCSettingsViewModel @Inject constructor(
             FileLogger.log(context, "PCSettings_ForceOpen", "Successfully sent force open command for boxId $boxId at stationId $stationId")
         } catch (e: Exception) {
             FileLogger.log(context, "PCSettings_ForceOpen", "FAILED to force open locker. Exception: ${e.message}")
+        }
+    }
+    
+    fun saveIsDropOffDisabled() {
+        with(sharedPreferences.edit()) {
+            putBoolean(IS_DROP_OFF_DISABLED_KEY, isDropOffDisabled.value)
+            apply()
         }
     }
 }
