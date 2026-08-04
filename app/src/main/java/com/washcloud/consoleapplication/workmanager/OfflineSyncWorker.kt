@@ -52,9 +52,9 @@ class OfflineSyncWorker @AssistedInject constructor(
 
                 if (response.isSuccessful) {
                     transactionDao.deleteTransaction(transaction.id)
-                    FileLogger.log(context, "OfflineSyncWorker", "Successfully synced transaction ${transaction.id}")
+                    FileLogger.log(context, "OfflineSyncWorker", "Successfully synced transaction (ID: ${transaction.id}, Serial: ${transaction.orderSerial})")
                 } else {
-                    FileLogger.log(context, "OfflineSyncWorker", "Failed to sync transaction ${transaction.id}: ${response.errorBody()?.string()}")
+                    FileLogger.log(context, "OfflineSyncWorker", "Failed to sync transaction (ID: ${transaction.id}, Serial: ${transaction.orderSerial}): ${response.errorBody()?.string()}")
                     allSuccess = false
                 }
             }
