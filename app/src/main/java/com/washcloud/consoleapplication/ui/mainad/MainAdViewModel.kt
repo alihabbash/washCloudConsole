@@ -1316,11 +1316,11 @@ class MainAdViewModel @Inject constructor(
             val updatedBox = box.copy(boxState = BoxState.AVAILABLE)
             boxDao.updateBox(updatedBox)
             
+            // Queue transaction for background sync
+            insertOfflinePickupTransaction(box)
+            
             FileLogger.log(context, "OfflineStaticQr", "Successfully unlocked boxId ${box.boxId} (Type: ${box.boxType}) for customer $customerId")
         }
-        
-        // Delete all transactions for this customer as they have been picked up
-        transactionDao.deleteTransactionsByCustomerId(customerId)
         
         // After processing, clear the UI state to return to Ad screen
         clearOfflineQrMode()

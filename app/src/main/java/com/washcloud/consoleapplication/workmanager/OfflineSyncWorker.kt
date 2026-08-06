@@ -6,6 +6,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
+import com.washcloud.consoleapplication.local.database.utils.TransactionType
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.ui.mainad.ApiService
 import com.washcloud.consoleapplication.utils.FileLogger
@@ -39,22 +40,32 @@ class OfflineSyncWorker @AssistedInject constructor(
             var allSuccess = true
 
             for (transaction in pendingTransactions) {
-                // The offline mode currently only pushes Pickups, but we'll sync all
+                // Determine box type based on logic. Default to 1 (Box), conveyor is usually 2.
                 val typeInt = if (transaction.boxId == 0L) 1 else 1 // Adjust if conveyor logic applies
 
-                val response = apiService.customerPickup(
-                    apiKey = apiKey,
-                    wayBillNo = transaction.orderSerial,
-                    terminalSn = terminalSn,
-                    doorNo = transaction.boxId.toString().padStart(2, '0'),
-                    type = typeInt 
-                )
+                val response = if (transaction.trnasType == TransactionType.DROP_OFF) {
+                    apiService.customerDropOff(
+                        apiKey = apiKey,
+                        wayBillNo = transaction.orderSerial,
+                        terminalSn = terminalSn,
+                        doorNo = transaction.boxId.toString().padStart(2, '0'),
+                        type = typeInt 
+                    )
+                } else {
+                    apiService.customerPickup(
+                        apiKey = apiKey,
+                        wayBillNo = transaction.orderSerial,
+                        terminalSn = terminalSn,
+                        doorNo = transaction.boxId.toString().padStart(2, '0'),
+                        type = typeInt 
+                    )
+                }
 
                 if (response.isSuccessful) {
                     transactionDao.deleteTransaction(transaction.id)
-                    FileLogger.log(context, "OfflineSyncWorker", "Successfully synced transaction (ID: ${transaction.id}, Serial: ${transaction.orderSerial})")
+                    FileLogger.log(context, "OfflineSyncWorker", "Successfully synced transaction (ID: ${transaction.id}, Serial: ${transaction.orderSerial}, Type: ${transaction.trnasType})")
                 } else {
-                    FileLogger.log(context, "OfflineSyncWorker", "Failed to sync transaction (ID: ${transaction.id}, Serial: ${transaction.orderSerial}): ${response.errorBody()?.string()}")
+                    FileLogger.log(context, "OfflineSyncWorker", "Failed to sync transaction (ID: ${transaction.id}, Serial: ${transaction.orderSerial}, Type: ${transaction.trnasType}): ${response.errorBody()?.string()}")
                     allSuccess = false
                 }
             }
