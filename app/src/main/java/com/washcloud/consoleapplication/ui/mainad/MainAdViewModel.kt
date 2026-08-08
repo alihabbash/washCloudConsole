@@ -68,6 +68,8 @@ import com.washcloud.consoleapplication.remote.model.offline.StaticQrPayload
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.utils.SignatureVerifier
 import com.washcloud.consoleapplication.workmanager.OfflineSyncWorker
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 
 object RetrofitClient {
@@ -891,6 +893,23 @@ class MainAdViewModel @Inject constructor(
                     "MainAdViewModel handleBarcode",
                     "Error fetching data from $fullUrl: $errorBody"
                 )
+                
+                // Parse the error JSON and show a Toast if "message" exists
+                try {
+                    if (!errorBody.isNullOrBlank()) {
+                        val jsonObject = JSONObject(errorBody)
+                        if (jsonObject.has("message")) {
+                            val msg = jsonObject.getString("message")
+                            if (msg.isNotBlank()) {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    FileLogger.log(context, "MainAdViewModel handleBarcode", "Failed to parse error message: ${e.message}")
+                }
             }
         } catch (e: Exception) {
             FileLogger.log(
