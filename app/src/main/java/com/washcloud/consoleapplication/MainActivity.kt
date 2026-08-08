@@ -234,41 +234,92 @@ class MainActivity : ComponentActivity() {
         }
         return metrics.widthPixels
     }
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
- 
-        FileLogger.log(this, "MainActivity", "keyCode $keyCode")
-        return if (keyCode == KeyEvent.KEYCODE_ENTER) {
-            Log.e("MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
-            FileLogger.log(this, "MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
-            val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
-            FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
-            Log.e("MainActivity", "Barcode scanned: $barcode")
-            if (barcode.isNotEmpty()) {
-                // Broadcast to all listeners (Pickup, DropOff, etc.)
-                val broadcastIntent = Intent("com.washcloud.scanner_data").apply {
-                    putExtra("scannerData", barcode)
-                }
-                sendBroadcast(broadcastIntent)
-                FileLogger.log(this, "MainActivity", "Broadcasted scanner data: $barcode")
+//    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+// 
+//        FileLogger.log(this, "MainActivity", "keyCode $keyCode")
+//        return if (keyCode == KeyEvent.KEYCODE_ENTER) {
+//            Log.e("MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+//            FileLogger.log(this, "MainActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+//            val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
+//            FileLogger.log(this, "MainActivity", "Barcode scanned: $barcode")
+//            Log.e("MainActivity", "Barcode scanned: $barcode")
+//            if (barcode.isNotEmpty()) {
+//                // Broadcast to all listeners (Pickup, DropOff, etc.)
+//                val broadcastIntent = Intent("com.washcloud.scanner_data").apply {
+//                    putExtra("scannerData", barcode)
+//                }
+//                sendBroadcast(broadcastIntent)
+//                FileLogger.log(this, "MainActivity", "Broadcasted scanner data: $barcode")
+//
+//                if (barcode.startsWith("https")) {
+//                    FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
+//                    Log.e("MainActivity", "Valid barcode: $barcode")
+//                    val intent = Intent(this, MainAdActivity::class.java).apply {
+//                        putExtra("barcode", barcode)
+//                    }
+//                    startActivity(intent)
+//                    Log.e("MainActivity", "finish")
+//                    finish()
+//                }
+//            }
+//            barcodeData.setLength(0)
+//            true
+//        } else {
+//            barcodeData.append(event.unicodeChar.toChar())
+//            FileLogger.log(this, "MainActivity", "barcodeData: ${barcodeData.toString()}")
+//            super.onKeyDown(keyCode, event)
+//        }
+//    }
 
-                if (barcode.startsWith("https")) {
-                    FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
-                    Log.e("MainActivity", "Valid barcode: $barcode")
-                    val intent = Intent(this, MainAdActivity::class.java).apply {
-                        putExtra("barcode", barcode)
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            val keyCode = event.keyCode
+            
+            // Re-add keyCode logging for debugging
+            FileLogger.log(this, "MainActivity", "keyCode (dispatchKeyEvent) $keyCode")
+
+            // Allow system keys to pass through normally
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+                keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||
+                keyCode == KeyEvent.KEYCODE_BACK ||
+                keyCode == KeyEvent.KEYCODE_HOME) {
+                return super.dispatchKeyEvent(event)
+            }
+
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
+                if (barcode.isNotEmpty()) {
+                    FileLogger.log(this, "MainActivity", "Barcode scanned (dispatchKeyEvent): $barcode")
+                    Log.e("MainActivity", "Barcode scanned (dispatchKeyEvent): $barcode")
+
+                    val broadcastIntent = Intent("com.washcloud.scanner_data").apply {
+                        putExtra("scannerData", barcode)
                     }
-                    startActivity(intent)
-                    Log.e("MainActivity", "finish")
-                    finish()
+                    sendBroadcast(broadcastIntent)
+                    FileLogger.log(this, "MainActivity", "Broadcasted scanner data: $barcode")
+
+                    if (barcode.startsWith("https")) {
+                        FileLogger.log(this, "MainActivity", "Valid barcode: $barcode")
+                        Log.e("MainActivity", "Valid barcode: $barcode")
+                        val intent = Intent(this, MainAdActivity::class.java).apply {
+                            putExtra("barcode", barcode)
+                        }
+                        startActivity(intent)
+                        Log.e("MainActivity", "finish")
+                        finish()
+                    }
+                }
+                barcodeData.setLength(0)
+                return true // Consume ENTER so it doesn't trigger UI elements
+            } else {
+                val char = event.unicodeChar
+                if (char != 0) {
+                    barcodeData.append(char.toChar())
+                    FileLogger.log(this, "MainActivity", "barcodeData (dispatchKeyEvent): ${barcodeData.toString()}")
                 }
             }
-            barcodeData.setLength(0)
-            true
-        } else {
-            barcodeData.append(event.unicodeChar.toChar())
-            FileLogger.log(this, "MainActivity", "barcodeData: ${barcodeData.toString()}")
-            super.onKeyDown(keyCode, event)
         }
+        return super.dispatchKeyEvent(event)
     }
 
     private fun startSystemAlertWindowPermission() {
