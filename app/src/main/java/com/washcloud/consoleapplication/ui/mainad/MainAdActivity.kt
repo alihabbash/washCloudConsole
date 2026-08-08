@@ -288,26 +288,63 @@ class MainAdActivity : ComponentActivity() {
 
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+//    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+//
+//        FileLogger.log(this, "MainAdActivity", "keyCode $keyCode")
+//
+//        return if (keyCode == KeyEvent.KEYCODE_ENTER) {
+//            FileLogger.log(this, "MainAdActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
+//            val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
+//            FileLogger.log(this, "MainAdActivity", "Barcode scanned: $barcode")
+//            if (barcode.isNotEmpty()) {
+//              //  Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
+//                viewModel.handleBarcode(barcode)
+//                FileLogger.log(this, "MainAdActivity", "Sending barcode to DropOffAndPickup: $barcode")
+//                broadcastScannedBarcodeToListeners(barcode)
+//                barcodeData.setLength(0)
+//            }
+//            true
+//        } else {
+//            barcodeData.append(event.unicodeChar.toChar())
+//            super.onKeyDown(keyCode, event)
+//        }
+//    }
 
-        FileLogger.log(this, "MainAdActivity", "keyCode $keyCode")
+    @SuppressLint("RestrictedApi")
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            val keyCode = event.keyCode
+            
+            // Re-add keyCode logging for debugging
+            FileLogger.log(this, "MainAdActivity", "keyCode (dispatchKeyEvent) $keyCode")
 
-        return if (keyCode == KeyEvent.KEYCODE_ENTER) {
-            FileLogger.log(this, "MainAdActivity", "keyCode ${KeyEvent.KEYCODE_ENTER}")
-            val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
-            FileLogger.log(this, "MainAdActivity", "Barcode scanned: $barcode")
-            if (barcode.isNotEmpty()) {
-              //  Toast.makeText(this, "Barcode scanned: $barcode", Toast.LENGTH_LONG).show()
-                viewModel.handleBarcode(barcode)
-                FileLogger.log(this, "MainAdActivity", "Sending barcode to DropOffAndPickup: $barcode")
-                broadcastScannedBarcodeToListeners(barcode)
-                barcodeData.setLength(0)
+            // Allow system keys to pass through normally
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || 
+                keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || 
+                keyCode == KeyEvent.KEYCODE_BACK ||
+                keyCode == KeyEvent.KEYCODE_HOME) {
+                return super.dispatchKeyEvent(event)
             }
-            true
-        } else {
-            barcodeData.append(event.unicodeChar.toChar())
-            super.onKeyDown(keyCode, event)
+
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                val barcode = barcodeData.toString().trim().replace(Regex("\\s"), "").replace("\\","/").replace("\u0000", "")
+                if (barcode.isNotEmpty()) {
+                    FileLogger.log(this, "MainAdActivity", "Barcode scanned (dispatchKeyEvent): $barcode")
+                    viewModel.handleBarcode(barcode)
+                    FileLogger.log(this, "MainAdActivity", "Sending barcode to DropOffAndPickup: $barcode")
+                    broadcastScannedBarcodeToListeners(barcode)
+                }
+                barcodeData.setLength(0)
+                return true // Consume ENTER so it doesn't trigger UI elements
+            } else {
+                val char = event.unicodeChar
+                if (char != 0) {
+                    barcodeData.append(char.toChar())
+                    FileLogger.log(this, "MainAdActivity", "barcodeData (dispatchKeyEvent): ${barcodeData.toString()}")
+                }
+            }
         }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onStop() {
