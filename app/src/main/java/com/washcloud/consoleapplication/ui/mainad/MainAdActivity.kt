@@ -310,6 +310,7 @@ class MainAdActivity : ComponentActivity() {
 //        }
 //    }
 
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             val keyCode = event.keyCode

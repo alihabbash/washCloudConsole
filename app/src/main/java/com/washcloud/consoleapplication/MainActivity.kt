@@ -1,5 +1,6 @@
 package com.washcloud.consoleapplication
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
 import android.content.Context
@@ -271,6 +272,7 @@ class MainActivity : ComponentActivity() {
 //        }
 //    }
 
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             val keyCode = event.keyCode
