@@ -20,6 +20,7 @@ sealed class SelectedView{
     object AddLockerScreen: SelectedView()
     object StaticQrLoginScreen: SelectedView()
     object SetPasswordScreen: SelectedView()
+    object StoredCustomersScreen: SelectedView()
     fun copy(): SelectedView{
         return this
     }

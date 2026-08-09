@@ -47,6 +47,7 @@ import java.util.Locale
 fun PCSettingsScreen(
     screenWidth: Dp,
     screenHeight: Dp,
+    showStoredCustomers: () -> Unit,
     showAd2: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -270,6 +271,69 @@ fun PCSettingsScreen(
                             ) {
                                 Text(
                                     text = stringResource(R.string.reset_database),
+                                    style = TextStyle(
+                                        color = Color.White,
+                                        fontSize = (screenWidth.value * 0.035f).sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .border(
+                                color = borderColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .shadow(3.dp, shape = RoundedCornerShape(24.dp))
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column( modifier =
+                        Modifier
+                            .height(0.10 * screenHeight)
+                            .padding(8.dp)
+                            .padding(top = 8.dp, bottom = 8.dp),
+                            verticalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                text = stringResource(R.string.stored_customers_instruction),
+                                style = TextStyle(
+                                    fontSize = (screenWidth.value * 0.035f).sp,
+                                    color = secondaryColor,
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                blueGradient,
+                                                secondaryColor,
+                                            ),
+                                        )
+                                    )
+                                    .padding(16.dp)
+                                    .clickable {
+                                        showStoredCustomers()
+                                    }
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.show_stored_customers),
                                     style = TextStyle(
                                         color = Color.White,
                                         fontSize = (screenWidth.value * 0.035f).sp,

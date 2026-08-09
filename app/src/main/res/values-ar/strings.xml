@@ -183,4 +183,8 @@
     <string name="drop_off_disabled_toast">الإيداع غير متاح هنا. الرجاء استخدام جهاز آخر.</string>
     <string name="settings_saved_successfully">تم حفظ الإعدادات بنجاح</string>
     <string name="password_reset_success">تم إعادة تعيين كلمة المرور بنجاح</string>
+    <string name="show_stored_customers">عرض العملاء المخزنين</string>
+    <string name="stored_customers_title">العملاء المخزنين</string>
+    <string name="no_customers_found">لم يتم العثور على عملاء</string>
+    <string name="stored_customers_instruction">عرض قائمة العملاء المخزنين محلياً</string>
 </resources>

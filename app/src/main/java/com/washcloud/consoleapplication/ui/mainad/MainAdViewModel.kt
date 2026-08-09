@@ -214,6 +214,10 @@ class MainAdViewModel @Inject constructor(
 
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
+    
+    fun clearError() {
+        _error.value = ""
+    }
 
     private val _isloading = MutableStateFlow(false)
     val isloading: StateFlow<Boolean> get() = _isloading
@@ -887,29 +891,31 @@ class MainAdViewModel @Inject constructor(
                 }
             } else {
                 val errorBody = response.errorBody()?.string()
-                _error.value = "Error fetching data from $fullUrl: $errorBody"
                 FileLogger.log(
                     context,
                     "MainAdViewModel handleBarcode",
                     "Error fetching data from $fullUrl: $errorBody"
                 )
                 
-                // Parse the error JSON and show a Toast if "message" exists
+                var finalErrorMessage = "Error fetching data from $fullUrl: $errorBody"
+
+                // Parse the error JSON for a specific message
                 try {
                     if (!errorBody.isNullOrBlank()) {
                         val jsonObject = JSONObject(errorBody)
                         if (jsonObject.has("message")) {
                             val msg = jsonObject.getString("message")
                             if (msg.isNotBlank()) {
-                                withContext(Dispatchers.Main) {
-                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                                }
+                                finalErrorMessage = msg
                             }
                         }
                     }
                 } catch (e: Exception) {
                     FileLogger.log(context, "MainAdViewModel handleBarcode", "Failed to parse error message: ${e.message}")
                 }
+                
+                // Only post to LiveData ONCE so it doesn't trigger two Dialogs
+                _error.postValue(finalErrorMessage)
             }
         } catch (e: Exception) {
             FileLogger.log(

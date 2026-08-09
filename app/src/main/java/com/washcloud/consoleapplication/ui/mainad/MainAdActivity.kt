@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,6 +70,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
@@ -111,6 +113,7 @@ import tp.xmaihh.serialport.SerialHelper
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @AndroidEntryPoint
@@ -446,9 +449,10 @@ class MainAdActivity : ComponentActivity() {
         })
 
         viewModel.error.observe(this, Observer { errorMessage ->
-           // Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
-            FileLogger.log(this, "MainAdActivity", "Error: $errorMessage")
-            println("Error: $errorMessage")
+            if (errorMessage.isNotEmpty()) {
+                FileLogger.log(this, "MainAdActivity", "Error: $errorMessage")
+                println("Error: $errorMessage")
+            }
         })
 
 //        GlobalScope.launch {
@@ -479,6 +483,8 @@ class MainAdActivity : ComponentActivity() {
                     color = screenBackground
                 ) {
                     val context = LocalContext.current
+
+                    val errorMessage by viewModel.error.observeAsState()
 
                     val isBagScanMode by viewModel.isBagScanMode.collectAsState()
 
@@ -897,6 +903,54 @@ class MainAdActivity : ComponentActivity() {
                             }
                         }
 
+                    }
+
+                    if (!errorMessage.isNullOrEmpty()) {
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .width(screenWidth)
+                                .height(screenHeight)
+                                .background(dimBackground)
+                                .clickable { viewModel.clearError() }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(0.02f * screenWidth.value))
+                                    .background(color = Color.White)
+                                    .width(0.8f * screenWidth)
+                                    .height(0.3f * screenHeight),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = Color.Red,
+                                        modifier = Modifier
+                                            .width(0.15f * screenWidth)
+                                            .height(0.15f * screenWidth)
+                                    )
+                                    Spacer(modifier = Modifier.height(0.02f * screenHeight))
+                                    Text(
+                                        text = errorMessage!!,
+                                        style = TextStyle(
+                                            fontSize = (screenWidth.value * 0.04f).sp,
+                                            color = Color.Red,
+                                            textAlign = TextAlign.Center
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        LaunchedEffect(errorMessage) {
+                            delay(6000L.milliseconds)
+                            viewModel.clearError()
+                        }
                     }
 
                 }
