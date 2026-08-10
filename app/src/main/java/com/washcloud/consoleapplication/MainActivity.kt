@@ -67,6 +67,7 @@ import com.washcloud.consoleapplication.ui.admin.menu.AdminMenuView
 import com.washcloud.consoleapplication.ui.admin.password.ChangePasswordScreen
 import com.washcloud.consoleapplication.ui.admin.phoneNumber.UpdatePhoneNumberScreen
 import com.washcloud.consoleapplication.ui.admin.settings.PCSettingsScreen
+import com.washcloud.consoleapplication.ui.admin.customers.StoredCustomersScreen
 import com.washcloud.consoleapplication.ui.common.BottomNavigation
 import com.washcloud.consoleapplication.ui.common.MainViewModel
 import com.washcloud.consoleapplication.ui.common.SelectedView
@@ -468,6 +469,14 @@ class MainActivity : ComponentActivity() {
             )
 
             is SelectedView.PCSettingsScreen -> PCSettingsScreen(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                showStoredCustomers = { mainViewModel.addToStack(SelectedView.StoredCustomersScreen) },
+                showAd2 = onTimeout,
+                onBack = { mainViewModel.popStack() }
+            )
+            
+            is SelectedView.StoredCustomersScreen -> StoredCustomersScreen(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 showAd2 = onTimeout,

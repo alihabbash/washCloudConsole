@@ -181,4 +181,8 @@
     <string name="drop_off_disabled_toast">Drop-off disabled here. Use another machine.</string>
     <string name="settings_saved_successfully">Settings saved successfully</string>
     <string name="password_reset_success">You have reset your password successfully</string>
+    <string name="show_stored_customers">Show Stored Customers</string>
+    <string name="stored_customers_title">Stored Customers</string>
+    <string name="no_customers_found">No customers found</string>
+    <string name="stored_customers_instruction">View locally stored customers list</string>
 </resources>
