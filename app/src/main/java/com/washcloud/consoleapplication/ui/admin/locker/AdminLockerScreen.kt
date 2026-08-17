@@ -85,6 +85,7 @@ fun AdminLockerScreen(
     var showStatusDialog by remember { mutableStateOf(false) }
     val lockerStatuses by viewModel.lockerStatuses.collectAsState(initial = emptyList())
     var isResetAction by remember { mutableStateOf(false) }
+    var showNotFoundError by remember { mutableStateOf(false) }
 
 
 
@@ -115,11 +116,12 @@ fun AdminLockerScreen(
 //        viewModel.sendMockDoorStatusBrodcast();
 //    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .then(interactionModifier)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(interactionModifier)
+        ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Admin Locker",
@@ -221,9 +223,11 @@ fun AdminLockerScreen(
                    horizontalArrangement = Arrangement.Center,){
                    TextButton(stringResource(id = R.string.open)) {
                        if(selectedLocker.isNotEmpty()) {
-
-                       viewModel.sendCommand("com.washcloud.open_door", selectedLocker)
-                   }
+                           val success = viewModel.sendCommand("com.washcloud.open_door", selectedLocker)
+                           if (!success) {
+                               showNotFoundError = true
+                           }
+                       }
                    }
                    TextButton(stringResource(id = R.string.reset)) { /* Handle Reset */ }
                }
@@ -313,12 +317,12 @@ fun AdminLockerScreen(
         )
 
 
-        Spacer(modifier = Modifier.weight(1f))
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
-    }
+            Spacer(modifier = Modifier.weight(1f))
+            BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
+        }
 
 
-    if (showAlert) {
+        if (showAlert) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -438,6 +442,89 @@ fun AdminLockerScreen(
                 }
             }
         }
+    }
+    
+    if (showNotFoundError) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .width(screenWidth)
+                .height(screenHeight)
+                .background(dimBackground)
+                .clickable {
+                    showNotFoundError = false
+                }
+        ) {
+            Box(
+                modifier =
+                Modifier
+                    .clip(
+                        RoundedCornerShape(0.02 * screenWidth)
+                    )
+                    .background(color = Color.White)
+                    .width(0.8 * screenWidth)
+                    .height(0.16 * screenHeight),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Text(
+                        text = stringResource(id = R.string.locker_not_found),
+                        style = TextStyle(
+                            fontSize = (screenWidth.value * 0.03f).sp,
+                            color = primaryDark
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    val gradientBrush = remember {
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                blueGradient,
+                                secondaryColor,
+                            )
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 24.dp, end = 24.dp)
+                            .clip(
+                                RoundedCornerShape((screenHeight.value * 0.011f).dp)
+                            )
+                            .background(
+                                brush = gradientBrush
+                            )
+                            .padding(
+                                start = 16.dp,
+                                top = (screenHeight.value * 0.01f).dp,
+                                end = 16.dp,
+                                bottom = (screenHeight.value * 0.01f).dp
+                            )
+                            .fillMaxWidth()
+                            .padding(start = 24.dp, end = 24.dp)
+                            .clickable {
+                                showNotFoundError = false
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.ok),
+                            style = TextStyle(
+                                color = Color.White,
+                                fontSize = (screenWidth.value * 0.028f).sp
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
     }
 }
 

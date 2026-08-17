@@ -393,23 +393,30 @@ class LockerViewModel @Inject constructor(
             }
         }
     }
-    fun sendCommand(action: String, boxId: String) {
+    fun sendCommand(action: String, boxId: String): Boolean {
+        val boxIdLong = boxId.toLongOrNull() ?: return false
         val intent = Intent(action).apply {
             val stationId =   lockers.value
                 .filter {it.boxType == BoxType.BOX}
-                .filter { it.boxId == boxId.toLong() }
+                .filter { it.boxId == boxIdLong }
                 .map { it.stationId }
                 .firstOrNull()
             val boxNumber = lockers.value
                 .filter {it.boxType == BoxType.BOX}
-                .filter { it.boxId == boxId.toLong() }
+                .filter { it.boxId == boxIdLong }
                 .map { it.boxNumber }
                 .firstOrNull()
+
+            if (stationId == null || boxNumber == null) {
+                return false
+            }
+
             FileLogger.log(context, "LockerViewModel", "Sending command to open door: stationId: 0$stationId, boxId: 0$boxId")
             putExtra("stationId", "0"+stationId.toString())
             putExtra("boxId", "0"+boxNumber)
         }
         context.sendBroadcast(intent)
+        return true
     }
 
     fun openAllEmptyLockers() {

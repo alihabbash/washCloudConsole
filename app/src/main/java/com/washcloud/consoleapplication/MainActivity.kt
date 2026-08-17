@@ -132,7 +132,7 @@ class MainActivity : ComponentActivity() {
     private fun updateConfig(wrapper: ContextThemeWrapper) {
 
         if(dLocale == null) {
-            dLocale = Locale("ar")
+            dLocale = Locale("en")
         }
         Locale.setDefault(dLocale)
         val configuration = Configuration()
@@ -162,7 +162,7 @@ class MainActivity : ComponentActivity() {
         }
 
         if(dLocale == null) {
-            dLocale = Locale("ar")
+            dLocale = Locale("en")
         }
         val config = resources.configuration
         Locale.setDefault(dLocale)
@@ -721,7 +721,7 @@ class MainActivity : ComponentActivity() {
 
     private fun changeLanguage() {
         val currentLang = dLocale?.language ?: Locale.getDefault().language
-        val newLang = if (currentLang == "ar") "en" else "ar"
+        val newLang = if (currentLang == "en") "ar" else "en"
         dLocale = Locale(newLang)
         val config = resources.configuration
         Locale.setDefault(dLocale)
