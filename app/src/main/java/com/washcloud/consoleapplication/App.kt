@@ -57,8 +57,8 @@ class App : Application(), Configuration.Provider {
 
 //        setupCrashRebootHandler()
 
-        MainActivity.dLocale = Locale("ar")
-        MainAdActivity.dLocale = Locale("ar")
+        MainActivity.dLocale = Locale("en")
+        MainAdActivity.dLocale = Locale("en")
         
         scheduleDailyCustomerSync()
     }

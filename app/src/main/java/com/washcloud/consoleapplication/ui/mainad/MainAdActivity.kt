@@ -216,7 +216,7 @@ class MainAdActivity : ComponentActivity() {
 
 
     companion object {
-        public var dLocale: Locale? = Locale("ar")
+        public var dLocale: Locale? = Locale("en")
 
         fun getBaseUrl(context: Context): String {
             val url = PrefsManager.getBaseURL(context)
@@ -232,7 +232,7 @@ class MainAdActivity : ComponentActivity() {
 
 
     private fun updateConfig(wrapper: ContextThemeWrapper) {
-        dLocale = Locale("ar")
+        dLocale = Locale("en")
         Locale.setDefault(dLocale)
         val configuration = Configuration()
         configuration.setLocale(dLocale)
@@ -589,7 +589,7 @@ class MainAdActivity : ComponentActivity() {
                                     detectTapGestures(
                                         onDoubleTap = {
                                             // finish()
-                                            MainActivity.dLocale = Locale("ar")
+                                            MainActivity.dLocale = Locale("en")
                                             val intent = Intent(context, MainActivity::class.java)
                                             context.startActivity(intent)
 

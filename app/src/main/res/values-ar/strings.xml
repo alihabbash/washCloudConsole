@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">تطبيق وحدة التحكم</string>
+    <string name="locker_not_found">لم يتم العثور على الخزانة في الجهاز!</string>
     <string name="ad1">إعلان١</string>
     <string name="ad2">إعلان٢</string>
     <string name="help">المساعدة</string>
