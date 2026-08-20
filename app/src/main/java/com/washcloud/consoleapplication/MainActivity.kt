@@ -142,11 +142,27 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    private val kioskModeReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context, intent: android.content.Intent) {
+            if (intent.action == "com.washcloud.kiosk_mode_changed") {
+                enableKioskMode()
+            }
+        }
+    }
+
+    @android.annotation.SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            val filter = android.content.IntentFilter("com.washcloud.kiosk_mode_changed")
+            registerReceiver(kioskModeReceiver, filter)
+        } catch (e: Exception) {}
+
         setAdminPassword()
         loadPhoneNumber()
         startSystemAlertWindowPermission()
+
+        enableKioskMode()
 
 
         if (actionBar != null) {
@@ -735,8 +751,47 @@ class MainActivity : ComponentActivity() {
         recreate()
     }
 
+    private fun enableKioskMode() {
+        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val isKioskEnabled = sharedPreferences.getBoolean(com.washcloud.consoleapplication.local.preferences.IS_KIOSK_ENABLED_KEY, true)
+        
+        if (!isKioskEnabled) {
+            try {
+                stopLockTask()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return
+        }
 
+        val dpm = getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+        val componentName = android.content.ComponentName(this, KioskDeviceAdminReceiver::class.java)
+
+        try {
+            if (!dpm.isDeviceOwnerApp(packageName)) {
+                // Try to set device owner via root
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "dpm set-device-owner $packageName/.KioskDeviceAdminReceiver"))
+                process.waitFor()
+            }
+
+            if (dpm.isDeviceOwnerApp(packageName) && dpm.isAdminActive(componentName)) {
+                dpm.setLockTaskPackages(componentName, arrayOf(packageName))
+                startLockTask()
+            }
+        } catch (e: Exception) {
+            FileLogger.log(this, "MainAdActivity", "Enable kiosk mode exception: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            unregisterReceiver(kioskModeReceiver)
+        } catch (e: Exception) {}
+    }
 
 }
+
 
 

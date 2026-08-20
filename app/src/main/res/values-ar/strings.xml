@@ -166,6 +166,7 @@
     <string name="switch_to_v2">التبديل إلى V2</string>
     <string name="branch_api_key">مفتاح API للفرع</string>
     <string name="static_qr_offline_enabled">سير عمل QR الثابت بدون إنترنت</string>
+    <string name="enable_kiosk_mode">تفعيل وضع الكشك</string>
     <string name="setup_offline_pin">إعداد الرقم السري (بدون إنترنت)</string>
     <string name="create_4_digit_pin">إنشاء رقم سري من 4 أرقام</string>
     <string name="confirm_4_digit_pin">تأكيد الرقم السري المكون من 4 أرقام</string>
