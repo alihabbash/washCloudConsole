@@ -76,6 +76,7 @@ import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
 import coil.compose.rememberAsyncImagePainter
 import com.washcloud.consoleapplication.HeartbeatReceiver
+import com.washcloud.consoleapplication.KioskDeviceAdminReceiver
 import com.washcloud.consoleapplication.MainActivity
 import com.washcloud.consoleapplication.R
 import com.washcloud.consoleapplication.di.DatabaseModule
@@ -248,6 +249,9 @@ class MainAdActivity : ComponentActivity() {
         unregisterReceiverSafe(scannerReceiver)
         unregisterReceiverSafe(dataReceiver)
         unregisterReceiverSafe(converyReceiver)
+        try {
+            unregisterReceiver(kioskModeReceiver)
+        } catch (e: Exception) {}
         FileLogger.log(this, "MainAdActivity onDestroy", "Receivers unregistered")
     }
 
@@ -286,7 +290,7 @@ class MainAdActivity : ComponentActivity() {
             FileLogger.log(this, "MainAdActivity", "Rebooting device")
             process.waitFor()
         } catch (e: Exception) {
-            e.printStackTrace()
+            FileLogger.log(this, "MainAdActivity", "Reboot exception: ${e.message}")
         }
 
     }
@@ -397,8 +401,23 @@ class MainAdActivity : ComponentActivity() {
 
 
 
+    private val kioskModeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "com.washcloud.kiosk_mode_changed") {
+                enableKioskMode()
+            }
+        }
+    }
+
+    @android.annotation.SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            val filter = IntentFilter("com.washcloud.kiosk_mode_changed")
+            registerReceiver(kioskModeReceiver, filter)
+        } catch (e: Exception) {}
+        
+        enableKioskMode()
 
         window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -1383,6 +1402,38 @@ class MainAdActivity : ComponentActivity() {
 //    }
 
 
+
+    private fun enableKioskMode() {
+        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val isKioskEnabled = sharedPreferences.getBoolean(com.washcloud.consoleapplication.local.preferences.IS_KIOSK_ENABLED_KEY, true)
+        
+        if (!isKioskEnabled) {
+            try {
+                stopLockTask()
+            } catch (e: Exception) {
+                FileLogger.log(this, "MainAdActivity", "Stop kiosk mode exception: ${e.message}")
+            }
+            return
+        }
+
+        val dpm = getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+        val componentName = android.content.ComponentName(this, KioskDeviceAdminReceiver::class.java)
+
+        try {
+            if (!dpm.isDeviceOwnerApp(packageName)) {
+                // Try to set device owner via root
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "dpm set-device-owner $packageName/.KioskDeviceAdminReceiver"))
+                process.waitFor()
+            }
+
+            if (dpm.isDeviceOwnerApp(packageName)) {
+                dpm.setLockTaskPackages(componentName, arrayOf(packageName))
+                startLockTask()
+            }
+        } catch (e: Exception) {
+            FileLogger.log(this, "MainAdActivity", "Enable kiosk mode exception: ${e.message}")
+        }
+    }
 
 }
 

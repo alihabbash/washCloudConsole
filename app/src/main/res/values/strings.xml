@@ -164,6 +164,7 @@
     <string name="switch_to_v2">Switch to V2</string>
     <string name="branch_api_key">Branch Api key</string>
     <string name="static_qr_offline_enabled">Static QR Offline Workflow</string>
+    <string name="enable_kiosk_mode">Enable Kiosk Mode</string>
     <string name="setup_offline_pin">Setup Offline PIN</string>
     <string name="create_4_digit_pin">Create a 4-digit PIN</string>
     <string name="confirm_4_digit_pin">Confirm your 4-digit PIN</string>

@@ -355,7 +355,7 @@ class MainAdViewModel @Inject constructor(
         } else {
             if (PrefsManager.isDropOffDisabled(context)) {
                 FileLogger.log(context, "checkOperationType", "Drop-Off is disabled in settings. Aborting.")
-                Toast.makeText(context, context.getString(R.string.drop_off_disabled_toast), Toast.LENGTH_SHORT).show()
+                _error.value = context.getString(R.string.drop_off_disabled_toast)
                 return
             }
             requestCustomerDropOff()
@@ -853,7 +853,7 @@ class MainAdViewModel @Inject constructor(
                     val opType = it.data?.firstOrNull()?.operationType
                     if (opType != "PickUp" && PrefsManager.isDropOffDisabled(context)) {
                         FileLogger.log(context, "MainAdViewModel handleBarcode", "Drop-Off is disabled in settings. Aborting.")
-                        Toast.makeText(context, context.getString(R.string.drop_off_disabled_toast), Toast.LENGTH_SHORT).show()
+                        _error.value = context.getString(R.string.drop_off_disabled_toast)
                         return@let
                     }
 

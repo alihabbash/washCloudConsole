@@ -33,6 +33,7 @@ class PCSettingsViewModel @Inject constructor(
     var isV2ApiEnabled = mutableStateOf(false)
     var isStaticQrOfflineEnabled = mutableStateOf(false)
     var isDropOffDisabled = mutableStateOf(false)
+    var isKioskEnabled = mutableStateOf(true)
     var branchApiKey = mutableStateOf("")
     var apiKey = mutableStateOf("")
     var terminalSn = mutableStateOf("")
@@ -56,6 +57,7 @@ class PCSettingsViewModel @Inject constructor(
             isV2ApiEnabled.value = sharedPreferences.getBoolean(IS_V2_API_ENABLED_KEY, false)
             isStaticQrOfflineEnabled.value = sharedPreferences.getBoolean(IS_STATIC_QR_OFFLINE_ENABLED_KEY, false)
             isDropOffDisabled.value = sharedPreferences.getBoolean(IS_DROP_OFF_DISABLED_KEY, false)
+            isKioskEnabled.value = sharedPreferences.getBoolean(IS_KIOSK_ENABLED_KEY, true)
             branchApiKey.value = sharedPreferences.getString(BRANCH_API_KEY_KEY, "") ?: ""
             apiKey.value = sharedPreferences.getString(API_KEY_KEY, "cb71a12703264742b5b8") ?: ""
             terminalSn.value = sharedPreferences.getString(TERMINAL_SN_KEY, "21222213701A-001") ?: ""
@@ -106,6 +108,7 @@ class PCSettingsViewModel @Inject constructor(
             putString(CUSTOM_SERVER, customServer.value)
             putBoolean(IS_V2_API_ENABLED_KEY, isV2ApiEnabled.value)
             putBoolean(IS_STATIC_QR_OFFLINE_ENABLED_KEY, isStaticQrOfflineEnabled.value)
+            putBoolean(IS_KIOSK_ENABLED_KEY, isKioskEnabled.value)
             putString(BRANCH_API_KEY_KEY, branchApiKey.value)
             putString(FORCE_OPEN_STATION_ID_KEY, forceOpenStationId.value)
             putString(FORCE_OPEN_BOX_ID_KEY, forceOpenBoxId.value)
@@ -144,5 +147,15 @@ class PCSettingsViewModel @Inject constructor(
             putBoolean(IS_DROP_OFF_DISABLED_KEY, isDropOffDisabled.value)
             apply()
         }
+    }
+
+    fun saveIsKioskEnabled() {
+        with(sharedPreferences.edit()) {
+            putBoolean(IS_KIOSK_ENABLED_KEY, isKioskEnabled.value)
+            apply()
+        }
+        val intent = android.content.Intent("com.washcloud.kiosk_mode_changed")
+        intent.putExtra("is_enabled", isKioskEnabled.value)
+        getApplication<Application>().sendBroadcast(intent)
     }
 }

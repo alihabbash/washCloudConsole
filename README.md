@@ -18,3 +18,11 @@ If you want to learn more about creating good readme files then refer the follow
 - [ASP.NET Core](https://github.com/aspnet/Home)
 - [Visual Studio Code](https://github.com/Microsoft/vscode)
 - [Chakra Core](https://github.com/Microsoft/ChakraCore)
+# Kiosk Mode Setup (Non-Root Devices)
+If a device is not rooted, the app cannot automatically enable Kiosk Mode privileges. You must provision it as a Device Owner manually via ADB before enabling the feature in settings:
+1. Connect the device via USB to your PC.
+2. Run the following ADB command:
+   `ash
+   adb shell dpm set-device-owner com.washcloud.consoleapplication/.KioskDeviceAdminReceiver
+   ``n3. Restart the app. You can now enable Kiosk Mode.
+
