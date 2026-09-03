@@ -18,6 +18,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+import javax.net.ssl.HttpsURLConnection
 
 
 @Module
@@ -38,6 +39,14 @@ object NetworkModule {
             connectTimeout(50, TimeUnit.SECONDS)
             readTimeout(50, TimeUnit.SECONDS)
             writeTimeout(50, TimeUnit.SECONDS)
+            hostnameVerifier { hostname, session ->
+                val verifier = HttpsURLConnection.getDefaultHostnameVerifier()
+                if (hostname == "20.21.54.1") {
+                    verifier.verify("washcloudproduction.azurewebsites.net", session)
+                } else {
+                    verifier.verify(hostname, session)
+                }
+            }
         }.build()
     }
 

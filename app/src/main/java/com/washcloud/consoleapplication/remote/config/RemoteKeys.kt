@@ -3,6 +3,7 @@ package com.washcloud.consoleapplication.remote.config
 //const val BASE_URL = "https://devwashcloud.azurewebsites.net/"
 const val BASE_URL_PROD = "https://api.washcloud.net/"
 const val BASE_URL_DEV = "https://devwashcloud.azurewebsites.net/"
+const val BASE_URL_IP = "https://20.21.54.1/"
 const val PREFIX = "/api/LockerIntegration/"
 const val LOCKER_API = "api/LockerIntegration/"
 const val STAFF_LOGIN = PREFIX + "StaffVerification"
