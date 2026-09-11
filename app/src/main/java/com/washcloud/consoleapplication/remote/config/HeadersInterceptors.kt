@@ -19,10 +19,15 @@ class HeadersInterceptors @Inject constructor(
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
 
-        var newRequest: Request = chain.request().newBuilder()
+        val requestBuilder = chain.request().newBuilder()
             .addHeader("Apikey", PrefsManager.getApiKey(context))
-            .build()
-            
+
+        if (chain.request().url.host == "20.21.54.1") {
+            requestBuilder.addHeader("Host", "washcloudproduction.azurewebsites.net")
+        }
+
+        var newRequest: Request = requestBuilder.build()
+        
         if (PrefsManager.isV2ApiEnabled(context)) {
             val url = newRequest.url
             val path = url.encodedPath

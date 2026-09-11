@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.remote.config.BASE_URL_DEV
 import com.washcloud.consoleapplication.remote.config.BASE_URL_PROD
+import com.washcloud.consoleapplication.remote.config.BASE_URL_IP
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import java.util.Locale
@@ -987,6 +988,21 @@ fun ServerSettingItem(
                         color = Color.Black
                     ),
                     modifier = Modifier.clickable { onOptionSelected(prodServerUrl) }
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                RadioButton(
+                    selected = serverOption == BASE_URL_IP,
+                    onClick = { onOptionSelected(BASE_URL_IP) }
+                )
+                Text(
+                    text = "IP",
+                    style = TextStyle(
+                        fontSize = (screenWidth.value * 0.035f).sp,
+                        color = Color.Black
+                    ),
+                    modifier = Modifier.clickable { onOptionSelected(BASE_URL_IP) }
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))

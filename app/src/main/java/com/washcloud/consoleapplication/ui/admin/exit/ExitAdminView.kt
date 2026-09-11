@@ -43,6 +43,8 @@ import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.common.dateAndTimeView
 import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.*
+import com.washcloud.consoleapplication.ui.common.AdminPasswordPad
+import com.washcloud.consoleapplication.ui.admin.login.AdminLoginViewModel
 
 @Composable
 fun ExitAdminView(
@@ -57,8 +59,11 @@ fun ExitAdminView(
 ) {
 
     val timerViewModel: TimerViewModel = hiltViewModel()
+    val adminLoginViewModel: AdminLoginViewModel = hiltViewModel()
     var showDialog by remember { mutableStateOf(false) }
     var dialogAction by remember { mutableStateOf<() -> Unit>({}) }
+    var showPasswordPad by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<() -> Unit>({}) }
 
     val interactionModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(onTap = {
@@ -86,12 +91,12 @@ fun ExitAdminView(
                 showDialog = true
             },
             rebootAndroid = {
-                dialogAction = rebootAndroid
-                showDialog = true
+                pendingAction = rebootAndroid
+                showPasswordPad = true
             },
             shutdown = {
-                dialogAction = shutdown
-                showDialog = true
+                pendingAction = shutdown
+                showPasswordPad = true
             },
             logoutAdmin = {
                 dialogAction = logoutAdmin
@@ -106,6 +111,29 @@ fun ExitAdminView(
         BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
 
 
+    }
+
+    if (showPasswordPad) {
+        Box(
+            modifier = Modifier
+                .width(screenWidth)
+                .height(screenHeight)
+                .background(dimBackground)
+                .clickable { showPasswordPad = false },
+            contentAlignment = Alignment.Center
+        ) {
+            AdminPasswordPad(
+                modifier = Modifier.width(0.8f * screenWidth),
+                viewModel = adminLoginViewModel,
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onSuccess = { 
+                    pendingAction()
+                    showPasswordPad = false 
+                },
+                onCancel = { showPasswordPad = false }
+            )
+        }
     }
 
     if (showDialog) {

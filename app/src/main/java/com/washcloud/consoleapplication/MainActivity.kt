@@ -16,6 +16,7 @@ import android.view.ContextThemeWrapper
 import android.view.KeyEvent
 import android.view.View
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -90,6 +91,7 @@ import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val mainViewModel: MainViewModel by viewModels()
     private var screenHeight = 0.0.dp
     private var screenWidth = 0.0.dp
     private val barcodeData = StringBuilder()
@@ -196,7 +198,6 @@ class MainActivity : ComponentActivity() {
                 screenWidth = getRealScreenWidth().dp
 
                 //LocalConfiguration.current.screenWidthDp.dp
-                val mainViewModel: MainViewModel = hiltViewModel()
                 val stack by mainViewModel.stack.collectAsState()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -311,6 +312,35 @@ class MainActivity : ComponentActivity() {
                     FileLogger.log(this, "MainActivity", "Barcode scanned (dispatchKeyEvent): $barcode")
                     Log.e("MainActivity", "Barcode scanned (dispatchKeyEvent): $barcode")
 
+                    val currentView = mainViewModel.stack.value.lastOrNull()
+                    val isAdminView = when (currentView) {
+                        is SelectedView.AdminLogInView,
+                        is SelectedView.AdminMenuView,
+                        is SelectedView.PCSettingsScreen,
+                        is SelectedView.SubAdminSettingsScreen,
+                        is SelectedView.ChangePasswordScreen,
+                        is SelectedView.UpdatePhoneNumberScreen,
+                        is SelectedView.AdsManagementScreen,
+                        is SelectedView.AdminLockerScreen,
+                        is SelectedView.ExitAdminView,
+                        is SelectedView.AddLockerScreen,
+                        is SelectedView.StoredCustomersScreen -> true
+                        else -> false
+                    }
+
+                    if (isAdminView) {
+                        FileLogger.log(this, "MainActivity", "Admin view active. Intercepting QR scan to redirect to MainAdActivity.")
+                        Log.e("MainActivity", "Admin view active. Redirecting to MainAdActivity.")
+                        val intent = Intent(this, MainAdActivity::class.java).apply {
+                            putExtra("barcode", barcode)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        startActivity(intent)
+                        finish()
+                        barcodeData.setLength(0)
+                        return true
+                    }
+
                     val broadcastIntent = Intent("com.washcloud.scanner_data").apply {
                         putExtra("scannerData", barcode)
                     }
@@ -322,6 +352,7 @@ class MainActivity : ComponentActivity() {
                         Log.e("MainActivity", "Valid barcode: $barcode")
                         val intent = Intent(this, MainAdActivity::class.java).apply {
                             putExtra("barcode", barcode)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         }
                         startActivity(intent)
                         Log.e("MainActivity", "finish")
