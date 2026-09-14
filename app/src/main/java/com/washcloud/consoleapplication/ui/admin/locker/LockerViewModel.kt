@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -13,6 +14,9 @@ import androidx.lifecycle.viewModelScope
 import com.washcloud.consoleapplication.di.DatabaseModule
 import com.washcloud.consoleapplication.hardware.SerialPortService
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
+import androidx.preference.PreferenceManager
+import androidx.compose.runtime.mutableStateOf
+import com.washcloud.consoleapplication.local.preferences.IS_CONVEYOR_ENABLED_KEY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,9 +50,11 @@ class LockerViewModel @Inject constructor(
     application: Application,
     private val broadcastReceiverRepository: BroadcastReceiverRepository,
     private val boxDao: BoxDao
-) : AndroidViewModel(application) {
+) : AndroidViewModel(application), SharedPreferences.OnSharedPreferenceChangeListener {
 
     private val context: Context = getApplication<Application>().applicationContext
+    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
+    var isConveyorEnabled = mutableStateOf(sharedPreferences.getBoolean(IS_CONVEYOR_ENABLED_KEY, true))
 
     private val _lockers = MutableStateFlow<List<BoxDto>>(emptyList())
     val lockers: StateFlow<List<BoxDto>> = _lockers.asStateFlow()
@@ -76,7 +82,7 @@ class LockerViewModel @Inject constructor(
         registerLockerStatusReceiver()
         registerConveyorStatusReceiver()
         registerConveyorDoorStatus()
-
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this)
     }
 
     private fun registerLockerStatusReceiver() {
@@ -164,6 +170,7 @@ class LockerViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         broadcastReceiverRepository.unregisterReceiver()
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
     }
 
 
@@ -510,7 +517,9 @@ class LockerViewModel @Inject constructor(
         context.sendBroadcast(intent)
     }
 
-
-
-
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        if (key == IS_CONVEYOR_ENABLED_KEY) {
+            isConveyorEnabled.value = sharedPreferences?.getBoolean(IS_CONVEYOR_ENABLED_KEY, true) ?: true
+        }
+    }
 }

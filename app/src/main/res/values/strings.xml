@@ -100,6 +100,7 @@
     <string name="success_locker_added">Locker added successfully!</string>
     <string name="error_fill_all_fields">Please fill in all fields.</string>
      <string name="reset">Reset</string>
+    <string name="enable_conveyor_setting">Enable Conveyor</string>
     <string name="locker">Locker</string>
     <string name="open_all_empty_lockers">Open All Empty</string>
     <string name="open_all_accuity_lockers">Open All Occupied</string>
