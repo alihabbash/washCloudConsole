@@ -137,6 +137,7 @@ fun AdminLockerScreen(
         dateAndTimeView(screenWidth = screenWidth)
         Spacer(modifier = Modifier.height(24.dp))
 
+    if (viewModel.isConveyorEnabled.value) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
@@ -189,6 +190,7 @@ fun AdminLockerScreen(
             }
 
         }
+    }
 
         Column(
             modifier = Modifier

@@ -118,6 +118,7 @@
     <string name="run">تشغيل</string>
     <string name="clear_status">إزالة الحالة</string>
     <string name="conveyor">كونفاير</string>
+    <string name="enable_conveyor_setting">تفعيل الكونفاير</string>
     <string name="confirmation">تأكيد</string>
     <string name="confirmation_message">هل أنت متأكد أنك تريد متابعة هذا الإجراء؟</string>
     <string name="yes">نعم</string>

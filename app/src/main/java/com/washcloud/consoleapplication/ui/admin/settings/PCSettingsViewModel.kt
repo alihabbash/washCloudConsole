@@ -34,6 +34,7 @@ class PCSettingsViewModel @Inject constructor(
     var isStaticQrOfflineEnabled = mutableStateOf(false)
     var isDropOffDisabled = mutableStateOf(false)
     var isKioskEnabled = mutableStateOf(true)
+    var isConveyorEnabled = mutableStateOf(true)
     var branchApiKey = mutableStateOf("")
     var apiKey = mutableStateOf("")
     var terminalSn = mutableStateOf("")
@@ -58,6 +59,7 @@ class PCSettingsViewModel @Inject constructor(
             isStaticQrOfflineEnabled.value = sharedPreferences.getBoolean(IS_STATIC_QR_OFFLINE_ENABLED_KEY, false)
             isDropOffDisabled.value = sharedPreferences.getBoolean(IS_DROP_OFF_DISABLED_KEY, false)
             isKioskEnabled.value = sharedPreferences.getBoolean(IS_KIOSK_ENABLED_KEY, true)
+            isConveyorEnabled.value = sharedPreferences.getBoolean(IS_CONVEYOR_ENABLED_KEY, true)
             branchApiKey.value = sharedPreferences.getString(BRANCH_API_KEY_KEY, "") ?: ""
             apiKey.value = sharedPreferences.getString(API_KEY_KEY, "cb71a12703264742b5b8") ?: ""
             terminalSn.value = sharedPreferences.getString(TERMINAL_SN_KEY, "21222213701A-001") ?: ""
@@ -156,6 +158,16 @@ class PCSettingsViewModel @Inject constructor(
         }
         val intent = android.content.Intent("com.washcloud.kiosk_mode_changed")
         intent.putExtra("is_enabled", isKioskEnabled.value)
+        getApplication<Application>().sendBroadcast(intent)
+    }
+
+    fun saveIsConveyorEnabled() {
+        with(sharedPreferences.edit()) {
+            putBoolean(IS_CONVEYOR_ENABLED_KEY, isConveyorEnabled.value)
+            apply()
+        }
+        val intent = android.content.Intent("com.washcloud.conveyor_mode_changed")
+        intent.putExtra("is_enabled", isConveyorEnabled.value)
         getApplication<Application>().sendBroadcast(intent)
     }
 }

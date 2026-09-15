@@ -20,13 +20,20 @@ import java.io.IOException
 import java.util.Locale
 
 
+import android.content.SharedPreferences
+import androidx.preference.PreferenceManager
+import com.washcloud.consoleapplication.local.preferences.IS_CONVEYOR_ENABLED_KEY
+
 class SerialPortService : Service() {
     private lateinit var serialHelper: SerialHelper
-//    private lateinit var serialHelperConveyor: SerialHelper
-//    private  lateinit var serialHelperConveyorDoor: SerialHelper
+    private lateinit var serialHelperConveyor: SerialHelper
+    private  lateinit var serialHelperConveyorDoor: SerialHelper
     private  lateinit var serialHelperScanner: SerialHelper
     private  var position: Int = 0
     private  val holeNumber: Int = 201
+
+    private var isConveyorEnabled: Boolean = true
+    private lateinit var sharedPreferences: SharedPreferences
 
 
     private val dataReceiver = object : BroadcastReceiver() {
@@ -35,9 +42,22 @@ class SerialPortService : Service() {
             when (intent.action) {
                 "com.washcloud.open_door" -> handleOpenBox(intent, context)
                 "com.washcloud.check_door" -> handleCheckBox(intent,context)
-//                "com.washcloud.conveyor_open" -> openConveyor(intent.getStringExtra("conveyorNumber")?.toInt())
-//                "com.washcloud.conveyor_close" -> closeConveyorDoor()
-//                "com.washcloud.conveyor_open_door" -> openConveyorDoor()
+                "com.washcloud.conveyor_open" -> if (isConveyorEnabled) openConveyor(intent.getStringExtra("conveyorNumber")?.toInt())
+                "com.washcloud.conveyor_close" -> if (isConveyorEnabled) closeConveyorDoor()
+                "com.washcloud.conveyor_open_door" -> if (isConveyorEnabled) openConveyorDoor()
+                "com.washcloud.conveyor_mode_changed" -> {
+                    val enabled = intent.getBooleanExtra("is_enabled", true)
+                    FileLogger.log(applicationContext, "SerialPortService", "Received conveyor_mode_changed broadcast. Enabled: $enabled. Current state: $isConveyorEnabled")
+                    if (enabled != isConveyorEnabled) {
+                        isConveyorEnabled = enabled
+                        FileLogger.log(applicationContext, "SerialPortService", "Conveyor preference changed to: $enabled")
+                        if (isConveyorEnabled) {
+                            startConveyorSockets()
+                        } else {
+                            stopConveyorSockets()
+                        }
+                    }
+                }
             }
         }
     }
@@ -45,12 +65,16 @@ class SerialPortService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        isConveyorEnabled = sharedPreferences.getBoolean(IS_CONVEYOR_ENABLED_KEY, true)
+
         registerReceiver(dataReceiver, IntentFilter().apply {
             addAction("com.washcloud.open_door")
             addAction("com.washcloud.check_door")
-//            addAction("com.washcloud.conveyor_open")
-//            addAction("com.washcloud.conveyor_close")
-//            addAction("com.washcloud.conveyor_open_door")
+            addAction("com.washcloud.conveyor_open")
+            addAction("com.washcloud.conveyor_close")
+            addAction("com.washcloud.conveyor_open_door")
+            addAction("com.washcloud.conveyor_mode_changed")
         })
     }
 
@@ -60,12 +84,31 @@ class SerialPortService : Service() {
     }
 
     private fun initializeSerialPorts(startId: Int) {
-        FileLogger.log(applicationContext, "SerialPortService", "start create serialHelper")
         serialHelper = createSerialHelper("dev/ttyS1", 9600, startId) { handleSerialData(it) }
-//        serialHelperConveyorDoor = createSerialHelper("dev/ttyS0", 9600, startId) { handleConveyorDoorData(it) }
         serialHelperScanner = createSerialHelper("dev/ttyS4", 115200, startId) { handleScanner(it) }
-//        serialHelperConveyor = createSerialHelperForConveyor("dev/ttyS3", 19200, startId) { handleConveyorData(it) }
+        if (isConveyorEnabled) {
+            startConveyorSockets(startId)
+        }
+    }
 
+    private fun startConveyorSockets(startId: Int = 0) {
+        FileLogger.log(applicationContext, "SerialPortService", "startConveyorSockets() called")
+        if (!::serialHelperConveyorDoor.isInitialized || !serialHelperConveyorDoor.isOpen) {
+            serialHelperConveyorDoor = createSerialHelper("dev/ttyS0", 9600, startId) { handleConveyorDoorData(it) }
+        }
+        if (!::serialHelperConveyor.isInitialized || !serialHelperConveyor.isOpen) {
+            serialHelperConveyor = createSerialHelperForConveyor("dev/ttyS3", 19200, startId) { handleConveyorData(it) }
+        }
+    }
+
+    private fun stopConveyorSockets() {
+        FileLogger.log(applicationContext, "SerialPortService", "stopConveyorSockets() called")
+        if (::serialHelperConveyorDoor.isInitialized && serialHelperConveyorDoor.isOpen) {
+            serialHelperConveyorDoor.close()
+        }
+        if (::serialHelperConveyor.isInitialized && serialHelperConveyor.isOpen) {
+            serialHelperConveyor.close()
+        }
     }
 
     private fun createSerialHelper(port: String, baudRate: Int, startId: Int, onDataReceived: (ComBean) -> Unit) = object : SerialHelper(port, baudRate) {
@@ -102,97 +145,94 @@ class SerialPortService : Service() {
                 open()
             } catch (e: Throwable) {
                 FileLogger.log(applicationContext, "SerialPortService", "Error opening $port: ${e.message}")
-                stopSelf(startId)
             }
         }
     }
 
     private fun SerialHelper.safeOpen(port: String, startId: Int) {
         try {
-            FileLogger.log(applicationContext, "SerialPortService", "$port start open")
             open()
             FileLogger.log(applicationContext, "SerialPortService", "$port opened successfully")
         } catch (e: Throwable) {
             FileLogger.log(applicationContext, "SerialPortService", "Error opening $port: ${e.message}")
-            stopSelf(startId)
         }
     }
 
-//    private fun sendConveyorDoorCommand(command: String) {
-//        if (!serialHelperConveyorDoor.isOpen) serialHelperConveyorDoor.safeOpen("dev/ttyS0", 0)
-//        serialHelperConveyorDoor.sendHex(command)
-//    }
+    private fun sendConveyorDoorCommand(command: String) {
+        if (!serialHelperConveyorDoor.isOpen) serialHelperConveyorDoor.safeOpen("dev/ttyS0", 0)
+        serialHelperConveyorDoor.sendHex(command)
+    }
 
-//    private fun openConveyorDoor() {
-//        FileLogger.log(applicationContext, "openConveyorDoor", "Sending open command")
-//        sendConveyorDoorCommand("FEFA040A01000105F4012003000068A2") // open conveyor door
-//    }
+    private fun openConveyorDoor() {
+        FileLogger.log(applicationContext, "openConveyorDoor", "Sending open command")
+        sendConveyorDoorCommand("FEFA040A01000105F4012003000068A2") // open conveyor door
+    }
 
-//    private fun closeConveyorDoor() {
-//        FileLogger.log(applicationContext, "closeConveyorDoor", "Sending close command")
-//        sendConveyorDoorCommand("FEFA040602000105E803E639") // close conveyor door
-////        GlobalScope.launch {
-////            delay(100)
-////            serialHelperConveyor.sendHex("01066002002037D2").also { position = 0 }//Back to zero position movement
-////        }
-//    }
+    private fun closeConveyorDoor() {
+        FileLogger.log(applicationContext, "closeConveyorDoor", "Sending close command")
+        sendConveyorDoorCommand("FEFA040602000105E803E639") // close conveyor door
+//        GlobalScope.launch {
+//            delay(100)
+//            serialHelperConveyor.sendHex("01066002002037D2").also { position = 0 }//Back to zero position movement
+//        }
+    }
 
-//    private fun openConveyor(conveyorNumber: Int?) {
-//        conveyorNumber?.let {
-//            FileLogger.log(applicationContext, "SerialPortService", "Opening conveyor door $it")
-//            if (!serialHelperConveyor.isOpen) serialHelperConveyor.safeOpen("dev/ttyS3", 0)
-//            moveConveyor(it)
-//        }
-//    }
+    private fun openConveyor(conveyorNumber: Int?) {
+        conveyorNumber?.let {
+            FileLogger.log(applicationContext, "SerialPortService", "Opening conveyor door $it")
+            if (!serialHelperConveyor.isOpen) serialHelperConveyor.safeOpen("dev/ttyS3", 0)
+            moveConveyor(it)
+        }
+    }
 
-//    private fun moveConveyor(targetPoint: Int) {
-//        val prefix = "01106201000204" + calculatePulseNumber(targetPoint * 3 - 1)
-//        val data: ByteArray = hexStringToByteArray(prefix)
-//        val crc: Int = compute(data)
-//        val command = prefix + toHex(crc)
-//        serialHelperConveyor.sendHex("01066200000157B2")
-//        GlobalScope.launch {
-//            delay(50)
-//            serialHelperConveyor.sendHex("0106620307086584")  /// set motor speed 1800
-//        }
-//        GlobalScope.launch {
-//            delay(150)
-//            FileLogger.log(
-//                applicationContext,
-//                "moveConveyor",
-//                "Moving conveyor to $targetPoint -> $command"
-//            )
-//            serialHelperConveyor.sendHex(command)
-//        }
-//        GlobalScope.launch {
-//            delay(300)
-//            FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor 01066002001037C6")
-//            serialHelperConveyor.sendHex("01066002001037C6") // move to specific position
-//        }
-//
-//
-//        GlobalScope.launch {
-//            delay(650)
-//            FileLogger.log(
-//                applicationContext,
-//                "checkConveyor",
-//                "Checking conveyor to $targetPoint -> 0103600200013BCA"
-//            )
-//            serialHelperConveyor.sendHex("0103600200013BCA") // check position
-//        }
-//
-//    }
-//    private fun calculatePulseNumber(targetPoint: Int): String =
-//        String.format(Locale.US,"%08X", 20000 * targetPoint)
-//
-//    private fun determineMovementDirection(targetPoint: Int): Boolean {
-//        FileLogger.log(applicationContext, "SerialPortService", "Determining movement direction to point $targetPoint")
-//        val forwardSteps = (targetPoint - position + holeNumber) % holeNumber
-//        val reverseSteps = (position - targetPoint + holeNumber) % holeNumber
-//
-//        FileLogger.log(applicationContext, "SerialPortService", "Forward steps: $forwardSteps, Reverse steps: $reverseSteps determineMovementDirection  ${forwardSteps <= reverseSteps}")
-//        return forwardSteps <= reverseSteps
-//    }
+    private fun moveConveyor(targetPoint: Int) {
+        val prefix = "01106201000204" + calculatePulseNumber(targetPoint * 3 - 1)
+        val data: ByteArray = hexStringToByteArray(prefix)
+        val crc: Int = compute(data)
+        val command = prefix + toHex(crc)
+        serialHelperConveyor.sendHex("01066200000157B2")
+        GlobalScope.launch {
+            delay(50)
+            serialHelperConveyor.sendHex("0106620307086584")  /// set motor speed 1800
+        }
+        GlobalScope.launch {
+            delay(150)
+            FileLogger.log(
+                applicationContext,
+                "moveConveyor",
+                "Moving conveyor to $targetPoint -> $command"
+            )
+            serialHelperConveyor.sendHex(command)
+        }
+        GlobalScope.launch {
+            delay(300)
+            FileLogger.log(applicationContext, "moveConveyor", "Moving conveyor 01066002001037C6")
+            serialHelperConveyor.sendHex("01066002001037C6") // move to specific position
+        }
+
+
+        GlobalScope.launch {
+            delay(650)
+            FileLogger.log(
+                applicationContext,
+                "checkConveyor",
+                "Checking conveyor to $targetPoint -> 0103600200013BCA"
+            )
+            serialHelperConveyor.sendHex("0103600200013BCA") // check position
+        }
+
+    }
+    private fun calculatePulseNumber(targetPoint: Int): String =
+        String.format(Locale.US,"%08X", 20000 * targetPoint)
+
+    private fun determineMovementDirection(targetPoint: Int): Boolean {
+        FileLogger.log(applicationContext, "SerialPortService", "Determining movement direction to point $targetPoint")
+        val forwardSteps = (targetPoint - position + holeNumber) % holeNumber
+        val reverseSteps = (position - targetPoint + holeNumber) % holeNumber
+
+        FileLogger.log(applicationContext, "SerialPortService", "Forward steps: $forwardSteps, Reverse steps: $reverseSteps determineMovementDirection  ${forwardSteps <= reverseSteps}")
+        return forwardSteps <= reverseSteps
+    }
 
 
 
@@ -262,10 +302,10 @@ class SerialPortService : Service() {
         sendCommand(serialHelper, "900612${decimalToTwoDigitHex(stationId.toInt())}${decimalToTwoDigitHex(boxId.toInt())}03")
     }
 
-//    private fun moveConveyorToZero() {
-//        sendCommand(serialHelperConveyor, "01066203070866E8")
-//        sendCommand(serialHelperConveyor, "01066002002037D2")
-//    }
+    private fun moveConveyorToZero() {
+        sendCommand(serialHelperConveyor, "01066203070866E8")
+        sendCommand(serialHelperConveyor, "01066002002037D2")
+    }
 
     private fun sendCommand(helper: SerialHelper, command: String) {
         FileLogger.log(applicationContext, "SerialPortService", "Sending command: $command")
@@ -290,55 +330,55 @@ class SerialPortService : Service() {
     }
 
 
-//    private fun handleConveyorDoorData(comBean: ComBean) {
-//        val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
-//        FileLogger.log(applicationContext, "SerialPortService", "Conveyor door data: $dataReceive")
-//
-//        // Note: We use startsWith() instead of strict == to account for hardware protocol quirks:
-//        // 1. The hardware appends trailing zeros to the open response: FEFA8E070105000000010175B6000000
-//        // 2. The hardware swaps the CRC bytes in the close response: returns 0B2F instead of 2F0B
-//        if(dataReceive.startsWith("FEFA8E070105000000010175B6") || dataReceive.startsWith("FEFA8E03020501")) {
-//            val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
-//            if (dataReceive.startsWith("FEFA8E070105000000010175B6")) {
-//                FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: open")
-//                broadcastIntent.putExtra("status", "open")
-//            } else if (dataReceive.startsWith("FEFA8E03020501")) {
-//                FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: close")
-//                broadcastIntent.putExtra("status", "close")
-//            }
-//            sendBroadcast(broadcastIntent)
-//        }
-//    }
+    private fun handleConveyorDoorData(comBean: ComBean) {
+        val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
+        FileLogger.log(applicationContext, "SerialPortService", "Conveyor door data: $dataReceive")
+        
+        // Note: We use startsWith() instead of strict == to account for hardware protocol quirks:
+        // 1. The hardware appends trailing zeros to the open response: FEFA8E070105000000010175B6000000
+        // 2. The hardware swaps the CRC bytes in the close response: returns 0B2F instead of 2F0B
+        if(dataReceive.startsWith("FEFA8E070105000000010175B6") || dataReceive.startsWith("FEFA8E03020501")) {
+            val broadcastIntent = Intent("com.washcloud.conveyor_door_status")
+            if (dataReceive.startsWith("FEFA8E070105000000010175B6")) {
+                FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: open")
+                broadcastIntent.putExtra("status", "open")
+            } else if (dataReceive.startsWith("FEFA8E03020501")) {
+                FileLogger.log(applicationContext, "SerialPortService", "Conveyor door status: close")
+                broadcastIntent.putExtra("status", "close")
+            }
+            sendBroadcast(broadcastIntent)
+        }
+    }
 
-//    private fun handleConveyorData(comBean: ComBean) {
-//        val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
-//        FileLogger.log(applicationContext, "SerialPortService", "Conveyor data: $dataReceive")
-//        if(dataReceive.startsWith("010302")){
-//            if(dataReceive.substring(6, 10) != "0000"){
-//                GlobalScope.launch {
-//                    delay(1000)
-//                    serialHelperConveyor.sendHex("0103600200013BCA")
-//                }
-//            }else{
-//                val broadcastIntent = Intent("com.washcloud.conveyor_move")
-//                broadcastIntent.putExtra("status", "open")
-//                sendBroadcast(broadcastIntent)
-//            }
-//        }
-//        // Note: Using startsWith directly for the close position (01066002002037D2) instead of nesting inside an
-//        // outer startsWith("01066002001037") which evaluates a different command prefix.
-//        if(dataReceive.startsWith("01066002002037")) {
-//            val broadcastIntent = Intent("com.washcloud.conveyor_move")
-//            // This hex response indicates the conveyor has successfully returned to its initial (zero) position.
-//            // Therefore, we broadcast the "close" status to update the UI and reset our internal position tracker.
-//            broadcastIntent.putExtra("status", "close")
-//            position = 0
-//            sendBroadcast(broadcastIntent)
-//        }
-//
-//
-//
-//    }
+    private fun handleConveyorData(comBean: ComBean) {
+        val dataReceive = ByteUtil.ByteArrToHex(comBean.bRec)
+        FileLogger.log(applicationContext, "SerialPortService", "Conveyor data: $dataReceive")
+        if(dataReceive.startsWith("010302")){
+            if(dataReceive.substring(6, 10) != "0000"){
+                GlobalScope.launch {
+                    delay(1000)
+                    serialHelperConveyor.sendHex("0103600200013BCA")
+                }
+            }else{
+                val broadcastIntent = Intent("com.washcloud.conveyor_move")
+                broadcastIntent.putExtra("status", "open")
+                sendBroadcast(broadcastIntent)
+            }
+        }
+        // Note: Using startsWith directly for the close position (01066002002037D2) instead of nesting inside an 
+        // outer startsWith("01066002001037") which evaluates a different command prefix.
+        if(dataReceive.startsWith("01066002002037")) {
+            val broadcastIntent = Intent("com.washcloud.conveyor_move")
+            // This hex response indicates the conveyor has successfully returned to its initial (zero) position.
+            // Therefore, we broadcast the "close" status to update the UI and reset our internal position tracker.
+            broadcastIntent.putExtra("status", "close")
+            position = 0
+            sendBroadcast(broadcastIntent)
+        }
+
+
+
+    }
 
     private fun decimalToTwoDigitHex(value: Int): String {
         return String.format("%02X", value)
@@ -351,8 +391,7 @@ class SerialPortService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         serialHelper.close()
-//        serialHelperConveyor.close()
-//        serialHelperConveyorDoor.close()
+        stopConveyorSockets()
         unregisterReceiver(dataReceiver)
     }
 
