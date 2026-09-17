@@ -38,6 +38,7 @@
     <string name="time">Time: </string>
     <string name="continue_to_drop_off">Continue to Drop Off</string>
     <string name="recall_clothes">Recall Clothes</string>
+    <string name="enable_recall_clothes_setting">Enable Recall Clothes</string>
     <string name="select_locker">1- Select Locker</string>
     <string name="drop_off_clothes">2- Drop Off Clothes</string>
     <string name="admin_login">Admin Login</string>
@@ -70,6 +71,7 @@
     <string name="terminal_sn">Terminal S/N</string>
     <string name="branch_id">Branch ID</string>
     <string name="delay_millis">Delay Millis</string>
+    <string name="timer_seconds">Timer (seconds)</string>
     <string name="reset_database_instruction">To reset the database, click on the button below</string>
     <string name="reset_database">Reset Database</string>
     <string name="daily_reboot_schedule">Daily Reboot Schedule</string>

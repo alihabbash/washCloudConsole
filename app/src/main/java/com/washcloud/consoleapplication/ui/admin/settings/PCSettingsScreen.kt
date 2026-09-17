@@ -215,6 +215,17 @@ fun PCSettingsScreen(
                 }
 
                 item {
+                    SettingItem(
+                        screenWidth = screenWidth,
+                        screenHeight = screenHeight,
+                        label =  stringResource(R.string.timer_seconds),
+                        value =  viewModel.timerSeconds.value,
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        onValueChange = { viewModel.timerSeconds.value = it },
+                    )
+                }
+
+                item {
                     Spacer(modifier = Modifier.height(24.dp))
                 }
 
@@ -746,6 +757,58 @@ fun PCSettingsScreen(
                                     onCheckedChange  = {
                                         viewModel.isConveyorEnabled.value = it
                                         viewModel.saveIsConveyorEnabled()
+                                    },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = secondaryColor,
+                                        uncheckedThumbColor = Color.Gray
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .border(
+                                color = borderColor,
+                                width = 1.dp,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .shadow(3.dp, shape = RoundedCornerShape(24.dp))
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column( modifier =
+                        Modifier
+                            .height(0.10 * screenHeight)
+                            .padding(8.dp)
+                            .padding(top = 8.dp, bottom = 8.dp),
+                            verticalArrangement = Arrangement.SpaceBetween,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.enable_recall_clothes_setting),
+                                    style = TextStyle(
+                                        fontSize = (screenWidth.value * 0.035f).sp,
+                                        color = secondaryColor,
+                                    )
+                                )
+                                Switch(
+                                    checked = viewModel.isRecallClothesEnabled.value,
+                                    onCheckedChange  = {
+                                        viewModel.isRecallClothesEnabled.value = it
+                                        viewModel.saveIsRecallClothesEnabled()
                                     },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = secondaryColor,

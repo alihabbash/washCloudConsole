@@ -39,6 +39,7 @@
     <string name="time">: الوقت</string>
     <string name="continue_to_drop_off">المتابعة للإنزال</string>
     <string name="recall_clothes">إسترجاع الملابس</string>
+    <string name="enable_recall_clothes_setting">تفعيل استرجاع الملابس</string>
     <string name="select_locker">1- اختر النوع</string>
     <string name="drop_off_clothes">2- إنزال الملابس</string>
     <string name="admin_login">تسجيل دخول كمسؤول</string>
@@ -71,6 +72,7 @@
     <string name="terminal_sn">الرقم التسلسلي للجهاز</string>
     <string name="branch_id">معرف الفرع</string>
     <string name="delay_millis">التأخير بالميلي ثانية</string>
+    <string name="timer_seconds">المؤقت (ثواني)</string>
     <string name="reset_database_instruction">لإعادة تعيين قاعدة البيانات ، انقر على الزر أدناه</string>
     <string name="reset_database">إعادة تعيين قاعدة البيانات</string>
     <string name="daily_reboot_schedule">جدول إعادة التشغيل اليومي</string>
