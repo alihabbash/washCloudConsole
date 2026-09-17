@@ -5,9 +5,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager.getDefaultSharedPreferences
 import com.washcloud.consoleapplication.local.database.dao.BoxDao
 import com.washcloud.consoleapplication.local.database.dao.TransactionDao
 import com.washcloud.consoleapplication.local.database.dto.BoxDto
@@ -15,6 +17,7 @@ import com.washcloud.consoleapplication.local.database.dto.TransactionDto
 import com.washcloud.consoleapplication.local.database.utils.BoxState
 import com.washcloud.consoleapplication.local.database.utils.BoxType
 import com.washcloud.consoleapplication.local.database.utils.TransactionType
+import com.washcloud.consoleapplication.local.preferences.IS_RECALL_CLOTHES_ENABLED_KEY
 import com.washcloud.consoleapplication.local.preferences.PrefsManager
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffRequest
 import com.washcloud.consoleapplication.remote.model.dropoff.StaffDropoffResponse
@@ -57,6 +60,10 @@ class DropOffViewModel @Inject constructor(
 
     val _staffRecallResponse = MutableStateFlow<StaffRecallResponse?>(null)
     val staffRecallResponse: StateFlow<StaffRecallResponse?> get() = _staffRecallResponse
+
+    private val sharedPreferences = getDefaultSharedPreferences(application)
+    val isRecallClothesEnabled = mutableStateOf(sharedPreferences.getBoolean(IS_RECALL_CLOTHES_ENABLED_KEY, true))
+
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> get() = _error

@@ -105,7 +105,7 @@ fun DropOffView(
                 }
             }
 
-            BottomButtons(screenWidth, screenHeight, showContinueToDropOff) {
+            BottomButtons(screenWidth, screenHeight, viewModel.isRecallClothesEnabled.value, showContinueToDropOff) {
 
                 if (selectedIndex == -1) {
                     showAlert = true
@@ -404,7 +404,7 @@ fun NoTransactionsMessage(screenWidth: Dp) {
 }
 
 @Composable
-fun BottomButtons(screenWidth: Dp, screenHeight: Dp, showContinueToDropOff: () -> Unit, recall: () -> Unit){
+fun BottomButtons(screenWidth: Dp, screenHeight: Dp, isRecallClothesEnabled: Boolean, showContinueToDropOff: () -> Unit, recall: () -> Unit){
     Row(
         modifier = Modifier
             .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp)
@@ -431,26 +431,26 @@ fun BottomButtons(screenWidth: Dp, screenHeight: Dp, showContinueToDropOff: () -
                 end = (screenWidth.value * 0.04f).dp
             )
 
-        Box(
-            modifier = buttonModifier.clickable {
-
-                recall()
-
-            },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(id = R.string.recall_clothes),
-                style = TextStyle(
-                    color = Color.White,
-                    fontSize = (screenWidth.value * 0.03f).sp,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
+        if (isRecallClothesEnabled) {
+            Box(
+                modifier = buttonModifier.clickable {
+                    recall()
+                },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(id = R.string.recall_clothes),
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = (screenWidth.value * 0.03f).sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-            )
-        }
+            }
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+        }
 
         Box(
             modifier = buttonModifier.clickable {

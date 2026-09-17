@@ -35,11 +35,13 @@ class PCSettingsViewModel @Inject constructor(
     var isDropOffDisabled = mutableStateOf(false)
     var isKioskEnabled = mutableStateOf(true)
     var isConveyorEnabled = mutableStateOf(true)
+    var isRecallClothesEnabled = mutableStateOf(true)
     var branchApiKey = mutableStateOf("")
     var apiKey = mutableStateOf("")
     var terminalSn = mutableStateOf("")
     var branchId = mutableStateOf("")
     var delayMillis = mutableStateOf("")
+    var timerSeconds = mutableStateOf("")
     var serverOption = mutableStateOf("")
     var customServer = mutableStateOf("")
 
@@ -60,11 +62,13 @@ class PCSettingsViewModel @Inject constructor(
             isDropOffDisabled.value = sharedPreferences.getBoolean(IS_DROP_OFF_DISABLED_KEY, false)
             isKioskEnabled.value = sharedPreferences.getBoolean(IS_KIOSK_ENABLED_KEY, true)
             isConveyorEnabled.value = sharedPreferences.getBoolean(IS_CONVEYOR_ENABLED_KEY, true)
+            isRecallClothesEnabled.value = sharedPreferences.getBoolean(IS_RECALL_CLOTHES_ENABLED_KEY, true)
             branchApiKey.value = sharedPreferences.getString(BRANCH_API_KEY_KEY, "") ?: ""
             apiKey.value = sharedPreferences.getString(API_KEY_KEY, "cb71a12703264742b5b8") ?: ""
             terminalSn.value = sharedPreferences.getString(TERMINAL_SN_KEY, "21222213701A-001") ?: ""
             branchId.value = sharedPreferences.getString(BRANCH_ID_KEY, "28") ?: ""
             delayMillis.value = sharedPreferences.getString(DELAY_MILLIS_KEY, "600000") ?: ""
+            timerSeconds.value = sharedPreferences.getString(TIMER_SECONDS_KEY, "180") ?: "180"
 
             serverOption.value = sharedPreferences.getString(SERVER_OPTION, BASE_URL_DEV) ?: BASE_URL_DEV
             customServer.value = sharedPreferences.getString(CUSTOM_SERVER, "") ?: ""
@@ -106,6 +110,7 @@ class PCSettingsViewModel @Inject constructor(
             putString(TERMINAL_SN_KEY, terminalSn.value)
             putString(BRANCH_ID_KEY, branchId.value)
             putString(DELAY_MILLIS_KEY, delayMillis.value)
+            putString(TIMER_SECONDS_KEY, timerSeconds.value)
             putString(SERVER_OPTION, serverOption.value)
             putString(CUSTOM_SERVER, customServer.value)
             putBoolean(IS_V2_API_ENABLED_KEY, isV2ApiEnabled.value)
@@ -169,5 +174,12 @@ class PCSettingsViewModel @Inject constructor(
         val intent = android.content.Intent("com.washcloud.conveyor_mode_changed")
         intent.putExtra("is_enabled", isConveyorEnabled.value)
         getApplication<Application>().sendBroadcast(intent)
+    }
+
+    fun saveIsRecallClothesEnabled() {
+        with(sharedPreferences.edit()) {
+            putBoolean(IS_RECALL_CLOTHES_ENABLED_KEY, isRecallClothesEnabled.value)
+            apply()
+        }
     }
 }

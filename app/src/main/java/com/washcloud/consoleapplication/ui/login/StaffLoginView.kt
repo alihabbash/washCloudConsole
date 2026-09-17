@@ -77,6 +77,10 @@ fun LoginForm(
     }
     val timerViewModel: TimerViewModel = hiltViewModel()
 
+    LaunchedEffect(Unit) {
+        timerViewModel.startTimeWatcher()
+    }
+
     val interactionModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(onTap = {
             timerViewModel.pauseTimer()

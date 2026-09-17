@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.preference.PreferenceManager
 import com.washcloud.consoleapplication.local.preferences.DELAY_MILLIS_KEY
+import com.washcloud.consoleapplication.local.preferences.TIMER_SECONDS_KEY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +38,8 @@ class TimerViewModel @Inject constructor(
         cancelTimer()
         resumeJob?.cancel()
         
-        // 3 minutes countdown total
-        remainingTime = 180_000L
+        val seconds = sharedPreferences.getString(TIMER_SECONDS_KEY, "180")?.toLongOrNull() ?: 180L
+        remainingTime = seconds * 1000L
         timerPaused = false
 
         _timerText.value = "" // Clear text during inactivity delay
