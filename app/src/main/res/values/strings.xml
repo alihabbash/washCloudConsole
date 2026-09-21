@@ -89,6 +89,7 @@
     <string name="wrong_credentials">Wrong Credentials</string>
     <string name="exit">Exit</string>
     <string name="exit_to_android">Exit to Android</string>
+    <string name="shutdown_and_restart">Shutdown and restart</string>
     <string name="reboot">Reboot</string>
     <string name="shutdown">Shutdown</string>
     <string name="exit_admin">Exit Admin</string>

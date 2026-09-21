@@ -18,6 +18,7 @@ sealed class SelectedView{
     object AdminLockerScreen: SelectedView()
     object ExitAdminView: SelectedView()
     object AddLockerScreen: SelectedView()
+    object PowerManagementView: SelectedView()
     object StaticQrLoginScreen: SelectedView()
     object SetPasswordScreen: SelectedView()
     object StoredCustomersScreen: SelectedView()

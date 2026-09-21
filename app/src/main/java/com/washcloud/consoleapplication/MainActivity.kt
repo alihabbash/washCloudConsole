@@ -61,6 +61,7 @@ import com.washcloud.consoleapplication.local.preferences.PHONE_NUMBER
 import com.washcloud.consoleapplication.ui.admin.adminSetting.SubAdminSettingsScreen
 import com.washcloud.consoleapplication.ui.admin.ads.AdsManagementScreen
 import com.washcloud.consoleapplication.ui.admin.exit.ExitAdminView
+import com.washcloud.consoleapplication.ui.admin.power.PowerManagementView
 import com.washcloud.consoleapplication.ui.admin.locker.AddLockerScreen
 import com.washcloud.consoleapplication.ui.admin.locker.AdminLockerScreen
 import com.washcloud.consoleapplication.ui.admin.login.AdminLogInView
@@ -323,6 +324,7 @@ class MainActivity : ComponentActivity() {
                         is SelectedView.AdsManagementScreen,
                         is SelectedView.AdminLockerScreen,
                         is SelectedView.ExitAdminView,
+                        is SelectedView.PowerManagementView,
                         is SelectedView.AddLockerScreen,
                         is SelectedView.StoredCustomersScreen -> true
                         else -> false
@@ -511,6 +513,7 @@ class MainActivity : ComponentActivity() {
                 showAdminSetting = { mainViewModel.addToStack(SelectedView.SubAdminSettingsScreen) },
                 showAdsSetting = { mainViewModel.addToStack(SelectedView.AdsManagementScreen) },
                 showLockerManagement = { mainViewModel.addToStack(SelectedView.AdminLockerScreen) },
+                showPowerManagement = { mainViewModel.addToStack(SelectedView.PowerManagementView) },
                 showAd2 = onTimeout,
                 onBack = { mainViewModel.addToStack(SelectedView.ExitAdminView) }
             )
@@ -582,6 +585,14 @@ class MainActivity : ComponentActivity() {
                         finishAffinity();
                         System.exit(0)
                     },
+                    logoutAdmin = { mainViewModel.resetStack() },
+                    showAd2 = onTimeout,
+                    onBack = { mainViewModel.popStack() }
+                )
+            is SelectedView.PowerManagementView ->
+                PowerManagementView(
+                    screenWidth = screenWidth,
+                    screenHeight = screenHeight,
                     rebootAndroid = {
                         try {
                             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
@@ -600,7 +611,6 @@ class MainActivity : ComponentActivity() {
                             e.printStackTrace()
                         }
                     },
-                    logoutAdmin = { mainViewModel.resetStack() },
                     showAd2 = onTimeout,
                     onBack = { mainViewModel.popStack() }
                 )
