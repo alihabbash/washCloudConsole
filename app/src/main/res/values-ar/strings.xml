@@ -93,6 +93,7 @@
     <string name="reboot">إعادة تشغيل</string>
     <string name="shutdown">إيقاف تشغيل</string>
     <string name="exit_admin">الخروج من الإدارة</string>
+    <string name="shutdown_and_restart">إيقاف التشغيل وإعادة التشغيل</string>
     <string name="add_more_lokers">إضافة المزيد من الخزن</string>
     <string name="add_locker">إضافة خزنة</string>
     <string name="box_id">معرف الخزنة</string>

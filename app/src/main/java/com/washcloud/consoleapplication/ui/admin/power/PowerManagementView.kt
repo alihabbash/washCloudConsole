@@ -1,6 +1,4 @@
-package com.washcloud.consoleapplication.ui.admin.exit
-
-
+package com.washcloud.consoleapplication.ui.admin.power
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,10 +8,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,11 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -38,25 +32,27 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.washcloud.consoleapplication.R
+import com.washcloud.consoleapplication.ui.admin.login.AdminLoginViewModel
+import com.washcloud.consoleapplication.ui.common.AdminPasswordPad
 import com.washcloud.consoleapplication.ui.common.BottomNavigationWithBackAndTimer
 import com.washcloud.consoleapplication.ui.common.TimerViewModel
 import com.washcloud.consoleapplication.ui.common.dateAndTimeView
-import com.washcloud.consoleapplication.ui.startStaff.DateTimeViewModel
 import com.washcloud.consoleapplication.utils.*
 
 @Composable
-fun ExitAdminView(
+fun PowerManagementView(
     screenWidth: Dp,
     screenHeight: Dp,
-    exitToAndroid: () -> Unit,
-    logoutAdmin: () -> Unit,
+    rebootAndroid: () -> Unit,
+    shutdown: () -> Unit,
     showAd2: () -> Unit,
     onBack: () -> Unit
 ) {
-
     val timerViewModel: TimerViewModel = hiltViewModel()
-    var showDialog by remember { mutableStateOf(false) }
-    var dialogAction by remember { mutableStateOf<() -> Unit>({}) }
+    val adminLoginViewModel: AdminLoginViewModel = hiltViewModel()
+    
+    var showPasswordPad by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<() -> Unit>({}) }
 
     val interactionModifier = Modifier.pointerInput(Unit) {
         detectTapGestures(onTap = {
@@ -71,129 +67,55 @@ fun ExitAdminView(
             .then(interactionModifier)
     ) {
         Spacer(modifier = Modifier.height(24.dp))
-        TitleText(stringResource(id = R.string.exit), screenWidth)
+        TitleText(stringResource(id = R.string.shutdown_and_restart), screenWidth)
         Spacer(modifier = Modifier.height(24.dp))
 
         dateAndTimeView(screenWidth = screenWidth)
 
-        MenuGrid(
+        PowerMenuGrid(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            exitToAndroid = {
-                dialogAction = exitToAndroid
-                showDialog = true
+            rebootAndroid = {
+                pendingAction = rebootAndroid
+                showPasswordPad = true
             },
-            logoutAdmin = {
-                dialogAction = logoutAdmin
-                showDialog = true
+            shutdown = {
+                pendingAction = shutdown
+                showPasswordPad = true
             }
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Footer(screenWidth)
-
-        BottomNavigationWithBackAndTimer(screenWidth, screenHeight,  isAdmin = false, timerViewModel, showAd2, onBack)
-
-
+        BottomNavigationWithBackAndTimer(screenWidth, screenHeight, isAdmin = true, timerViewModel, showAd2, onBack)
     }
 
-    if (showDialog) {
-
-
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+    if (showPasswordPad) {
+        Box(
             modifier = Modifier
                 .width(screenWidth)
                 .height(screenHeight)
                 .background(dimBackground)
+                .clickable { showPasswordPad = false },
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier =
-                Modifier
-                    .clip(
-                        RoundedCornerShape(0.02 * screenWidth)
-                    )
-                    .background(color = Color.White)
-                    .width(0.8 * screenWidth)
-                    .height(0.15 * screenHeight)
-                    .padding(start = 16.dp, end = 16.dp),
-
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.confirmation_message),
-                        style = TextStyle(
-                            fontSize = 32.sp,
-                            color = primaryDark
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Custom Confirm & Cancel Buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(secondaryColor)
-                                .clickable {
-                                    dialogAction()
-                                    showDialog = false
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.yes),
-                                style = TextStyle(
-                                    color = Color.White,
-                                    fontSize = (screenWidth.value * 0.024f).sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier.padding(12.dp)
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.Gray)
-                                .clickable {
-                                    showDialog = false
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.no),
-                                style = TextStyle(
-                                    color = Color.White,
-                                    fontSize = (screenWidth.value * 0.024f).sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier.padding(12.dp)
-                            )
-                        }
-                    }
-                }
-            }
+            AdminPasswordPad(
+                modifier = Modifier.width(0.8f * screenWidth),
+                viewModel = adminLoginViewModel,
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                onSuccess = { 
+                    pendingAction()
+                    showPasswordPad = false 
+                },
+                onCancel = { showPasswordPad = false }
+            )
         }
     }
 }
 
 @Composable
-fun TitleText(text: String, screenWidth: Dp) {
+private fun TitleText(text: String, screenWidth: Dp) {
     Text(
         text = text,
         style = TextStyle(
@@ -207,11 +129,11 @@ fun TitleText(text: String, screenWidth: Dp) {
 }
 
 @Composable
-fun MenuGrid(
+private fun PowerMenuGrid(
     screenWidth: Dp,
     screenHeight: Dp,
-    exitToAndroid: () -> Unit,
-    logoutAdmin: () -> Unit,
+    rebootAndroid: () -> Unit,
+    shutdown: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -231,46 +153,37 @@ fun MenuGrid(
             MenuItem(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                title = stringResource(id = R.string.exit_to_android),
-                icon = R.drawable.exit_android,
-                action = { exitToAndroid() }
+                title = stringResource(id = R.string.shutdown),
+                icon = R.drawable.shutdown,
+                action = { shutdown() }
             )
             Spacer(modifier = Modifier.width((screenWidth.value * 0.04f).dp))
             MenuItem(
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                title = stringResource(id = R.string.exit_admin),
-                icon = R.drawable.logout,
-                action = { logoutAdmin() }
+                title = stringResource(id = R.string.reboot),
+                icon = R.drawable.reboot,
+                action = { rebootAndroid() }
             )
         }
     }
 }
 
-
-
-
 @Composable
-fun MenuItem(
+private fun MenuItem(
     screenWidth: Dp,
     screenHeight: Dp,
     title: String,
     icon: Int,
     action: () -> Unit
 ) {
-
-
     Column(
         modifier = Modifier
             .width(0.4 * screenWidth)
             .height(0.23 * screenHeight)
             .border(1.dp, secondaryColor, RoundedCornerShape(24.dp))
             .padding(top = 24.dp, bottom = 24.dp)
-            .clickable {
-                action()
-            }
-        ,
-
+            .clickable { action() },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -302,7 +215,4 @@ fun MenuItem(
             textAlign = TextAlign.Center
         )
     }
-
-
 }
-

@@ -46,6 +46,7 @@ fun AdminMenuView(
     showAdminSetting: () -> Unit,
     showAdsSetting: () -> Unit,
     showLockerManagement: () -> Unit,
+    showPowerManagement: () -> Unit,
     showAd2: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -80,7 +81,8 @@ fun AdminMenuView(
             showSetting = showSetting,
             showAdminSetting = showAdminSetting,
             showAdsSetting = showAdsSetting,
-            showLockerManagement = showLockerManagement
+            showLockerManagement = showLockerManagement,
+            showPowerManagement = showPowerManagement
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -128,11 +130,12 @@ fun MenuGrid(
     showSetting: () -> Unit,
     showAdminSetting: () -> Unit,
     showAdsSetting: () -> Unit,
-    showLockerManagement: () -> Unit
+    showLockerManagement: () -> Unit,
+    showPowerManagement: () -> Unit
 ) {
     Column(
         modifier = Modifier
-            .padding(64.dp)
+            .padding(32.dp)
             .shadow(3.dp, RoundedCornerShape(24.dp))
             .border(1.dp, lightGrey, RoundedCornerShape(24.dp))
             .background(Color.White, shape = RoundedCornerShape(24.dp)),
@@ -159,6 +162,20 @@ fun MenuGrid(
             icon2 = R.drawable.admin_lockers,
             action2 = showLockerManagement
         )
+        Row(
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            MenuItem(
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                title = stringResource(id = R.string.shutdown_and_restart),
+                icon = R.drawable.shutdown,
+                action = showPowerManagement
+            )
+        }
     }
 }
 
@@ -175,7 +192,7 @@ fun MenuRow(
 ) {
     Row(
         modifier = Modifier
-            .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 32.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
@@ -208,9 +225,9 @@ fun MenuItem(
     Column(
         modifier = Modifier
             .width(0.4 * screenWidth)
-            .height(0.23 * screenHeight)
+            .height(0.20 * screenHeight)
             .border(1.dp, secondaryColor, RoundedCornerShape(24.dp))
-            .padding(top = 24.dp, bottom = 24.dp)
+            .padding(top = 16.dp, bottom = 16.dp)
             .clickable { action() },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
